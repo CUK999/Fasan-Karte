@@ -77,19 +77,19 @@
 | Sons of the Silent Age | adresse | 38.71104, -9.13862 | ok | 172, Rua Áurea, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal |
 | Avenida da Liberdade | name | 38.72035, -9.14572 | ok | Avenida da Liberdade, São José, Santo António, Madalena, Lissabon, 1250-144, Portugal |
 | Arco da Rua Augusta | name | 38.70844, -9.13682 | ok | Arco da Rua Augusta, Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1149-019, Portugal |
-| Cais das Colunas | pruefen | 38.70661, -9.13615 | nur über den Namen gefunden | Cais das Colunas, São Nicolau, Santa Maria Maior, Madalena, Lissabon, 1100-148, Portugal |
+| Cais das Colunas | manuell | 38.70661, -9.13615 | ok | Cais das Colunas, São Nicolau, Santa Maria Maior, Madalena, Lissabon, 1100-148, Portugal |
 | Rua da Bica de Duarte Belo | name | 38.70983, -9.14619 | ok | Rua da Bica de Duarte Belo, Santa Catarina, Misericórdia, Lissabon, 1200-056, Portugal |
 | Tram-Kurve Calçada de São Francisco | adresse | 38.70872, -9.13961 | ok | Calçada de São Francisco, Mártires, Santa Maria Maior, Madalena, Lissabon, 1200-005, Portugal |
 | Azulejo-Haus am Largo Rafael Bordalo Pinheiro | adresse | 38.71155, -9.14172 | ok | Largo Rafael Bordalo Pinheiro, Sacramento, Santa Maria Maior, Madalena, Lissabon, Portugal |
-| Convento do Carmo | pruefen | 38.71193, -9.14085 | Name und Adresse 27810 m auseinander | Convento de Sant' Ana da Ordem do Carmo, Caminho do Carmo, São Sebastião, Colares, Sintra, Lissabon, 2705-190, |
+| Convento do Carmo | manuell | 38.71193, -9.14085 | ok | Convento de Sant' Ana da Ordem do Carmo, Caminho do Carmo, São Sebastião, Colares, Sintra, Lissabon, 2705-190, |
 | Castelo de São Jorge | name | 38.71393, -9.13348 | ok | Castelo de São Jorge, Rua de Santa Cruz do Castelo, Castelo, Santa Maria Maior, Madalena, Lissabon, 1100-129,  |
 | Alfama-Gassen ab Largo de São Miguel | adresse | 38.71110, -9.12956 | ok | Largo de São Miguel, São Miguel, Santa Maria Maior, Madalena, Lissabon, Portugal |
 | Miradouro do Monte Agudo | name | 38.72592, -9.13115 | ok | Miradouro do Monte Agudo, Bairro das Novas Nações, Arroios, Lissabon, 1170-175, Portugal |
 | Pink Street (Rua Nova do Carvalho) | name | 38.70725, -9.14385 | ok | Pink Street, Rua Nova do Carvalho, Cais do Sodré, Misericórdia, Lissabon, 1200-292, Portugal |
 | MAAT-Dach | adresse | 38.69593, -9.19362 | ok | Museu de Arte, Arquitetura e Tecnologia (MAAT), Avenida de Brasília, São Francisco Xavier, Belém, Lissabon, 13 |
-| Fundação Champalimaud | pruefen | 38.69626, -9.19541 | Name und Adresse 2332 m auseinander | Fundação Champalimaud, Avenida de Brasília, Pedrouços, São Francisco Xavier, Belém, Lissabon, 1400-146, Portug |
+| Fundação Champalimaud | manuell | 38.69353, -9.22205 | ok | Fundação Champalimaud, Avenida de Brasília, Pedrouços, São Francisco Xavier, Belém, Lissabon, 1400-146, Portug |
 | Doca de Santo Amaro | name | 38.69937, -9.17754 | ok | Doca de Santo Amaro, Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1300-141, Portugal |
-| Pilar 7 (Brückenpfeiler) | adresse | 38.69884, -9.18197 | ok | Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1349-028, Portugal |
+| Experiência Pilar 7 | name | 38.70038, -9.17938 | ok | Experiência Pilar 7, 52, Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1300-141, Portugal |
 | Miradouro da Casa da Cerca | name | 38.68433, -9.15889 | ok | Miradouro da Casa da Cerca, Olho de Boi, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal,  |
-| Jardim do Castelo (Almada) | pruefen | 38.64934, -9.18941 | Name und Adresse 4825 m auseinander | Jardim do Castelo, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, Portugal |
-| Farol de Santa Marta | pruefen | 38.69039, -9.42098 | nur über den Namen gefunden | Farol de Santa Marta, Farol Museu de Santa Marta, Gandarinha, Cascais e Estoril, Cascais, Lissabon, 2750-341,  |
+| Jardim do Castelo (Almada) | manuell | 38.68432, -9.15654 | ok | Jardim do Castelo, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, Portugal |
+| Farol de Santa Marta | manuell | 38.69039, -9.42098 | ok | Farol de Santa Marta, Farol Museu de Santa Marta, Gandarinha, Cascais e Estoril, Cascais, Lissabon, 2750-341,  |

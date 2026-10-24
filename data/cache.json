@@ -4813,7 +4813,7 @@
     }
    }
   },
-  "Pilar 7 (Brückenpfeiler)|Avenida da Índia, 1349-028 Lisboa": {
+  "Experiência Pilar 7|Avenida da Índia, 1349-028 Lisboa": {
    "a_n_geholt": true,
    "a": {
     "lat": 38.698842,
@@ -4833,7 +4833,22 @@
      "description": "Toponímia: Países, Expansão Portuguesa. Início: Avenida 24 de Julho. Fim: Algés."
     }
    },
-   "n": null,
+   "n": {
+    "lat": 38.70038,
+    "lon": -9.179384,
+    "anzeige": "Experiência Pilar 7, 52, Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1300-141, Portugal",
+    "osm": "way/1385139143",
+    "art": "tourism:museum",
+    "name": "Experiência Pilar 7",
+    "tags": {
+     "fee": "yes",
+     "email": "info@lismarketing.pt",
+     "phone": "+351 21 111 7880",
+     "museum": "architecture",
+     "website": "https://www.visitlisboa.com/pt-pt/locais/experiencia-pilar-7",
+     "opening_hours": "Mo-Su 10:00-18:00; Dec 25 off"
+    }
+   },
    "datum": "2026-10-24",
    "wiki": {
     "wd": null,

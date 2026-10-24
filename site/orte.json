@@ -1948,7 +1948,7 @@
   "stand": "2026-10-24",
   "lat": 38.706615,
   "lon": -9.136153,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "rollstuhl": "limited"
   },
@@ -2040,7 +2040,7 @@
   "stand": "2026-10-24",
   "lat": 38.711929,
   "lon": -9.140845,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {},
   "wiki": {
    "text": "Der Largo do Carmo ist ein typischer kleiner Platz der portugiesischen Hauptstadt Lissabon im Altstadtviertel Chiado. In der Mitte des Platzes steht der Springbrunnen Chafariz do Carmo von 1771, umgeben von Jacaranda-Bäumen, die dem gesamten Bereich Schatten spenden.\nObwohl das Areal klein ist, hat es große historische Bedeutung. Er liegt bei den Ruinen des Convento do Carmo, einem ehemaligen Kloster des Karmeliter-Ordens aus dem 14.",
@@ -2185,11 +2185,11 @@
   "notiz": "Geschwungene Steinmauern, große Rundöffnungen, Wasserbecken mit Spiegelungen. Früh, goldene oder blaue Stunde, Stativ empfohlen, Polfilter. Wege eben, Außenbereich frei. Quellen: pixeoapp.com (29.03.2026), Visit Lisboa (ohne Datum)",
   "typ": "foto",
   "stand": "2026-10-24",
-  "lat": 38.69626,
-  "lon": -9.195411,
-  "quelle": "pruefen",
+  "lat": 38.693531,
+  "lon": -9.222055,
+  "quelle": "manuell",
   "infos": {
-   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=171"
+   "webseite": "www.fchampalimaud.org"
   }
  },
  {
@@ -2218,19 +2218,21 @@
   }
  },
  {
-  "id": "pilar-7-bruckenpfeiler",
-  "name": "Pilar 7 (Brückenpfeiler)",
+  "id": "experiencia-pilar-7",
+  "name": "Experiência Pilar 7",
   "adresse": "Avenida da Índia, 1349-028 Lisboa",
   "ort": "Lisboa",
   "kategorie": "Foto",
   "notiz": "Plattform in etwa 80 m Höhe, teils Glasboden. Später Nachmittag: warmes Licht auf rotem Stahl. Täglich 10–18 Uhr, etwa 6 €. Visit Lisboa meldet „Aufzug in Reparatur“ (ohne Datum), vor Ort klären. Quellen: thebettervacation.com (02.09.2026), Time Out (25.07.2024)",
   "typ": "foto",
   "stand": "2026-10-24",
-  "lat": 38.698842,
-  "lon": -9.181973,
-  "quelle": "adresse",
+  "lat": 38.70038,
+  "lon": -9.179384,
+  "quelle": "name",
   "infos": {
-   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1211"
+   "oeffnungszeiten": "Mo-Su 10:00-18:00; Dec 25 off",
+   "webseite": "https://www.visitlisboa.com/pt-pt/locais/experiencia-pilar-7",
+   "telefon": "+351 21 111 7880"
   }
  },
  {
@@ -2256,9 +2258,9 @@
   "notiz": "Lissabon am Horizont, Ponte 25 de Abril, Cristo Rei; Standpunkt am Gartenrand. Anstieg über Rua Elias Garcia. Quelle: livetheworld.com (19.09.2022)",
   "typ": "foto",
   "stand": "2026-10-24",
-  "lat": 38.649339,
-  "lon": -9.189414,
-  "quelle": "pruefen",
+  "lat": 38.684324,
+  "lon": -9.156538,
+  "quelle": "manuell",
   "infos": {}
  },
  {
@@ -2270,9 +2272,9 @@
   "notiz": "Leuchtturm mit Villa. Sonnenuntergang am schönsten. Weitwinkel, ND-Filter, Stativ erlaubt. Unebene Wege. Quellen: photohound.co, visitcascais.com (ohne Datum)",
   "typ": "foto",
   "stand": "2026-10-24",
-  "lat": 38.690394,
-  "lon": -9.420975,
-  "quelle": "pruefen",
+  "lat": 38.69039,
+  "lon": -9.42098,
+  "quelle": "manuell",
   "infos": {},
   "wiki": {
    "text": "O farol de Santa Marta é um farol português que se localiza no Forte de Santa Marta, na Ponta do Salmôdo, vila de Cascais, distrito de Lisboa.\nTrata-se de uma torre quadrangular de alvenaria, revestida com azulejos, branca, com faixas horizontais azuis e lanterna vermelha; tem 20 metros de altura.",

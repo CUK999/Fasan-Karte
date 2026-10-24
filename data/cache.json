@@ -2076,55 +2076,6 @@
     }
    }
   },
-  "Panorâmico de Monsanto|Panorâmico de Monsanto, Alto da Serafina, Lisboa": {
-   "a_n_geholt": true,
-   "a": null,
-   "n": {
-    "lat": 38.728633,
-    "lon": -9.184572,
-    "anzeige": "Restaurante Panorâmico de Monsanto, Estrada da Bela Vista, Benfica, Lissabon, 1500-000, Portugal",
-    "osm": "way/171140206",
-    "art": "building:ruins",
-    "name": "Restaurante Panorâmico de Monsanto",
-    "tags": {
-     "ele": "200",
-     "height": "13",
-     "tourism": "attraction",
-     "website": "https://informacoeseservicos.lisboa.pt/contactos/diretorio-da-cidade/miradouro-panoramico-de-monsanto",
-     "building": "ruins",
-     "wikidata": "Q56347206",
-     "architect": "Carlos Chaves da Costa",
-     "building:levels": "5"
-    }
-   },
-   "datum": "2026-10-24",
-   "wiki": {
-    "wd": {
-     "qid": "Q56347206",
-     "bild": "Panorâmico Monsanto.jpg",
-     "koord": null,
-     "titel": {
-      "pt": "Restaurante Panorâmico de Monsanto"
-     }
-    },
-    "text": {
-     "lang": "pt",
-     "titel": "Restaurante Panorâmico de Monsanto",
-     "text": "O Restaurante Panorâmico de Monsanto é um edifício localizado nos Montes Claros, em Monsanto, Lisboa, construído no Estado Novo. O edifício é da autoria do arquitecto Chaves Costa.\nTrata-se de um edifício circular, com um raio de 16 metros, cinco pisos e uma vista panorâmica de 270 graus.\nApós décadas de abandono, foi convertido num Miradouro municipal.",
-     "url": "https://pt.wikipedia.org/wiki/Restaurante_Panor%C3%A2mico_de_Monsanto",
-     "seitenbild": "Panorâmico_Monsanto.jpg"
-    },
-    "bild": {
-     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c4/Panor%C3%A2mico_Monsanto.jpg/960px-Panor%C3%A2mico_Monsanto.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
-     "autor": "Hipersyl",
-     "lizenz": "CC BY-SA 4.0",
-     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
-     "quelle": "https://commons.wikimedia.org/wiki/File:Panor%C3%A2mico_Monsanto.jpg",
-     "breite": 720,
-     "hoehe": 540
-    }
-   }
-  },
   "Miradouro de Santo Amaro|Miradouro de Santo Amaro, Lisboa": {
    "a_n_geholt": true,
    "a": {
@@ -4218,6 +4169,809 @@
      "quelle": "https://commons.wikimedia.org/wiki/File:Avenida_da_Liberdade_(22344060581)_(cropped).jpg",
      "breite": 720,
      "hoehe": 864
+    }
+   }
+  },
+  "Arco da Rua Augusta|Rua Augusta 2, 1100-053 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.709052,
+    "lon": -9.137044,
+    "anzeige": "Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1100-150, Portugal",
+    "osm": "way/906947639",
+    "art": "highway:pedestrian",
+    "name": "Rua Augusta",
+    "tags": {
+     "lit": "yes",
+     "width": "12",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2527",
+     "wikidata": "Q2304451",
+     "wikipedia": "pt:Rua Augusta (Lisboa)",
+     "description": "Toponímia: Monarquia. Início: Praça do Comércio. Fim: Praça D. Pedro IV.",
+     "name:etymology:wikidata": "Q1058391"
+    }
+   },
+   "n": {
+    "lat": 38.708443,
+    "lon": -9.136816,
+    "anzeige": "Arco da Rua Augusta, Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1149-019, Portugal",
+    "osm": "way/41683195",
+    "art": "tourism:attraction",
+    "name": "Arco da Rua Augusta",
+    "tags": {
+     "email": "info@atlx.pt",
+     "layer": "1",
+     "owner": "Estado Português",
+     "phone": "+351 21 099 8599",
+     "height": "15",
+     "building": "yes",
+     "historic": "monument",
+     "operator": "Câmara Municipal de Lisboa",
+     "wikidata": "Q637590",
+     "ownership": "national",
+     "wikipedia": "pt:Arco da Rua Augusta",
+     "roof:shape": "flat",
+     "start_date": "1875",
+     "inscription": "VIRTVTIBVS MAIORVM VT SIT OMNIBVS DOCVMENTO",
+     "building:colour": "white",
+     "building:height": "40",
+     "wikimedia_commons": "Category:Arco Triunfal da Rua Augusta"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q637590",
+     "bild": "Lisbon Praça do Comércio BW 2018-10-03 13-33-44 s.jpg",
+     "koord": [
+      38.7084,
+      -9.1368
+     ],
+     "titel": {
+      "de": "Arco da Rua Augusta",
+      "pt": "Arco da Rua Augusta",
+      "en": "Rua Augusta Arch"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Arco da Rua Augusta",
+     "text": "Der Arco da Rua Augusta ist ein Triumphbogen im Zentrum der portugiesischen Hauptstadt Lissabon. Er befindet sich an der Nordseite der Praça do Comércio und bildet den Auftakt der Rua Augusta, der Zentralachse der Baixa Pombalina.",
+     "url": "https://de.wikipedia.org/wiki/Arco_da_Rua_Augusta",
+     "seitenbild": "Arco_Triunfal_da_Rua_Augusta_from_Praça_do_Comércio_41.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/0a/Lisbon_Pra%C3%A7a_do_Com%C3%A9rcio_BW_2018-10-03_13-33-44_s.jpg/960px-Lisbon_Pra%C3%A7a_do_Com%C3%A9rcio_BW_2018-10-03_13-33-44_s.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Berthold Werner",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Lisbon_Pra%C3%A7a_do_Com%C3%A9rcio_BW_2018-10-03_13-33-44_s.jpg",
+     "breite": 720,
+     "hoehe": 965
+    }
+   }
+  },
+  "Cais das Colunas|Cais das Colunas, Praça do Comércio, 1100-148 Lisboa": {
+   "a_n_geholt": true,
+   "a": null,
+   "n": {
+    "lat": 38.706615,
+    "lon": -9.136153,
+    "anzeige": "Cais das Colunas, São Nicolau, Santa Maria Maior, Madalena, Lissabon, 1100-148, Portugal",
+    "osm": "way/189781497",
+    "art": "highway:pedestrian",
+    "name": "Cais das Colunas",
+    "tags": {
+     "lit": "yes",
+     "area": "yes",
+     "surface": "paving_stones",
+     "tourism": "attraction",
+     "wikidata": "Q18467136",
+     "wikipedia": "pt:Cais das Colunas",
+     "wheelchair": "limited",
+     "disused:man_made": "quay"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q18467136",
+     "bild": "Lisboa January 2015-11.jpg",
+     "koord": [
+      38.706754,
+      -9.136175
+     ],
+     "titel": {
+      "pt": "Cais das Colunas"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Cais das Colunas",
+     "text": "O Cais das Colunas localiza-se no Terreiro do Paço, no centro histórico da cidade, concelho e distrito de Lisboa, em Portugal. Permitia o acesso aos cacilheiros ou outras embarcações que fazem a trajectória entre o Terreiro do Paço e a Margem Sul do rio Tejo.",
+     "url": "https://pt.wikipedia.org/wiki/Cais_das_Colunas",
+     "seitenbild": "Terreiro_do_paço_3.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/6d/Lisboa_January_2015-11.jpg/960px-Lisboa_January_2015-11.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Alvesgaspar",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Lisboa_January_2015-11.jpg",
+     "breite": 720,
+     "hoehe": 959
+    }
+   }
+  },
+  "Rua da Bica de Duarte Belo|Rua da Bica de Duarte Belo, 1200-057 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.709831,
+    "lon": -9.146187,
+    "anzeige": "Rua da Bica de Duarte Belo, Santa Catarina, Misericórdia, Lissabon, 1200-056, Portugal",
+    "osm": "way/323314252",
+    "art": "highway:residential",
+    "name": "Rua da Bica de Duarte Belo",
+    "tags": {
+     "lit": "yes",
+     "oneway": "no",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=227",
+     "sidewalk": "both",
+     "description": "Toponímia: Equipamentos urbanos. Início: Travessa do Cabral. Fim: Largo do Calhariz.",
+     "lane_markings": "no",
+     "motor_vehicle": "private",
+     "embedded_rails": "funicular",
+     "sidewalk:both:surface": "sett"
+    }
+   },
+   "n": {
+    "lat": 38.709831,
+    "lon": -9.146187,
+    "anzeige": "Rua da Bica de Duarte Belo, Santa Catarina, Misericórdia, Lissabon, 1200-056, Portugal",
+    "osm": "way/323314252",
+    "art": "highway:residential",
+    "name": "Rua da Bica de Duarte Belo",
+    "tags": {
+     "lit": "yes",
+     "oneway": "no",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=227",
+     "sidewalk": "both",
+     "description": "Toponímia: Equipamentos urbanos. Início: Travessa do Cabral. Fim: Largo do Calhariz.",
+     "lane_markings": "no",
+     "motor_vehicle": "private",
+     "embedded_rails": "funicular",
+     "sidewalk:both:surface": "sett"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q99630",
+     "bild": "Ascensor da Bica 01.JPG",
+     "koord": [
+      38.708704,
+      -9.146783
+     ],
+     "titel": {
+      "pt": "Elevador da Bica",
+      "en": "Ascensor da Bica",
+      "de": "Ascensor da Bica"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Ascensor da Bica",
+     "text": "Der Ascensor da Bica, auch Elevador da Bica genannt, ist eine von drei historischen Standseilbahnen in Lissabon. Er verläuft durch die namensgebende Rua da Bica de Duarte Belcio im öffentlichen Straßenraum und verbindet die Rua de São Paulo mit dem in der Oberstadt gelegenen Largo do Calhariz. Die Anlage wird vom Verkehrsunternehmen Carris betrieben, ist als Linie 53E in das städtische Verkehrsnetz integriert und überwindet auf einer Länge von 283 Metern einen Höhenunterschied von 45 Metern, die durchschnittliche Steigung beträgt 18,5 Prozent. Wegen des Streckenverlaufes im Straßenraum laufen die Wagen auf Rillenschienen.",
+     "url": "https://de.wikipedia.org/wiki/Ascensor_da_Bica",
+     "seitenbild": "2019-05-17_11-22-55_PT_Lisbon_JHe_N_(54162366815).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/Ascensor_da_Bica_01.JPG/960px-Ascensor_da_Bica_01.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "BKP",
+     "lizenz": "CC BY-SA 3.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Ascensor_da_Bica_01.JPG",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Tram-Kurve Calçada de São Francisco|Calçada de São Francisco, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.708721,
+    "lon": -9.139615,
+    "anzeige": "Calçada de São Francisco, Mártires, Santa Maria Maior, Madalena, Lissabon, 1200-005, Portugal",
+    "osm": "way/23658617",
+    "art": "highway:tertiary",
+    "name": "Calçada de São Francisco",
+    "tags": {
+     "lit": "yes",
+     "lanes": "2",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1874",
+     "sidewalk": "both",
+     "description": "Toponímia: Igrejas e Ermidas. Início: Rua Vítor Cordon. Fim: Rua Nova do Almada."
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Azulejo-Haus am Largo Rafael Bordalo Pinheiro|Largo Rafael Bordalo Pinheiro, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711554,
+    "lon": -9.141723,
+    "anzeige": "Largo Rafael Bordalo Pinheiro, Sacramento, Santa Maria Maior, Madalena, Lissabon, Portugal",
+    "osm": "way/97362309",
+    "art": "place:square",
+    "name": "Largo Rafael Bordalo Pinheiro",
+    "tags": {
+     "start_date": "1915-02-11",
+     "description": "Toponímia: Artista Plástico. Início: Confluência da Rua Serpa Pinto, Rua da Trindade ."
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Convento do Carmo|Largo do Carmo, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711929,
+    "lon": -9.140845,
+    "anzeige": "Largo do Carmo, Sacramento, Santa Maria Maior, Madalena, Lissabon, Portugal",
+    "osm": "way/1356630058",
+    "art": "place:square",
+    "name": "Largo do Carmo",
+    "tags": {
+     "wikidata": "Q10316373"
+    }
+   },
+   "n": {
+    "lat": 38.79399,
+    "lon": -9.4438,
+    "anzeige": "Convento de Sant' Ana da Ordem do Carmo, Caminho do Carmo, São Sebastião, Colares, Sintra, Lissabon, 2705-190, Portugal",
+    "osm": "relation/6742759",
+    "art": "building:yes",
+    "name": "Convento de Sant' Ana da Ordem do Carmo",
+    "tags": {
+     "heritage": "2",
+     "historic": "monastery",
+     "religion": "christian",
+     "wikidata": "Q66814463",
+     "denomination": "roman_catholic",
+     "heritage:ref": "IIP",
+     "heritage:since": "2002",
+     "community:gender": "male",
+     "heritage:website": "https://servicos.dgpc.gov.pt/pesquisapatrimonioimovel/detalhes.php?code=73573",
+     "protection_title": "Imóvel de Interesse Público",
+     "heritage:operator": "dgpc"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q10316373",
+     "bild": "LargodoCarmo.jpg",
+     "koord": [
+      38.71194444,
+      -9.14083333
+     ],
+     "titel": {
+      "pt": "Largo do Carmo (Lisboa)",
+      "de": "Largo do Carmo"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Largo do Carmo",
+     "text": "Der Largo do Carmo ist ein typischer kleiner Platz der portugiesischen Hauptstadt Lissabon im Altstadtviertel Chiado. In der Mitte des Platzes steht der Springbrunnen Chafariz do Carmo von 1771, umgeben von Jacaranda-Bäumen, die dem gesamten Bereich Schatten spenden.\nObwohl das Areal klein ist, hat es große historische Bedeutung. Er liegt bei den Ruinen des Convento do Carmo, einem ehemaligen Kloster des Karmeliter-Ordens aus dem 14.",
+     "url": "https://de.wikipedia.org/wiki/Largo_do_Carmo",
+     "seitenbild": "+_Abends_mit_dem_Tuck-Tuck_durch_Lissabon._26.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ed/LargodoCarmo.jpg/960px-LargodoCarmo.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Ruipedrocarvalho",
+     "lizenz": "Public domain",
+     "lizenz_url": "",
+     "quelle": "https://commons.wikimedia.org/wiki/File:LargodoCarmo.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Castelo de São Jorge|Rua de Santa Cruz do Castelo, 1100-129 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.71228,
+    "lon": -9.133018,
+    "anzeige": "Rua de Santa Cruz do Castelo, Castelo, Santa Maria Maior, Madalena, Lissabon, 1100-129, Portugal",
+    "osm": "way/169004512",
+    "art": "highway:residential",
+    "name": "Rua de Santa Cruz do Castelo",
+    "tags": {
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1397",
+     "description": "Toponímia: Igrejas e Ermidas. Início: Rua do Chão da Feira. Fim: Largo de Santa Cruz do Castelo.",
+     "lane_markings": "no"
+    }
+   },
+   "n": {
+    "lat": 38.713926,
+    "lon": -9.133483,
+    "anzeige": "Castelo de São Jorge, Rua de Santa Cruz do Castelo, Castelo, Santa Maria Maior, Madalena, Lissabon, 1100-129, Portugal",
+    "osm": "way/1382432568",
+    "art": "historic:castle",
+    "name": "Castelo de São Jorge",
+    "tags": {
+     "fee": "yes",
+     "phone": "+351 218 800 620",
+     "access": "yes",
+     "tourism": "attraction",
+     "website": "https://www.castelodesaojorge.pt/",
+     "historic": "castle",
+     "wikidata": "Q636780",
+     "wikipedia": "de:Castelo de São Jorge",
+     "wheelchair": "yes",
+     "castle_type": "fortress",
+     "description": "A colina onde se ergue o Castelo de S. Jorge foi das primeiras áreas ocupadas de Lisboa.Durante a Idade do Ferro e o período romano desempenhou um papel estratégico na defesa do povoado.Ocupado pelos árabes,foi conquistado em 1147 por D. Afonso...",
+     "opening_hours": "Mo-Su 09:00-21:00",
+     "contact:facebook": "https://www.facebook.com/castelodesaojorge/",
+     "contact:instagram": "https://www.instagram.com/castelodesjorge/"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q636780",
+     "bild": "Castelo Sao Jorge Lisboa 1.JPG",
+     "koord": [
+      38.71389,
+      -9.13333
+     ],
+     "titel": {
+      "de": "Castelo de São Jorge",
+      "pt": "Castelo de São Jorge",
+      "en": "São Jorge Castle"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Castelo de São Jorge",
+     "text": "Das Castelo de São Jorge ist eine Festungsanlage mit integrierter Burgruine in Lissabon und gehört zu den vielen Sehenswürdigkeiten der Stadt.",
+     "url": "https://de.wikipedia.org/wiki/Castelo_de_S%C3%A3o_Jorge",
+     "seitenbild": "LisbonCastle.jpg"
+    },
+    "bild": {
+     "thumb": "https://upload.wikimedia.org/wikipedia/commons/3/37/Castelo_Sao_Jorge_Lisboa_1.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "autor": "unbekannt",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Castelo_Sao_Jorge_Lisboa_1.JPG",
+     "breite": 720,
+     "hoehe": 959
+    }
+   }
+  },
+  "Alfama-Gassen ab Largo de São Miguel|Largo de São Miguel, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711103,
+    "lon": -9.129558,
+    "anzeige": "Largo de São Miguel, São Miguel, Santa Maria Maior, Madalena, Lissabon, Portugal",
+    "osm": "way/646474131",
+    "art": "highway:pedestrian",
+    "name": "Largo de São Miguel",
+    "tags": {
+     "area": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2123",
+     "description": "Início: Confluência entre a Rua de São Miguel e a Travessa do Terreirinho do Trigo."
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Miradouro do Monte Agudo|Rua Heliodoro Salgado 81, 1170-175 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.726006,
+    "lon": -9.130522,
+    "anzeige": "81, Rua Heliodoro Salgado, Anjos, Arroios, Lissabon, 1170-028, Portugal",
+    "osm": "way/238549796",
+    "art": "building:apartments",
+    "name": "",
+    "tags": {
+     "roof:shape": "hipped",
+     "roof:material": "roof_tiles"
+    }
+   },
+   "n": {
+    "lat": 38.725916,
+    "lon": -9.131146,
+    "anzeige": "Miradouro do Monte Agudo, Bairro das Novas Nações, Arroios, Lissabon, 1170-175, Portugal",
+    "osm": "way/137762639",
+    "art": "highway:pedestrian",
+    "name": "Miradouro do Monte Agudo",
+    "tags": {
+     "lit": "yes",
+     "bicycle": "yes",
+     "surface": "sett"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Pink Street (Rua Nova do Carvalho)|Rua Nova do Carvalho, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.707411,
+    "lon": -9.144313,
+    "anzeige": "Rua Nova do Carvalho, Cais do Sodré, Misericórdia, Lissabon, 1200-371, Portugal",
+    "osm": "way/396485586",
+    "art": "highway:residential",
+    "name": "Rua Nova do Carvalho",
+    "tags": {
+     "lit": "yes",
+     "oneway": "yes",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2451",
+     "sidewalk": "both",
+     "description": "Início: Travessa do Corpo Santo. Fim: Praça de São Paulo.",
+     "lane_markings": "no",
+     "maxspeed:type": "PT:urban"
+    }
+   },
+   "n": {
+    "lat": 38.70725,
+    "lon": -9.143845,
+    "anzeige": "Pink Street, Rua Nova do Carvalho, Cais do Sodré, Misericórdia, Lissabon, 1200-292, Portugal",
+    "osm": "node/7670731186",
+    "art": "tourism:artwork",
+    "name": "Pink Street",
+    "tags": {}
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "MAAT-Dach|MAAT, Avenida Brasília, 1300-598 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.695934,
+    "lon": -9.193624,
+    "anzeige": "Museu de Arte, Arquitetura e Tecnologia (MAAT), Avenida de Brasília, São Francisco Xavier, Belém, Lissabon, 1300-598, Portugal",
+    "osm": "relation/11381632",
+    "art": "tourism:museum",
+    "name": "Museu de Arte, Arquitetura e Tecnologia (MAAT)",
+    "tags": {
+     "layer": "2",
+     "level": "2",
+     "owner": "Fundação EDP",
+     "website": "www.maat.pt",
+     "building": "yes",
+     "operator": "Fundação EDP",
+     "wikidata": "Q27522479",
+     "wikipedia": "pt:Museu de Arte, Arquitetura e Tecnologia",
+     "wheelchair": "yes",
+     "contact:email": "maat@edp.pt",
+     "contact:phone": "+351 210 028 130",
+     "opening_hours": "Mo-Su 12:00-20:00; Tu off; Jan 01,May 01,Dec 25",
+     "contact:website": "www.maat.pt"
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q27522479",
+     "bild": "The MAAT (34943440096).jpg",
+     "koord": [
+      38.695908,
+      -9.193504
+     ],
+     "titel": {
+      "pt": "Museu de Arte, Arquitetura e Tecnologia",
+      "de": "Museu de Arte, Arquitetura e Tecnologia",
+      "en": "Museum of Art, Architecture and Technology"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Museu de Arte, Arquitetura e Tecnologia",
+     "text": "Das Museum für Kunst, Architektur und Technologie ist ein Museum in Lissabon und wurde im November 2016 eröffnet. Das Gebäude der britischen Architektin Amanda Levete wurde am 9. März 2017 fertiggestellt und liegt direkt am Ufer des Flusses Tejo, unmittelbar neben dem Industriedenkmal und Elektrizitätsmuseum Central Tejo im Stadtteil Belém.",
+     "url": "https://de.wikipedia.org/wiki/Museu_de_Arte%2C_Arquitetura_e_Tecnologia",
+     "seitenbild": "MAAT_-_Museu_de_Arte_,_Arquitetura_,_Tecnologia_._Lisboa_,_Portugal._(30138055846).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4c/The_MAAT_%2834943440096%29.jpg/960px-The_MAAT_%2834943440096%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Susanne Nilsson",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:The_MAAT_(34943440096).jpg",
+     "breite": 720,
+     "hoehe": 480
+    }
+   }
+  },
+  "Fundação Champalimaud|Avenida Brasília, 1400-038 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.69626,
+    "lon": -9.195411,
+    "anzeige": "Avenida de Brasília, São Francisco Xavier, Belém, Lissabon, 1300-598, Portugal",
+    "osm": "way/429797068",
+    "art": "highway:primary",
+    "name": "Avenida de Brasília",
+    "tags": {
+     "lanes": "4",
+     "oneway": "no",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=171",
+     "maxheight": "default",
+     "start_date": "1960-07-23",
+     "description": "Toponímia: Cidades, zonas estrangeiras."
+    }
+   },
+   "n": {
+    "lat": 38.693531,
+    "lon": -9.222055,
+    "anzeige": "Fundação Champalimaud, Avenida de Brasília, Pedrouços, São Francisco Xavier, Belém, Lissabon, 1400-146, Portugal",
+    "osm": "node/4788155544",
+    "art": "office:research",
+    "name": "Fundação Champalimaud",
+    "tags": {
+     "contact:email": "info@fundacaochampalimaud.pt",
+     "contact:website": "www.fchampalimaud.org",
+     "contact:facebook": "http://www.facebook.com/ChampalimaudFoundation"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Doca de Santo Amaro|Doca de Santo Amaro, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.699366,
+    "lon": -9.177543,
+    "anzeige": "Doca de Santo Amaro, Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1300-141, Portugal",
+    "osm": "way/450048114",
+    "art": "leisure:marina",
+    "name": "Doca de Santo Amaro",
+    "tags": {
+     "website": "https://www.portodelisboa.pt/doca-de-santo-amaro",
+     "wikidata": "Q123536703",
+     "seamark:type": "harbour",
+     "wikimedia_commons": "Category:Doca de Santo Amaro",
+     "seamark:harbour:category": "marina"
+    }
+   },
+   "n": {
+    "lat": 38.699366,
+    "lon": -9.177543,
+    "anzeige": "Doca de Santo Amaro, Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1300-141, Portugal",
+    "osm": "way/450048114",
+    "art": "leisure:marina",
+    "name": "Doca de Santo Amaro",
+    "tags": {
+     "website": "https://www.portodelisboa.pt/doca-de-santo-amaro",
+     "wikidata": "Q123536703",
+     "seamark:type": "harbour",
+     "wikimedia_commons": "Category:Doca de Santo Amaro",
+     "seamark:harbour:category": "marina"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q123536703",
+     "bild": "Docas (2231587104).jpg",
+     "koord": [
+      38.699658,
+      -9.177577
+     ],
+     "titel": {}
+    },
+    "text": null,
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/Docas_%282231587104%29.jpg/960px-Docas_%282231587104%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Ricardo Liberato",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Docas_(2231587104).jpg",
+     "breite": 720,
+     "hoehe": 480
+    }
+   }
+  },
+  "Pilar 7 (Brückenpfeiler)|Avenida da Índia, 1349-028 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.698842,
+    "lon": -9.181973,
+    "anzeige": "Avenida da Índia, Santo Amaro, Alcântara, Lissabon, 1349-028, Portugal",
+    "osm": "way/437671406",
+    "art": "highway:primary",
+    "name": "Avenida da Índia",
+    "tags": {
+     "lit": "yes",
+     "lanes": "4",
+     "oneway": "no",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1211",
+     "sidewalk": "left",
+     "start_date": "1948-05-07",
+     "description": "Toponímia: Países, Expansão Portuguesa. Início: Avenida 24 de Julho. Fim: Algés."
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Miradouro da Casa da Cerca|Rua da Cerca, 2800-050 Almada": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.682623,
+    "lon": -9.159885,
+    "anzeige": "Rua da Cerca, Almada Velha, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, 2800-050, Portugal",
+    "osm": "way/204662568",
+    "art": "highway:residential",
+    "name": "Rua da Cerca",
+    "tags": {
+     "oneway": "yes",
+     "surface": "sett"
+    }
+   },
+   "n": {
+    "lat": 38.684325,
+    "lon": -9.158891,
+    "anzeige": "Miradouro da Casa da Cerca, Olho de Boi, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, 2800-202, Portugal",
+    "osm": "node/2146523275",
+    "art": "tourism:viewpoint",
+    "name": "Miradouro da Casa da Cerca",
+    "tags": {}
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Jardim do Castelo (Almada)|Largo 1º de Maio, Almada": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.649339,
+    "lon": -9.189414,
+    "anzeige": "Largo 1º de Maio, Vale Linhoso, Charneca de Caparica e Sobreda, Almada, Setúbal, 2815-716, Portugal",
+    "osm": "way/381727297",
+    "art": "highway:residential",
+    "name": "Largo 1º de Maio",
+    "tags": {
+     "lit": "yes",
+     "surface": "asphalt",
+     "sidewalk": "no"
+    }
+   },
+   "n": {
+    "lat": 38.684324,
+    "lon": -9.156538,
+    "anzeige": "Jardim do Castelo, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, Portugal",
+    "osm": "relation/9681529",
+    "art": "leisure:garden",
+    "name": "Jardim do Castelo",
+    "tags": {}
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Farol de Santa Marta|Rua do Farol de Santa Marta, 2750-341 Cascais": {
+   "a_n_geholt": true,
+   "a": null,
+   "n": {
+    "lat": 38.690394,
+    "lon": -9.420975,
+    "anzeige": "Farol de Santa Marta, Farol Museu de Santa Marta, Gandarinha, Cascais e Estoril, Cascais, Lissabon, 2750-341, Portugal",
+    "osm": "way/556173402",
+    "art": "man_made:lighthouse",
+    "name": "Farol de Santa Marta",
+    "tags": {
+     "height": "20",
+     "building": "yes",
+     "wikidata": "Q10280171",
+     "wikipedia": "pt:Farol de Santa Marta (Cascais)",
+     "seamark:name": "Forte Santa Marta",
+     "seamark:type": "light_major",
+     "wikimedia_commons": "Category:Santa Marta Lighthouse",
+     "seamark:information": "R. 233° -334° , W.-098° .Horn: 1 bl. ev. 10s (bl. 3s, si. 7s).",
+     "seamark:light:1:range": "14",
+     "seamark:light:2:range": "18",
+     "seamark:light:1:colour": "red",
+     "seamark:light:1:height": "25",
+     "seamark:light:1:period": "6",
+     "seamark:light:2:colour": "white",
+     "seamark:light:2:height": "25",
+     "seamark:light:2:period": "6",
+     "seamark:light:reference": "D 2118",
+     "seamark:light:1:category": "lower",
+     "seamark:light:1:sequence": "4.5+(1.5)",
+     "seamark:light:2:category": "lower",
+     "seamark:light:2:sequence": "4.5+(1.5)",
+     "seamark:light:1:character": "Oc",
+     "seamark:light:2:character": "Oc",
+     "seamark:light:1:sector_end": "334",
+     "seamark:light:2:sector_end": "98",
+     "seamark:fog_signal:category": "horn",
+     "seamark:light:1:sector_start": "233",
+     "seamark:light:2:sector_start": "334"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q10280171",
+     "bild": "Farol de Santa Marta.jpg",
+     "koord": [
+      38.69041667,
+      -9.42102778
+     ],
+     "titel": {
+      "pt": "Farol de Santa Marta (Cascais)",
+      "en": "Santa Marta Lighthouse"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Farol de Santa Marta (Cascais)",
+     "text": "O farol de Santa Marta é um farol português que se localiza no Forte de Santa Marta, na Ponta do Salmôdo, vila de Cascais, distrito de Lisboa.\nTrata-se de uma torre quadrangular de alvenaria, revestida com azulejos, branca, com faixas horizontais azuis e lanterna vermelha; tem 20 metros de altura.",
+     "url": "https://pt.wikipedia.org/wiki/Farol_de_Santa_Marta_%28Cascais%29",
+     "seitenbild": "Faro_de_Santa_Marta,_Cascais,_Portugal,_2022-07-25,_DD_16-18_HDR.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c6/Farol_de_Santa_Marta.jpg/960px-Farol_de_Santa_Marta.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Jaime Silva",
+     "lizenz": "CC BY-SA 3.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Farol_de_Santa_Marta.jpg",
+     "breite": 720,
+     "hoehe": 479
     }
    }
   }

@@ -41,6 +41,8 @@
   "lon": -9.143427,
   "quelle": "name",
   "infos": {},
+  "dauer": "45–90",
+  "dauerQuelle": "Kirche und Museum; nomadotravel.app, Seite ohne Datum, abgerufen 24.10.2026",
   "wiki": {
    "text": "Die Igreja de São Roque ist eine Jesuitenkirche im Lissaboner Stadtteil Bairro Alto, die zu den prunkvollsten Kirchen der Iberischen Halbinsel gehört. Da sie beim verheerenden Erdbeben von 1755 nicht zerstört wurde sowie aufgrund ihrer einzigartigen Kapelle São João Baptista zählt sie zu den prächtigsten Kirchen der Welt. Namenspatron der Kirche ist der Hl. Rochus von Montpellier.",
    "url": "https://de.wikipedia.org/wiki/Igreja_de_S%C3%A3o_Roque_%28Lissabon%29",
@@ -72,6 +74,9 @@
   "infos": {
    "telefon": "+351 213 912 600"
   },
+  "foto": "Für den Sonnenaufgang schlecht, die Burg verdeckt ihn. Besser abends. Spätnachmittag am vollsten. Quelle: Time Out (23.11.2016, 25.07.2024)",
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "O Jardim de São Pedro de Alcântara é um jardim situado em Lisboa, na freguesia da Misericórdia. Foi construído em 1864, em dois socalcos.\nO projeto original remonta ao século XVIII, de autoria do 2.º arquiteto do palácio Convento de Mafra João Pedro Ludovice, filho de João Frederico Ludovice, arquiteto de Mafra, onde El-Rei D. João V manda construir uma muralha com 20 metros de altura nos terrenos de São Pedro de Alcântara com vista a criar uma Mãe de Água — um depósito monumental que prolongaria o Aqueduto das Águas Livres até à Graça. No entanto, o Terramoto de 1755 impõe outras prioridades e os terrenos passaram a servir de vazadouro de animais mortos que eram atirados da muralha abaixo.",
    "url": "https://pt.wikipedia.org/wiki/Jardim_de_S%C3%A3o_Pedro_de_Alc%C3%A2ntara",
@@ -101,6 +106,8 @@
   "lon": -9.143427,
   "quelle": "adresse",
   "infos": {},
+  "dauer": "19–20",
+  "dauerQuelle": "Fahrt bis Campolide; portugalvisitor.com und lisbonportugaltourism.com, ohne Datum, abgerufen 24.10.2026",
   "wiki": {
    "text": "Die Praça Luís de Camões ist ein zentraler Platz in der Innenstadt der portugiesischen Hauptstadt Lissabon. Er liegt in der Stadtgemeinde Encarnação und ist Bindeglied zwischen den Stadtvierteln Bairro Alto und Chiado.\nIn der Mitte des Platzes steht eine Statue, die den portugiesischen Nationaldichter Luís de Camões darstellt. Seit dem 12.",
    "url": "https://de.wikipedia.org/wiki/Pra%C3%A7a_Lu%C3%ADs_de_Cam%C3%B5es",
@@ -183,6 +190,9 @@
    "telefon": "+351 21 391 2600",
    "rollstuhl": "yes"
   },
+  "foto": "Sonnenuntergang (Sa 18:46, So 17:44): mindestens 1 Stunde vorher da sein für einen Platz vorne. Blick auf Castelo und Ponte 25 de Abril, Tele für Panoramen. Quellen: fstoppers.com (19.01.2022), Time Out (25.07.2024)",
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "O Miradouro Sophia de Mello Breyner Andresen, antigo Miradouro da Graça, encontra-se na freguesia de São Vicente, no antigo adro da Igreja do Convento da Graça de Lisboa.\nNo largo da Graça, junto à igreja, existe uma esplanada no Miradouro da Graça onde se pode desfrutar de uma das mais belas vistas da cidade. Esta vista só é suplantada pela do Miradouro da Senhora do Monte, que fica a uma escassa centena de metros. O panorama de telhados e prédios é menos espetacular do que a vista do castelo, mas é um local popular.",
    "url": "https://pt.wikipedia.org/wiki/Miradouro_Sophia_de_Mello_Breyner_Andresen",
@@ -212,6 +222,9 @@
   "lon": -9.132911,
   "quelle": "name",
   "infos": {},
+  "foto": "Höchster Punkt im Kirchhof, weniger voll. Steiler Aufstieg. Kachelbild mit den Monumenten der Stadt. Quellen: 24hourslayover.com (27.11.2023), Time Out (25.07.2024)",
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "Miradouro da Senhora do Monte encontra-se na freguesia de São Vicente, em Lisboa.\nO miradouro desenvolve-se em frente da Capela de Nossa Senhora do Monte. A partir dele pode observar-se, para sul, o mar da Palha, o Castelo de São Jorge, parte da Baixa de Lisboa e o estuário do rio Tejo, para poente, do Bairro Alto até ao Parque Florestal de Monsanto e, para norte, o vale da Avenida Almirante Reis.",
    "url": "https://pt.wikipedia.org/wiki/Miradouro_da_Senhora_do_Monte",
@@ -274,7 +287,10 @@
   "quelle": "name",
   "infos": {
    "rollstuhl": "yes"
-  }
+  },
+  "foto": "Sonnenaufgang: wenig Leute (Sa 07:54, So 06:55). Sonnenuntergang sehr voll. Weitwinkel für die Szene, Tele für Alfama-Details. Quellen: fstoppers.com (19.01.2022), Time Out (23.11.2016)",
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026"
  },
  {
   "id": "miradouro-de-santa-luzia",
@@ -292,6 +308,9 @@
    "webseite": "https://www.visitlisboa.com/pt-pt/locais/miradouro-de-santa-luzia",
    "telefon": "+351 213 912 600"
   },
+  "foto": "Direkt neben Portas do Sol, beliebt und voll. Steiler Aufstieg. Quelle: 24hourslayover.com (27.11.2023)",
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "O Miradouro de Santa Luzia tem uma ampla vista sobre Alfama e o rio Tejo. Os pontos característicos, da esquerda para a direita, são a cúpula de Santa Engrácia, a Igreja de Santo Estêvão e as duas torres brancas da Igreja de São Miguel. A muralha sul de Santa Luzia tem dois modernos painéis de azulejos, um da Praça do Comércio de antes do terramoto e outro com os cristãos a atacarem o castelo de São Jorge da autoria de António Quaresma e fabricados na Fábrica da Viúva Lamego.\nAqui se situa a Igreja de Santa Luzia e São Brás, cabeça da antiga comenda de S. Brás do termo de Lisboa e actual sede nacional da Assembleia dos Cavaleiros Portugueses da Ordem Soberana e Militar de Malta.",
    "url": "https://pt.wikipedia.org/wiki/Miradouro_de_Santa_Luzia",
@@ -323,6 +342,8 @@
   "infos": {
    "oeffnungszeiten": "Mo-Sa 09:30-19:00"
   },
+  "dauer": "45–60",
+  "dauerQuelle": "Kirchenschiff, Chor, Schatz, Kreuzgang; thebettervacation.com, 28.08.2026",
   "wiki": {
    "text": "Die Kathedrale von Lissabon ist die Hauptkirche der Stadt Lissabon und die Kathedrale des Patriarchats von Lissabon.",
    "url": "https://de.wikipedia.org/wiki/Kathedrale_von_Lissabon",
@@ -383,6 +404,9 @@
   "lon": -9.136524,
   "quelle": "name",
   "infos": {},
+  "foto": "Früh am Morgen, tagsüber sehr voll. Der Arco ist abends beleuchtet, vom Platz aus gut. Quellen: 24hourslayover.com (27.11.2023), thebettervacation.com (19.06.2026)",
+  "dauer": "30",
+  "dauerQuelle": "Platz; mit Aufstieg zum Arco 60–90 Min.; nomadglobal.com, 25.08.2026",
   "wiki": {
    "text": "Die Praça do Comércio [ˈpɾasɐ du kuˈmɛɾsiu] gehört neben dem Rossio und der Praça da Figueira zu den drei wichtigsten Plätzen innerhalb der Baixa Pombalina, des aufgrund des Erdbebens von 1755 neu gebauten innerstädtischen Bereichs der portugiesischen Hauptstadt Lissabon. Nahe am Hauptstadtfluss Tejo gelegen, ist der Platz noch immer unter seinem alten Namen, Terreiro do Paço, [tɨ'ʁeiɾu du 'pasu], zu Deutsch etwa Palastgelände, bekannt, da sich bis zum verheerenden Erdbeben von 1755 das Paço da Ribeira, das königliche Uferschloss, dort befand. Nach dem Erdbeben erhielt das Gelände eine völlig neue Form im Rahmen der durch Sebastião José de Carvalho e Melo, den Marquês de Pombal, veranlassten städtischen Umgestaltung. Am südöstlichen Ende des Platzes befindet sich der Tejo-Fährenterminal Terreiro do Paço sowie der U-Bahnhof Terreiro do Paço.",
    "url": "https://de.wikipedia.org/wiki/Pra%C3%A7a_do_Com%C3%A9rcio",
@@ -474,6 +498,8 @@
    "telefon": "+351 213 405 140",
    "kueche": "regional"
   },
+  "dauer": "30",
+  "dauerQuelle": "Rundgang; theblondtravels.com, 22.04.2024",
   "wiki": {
    "text": "O Palácio Alverca é um palácio localizado na freguesia de Santa Justa, em Lisboa, Portugal.\nÉ um edifício classificado como Monumento de Interesse Público pelo IGESPAR.\nTeve a sua construção no fim do século XVII. De referir que o palácio pertenceu à família Paes de Amaral. A designação Palácio São Luís advém do facto de se encontrar diante da igreja com essa invocação.\nNo edifício chegou a funcionar um liceu e um armazém para mobiliário.",
    "url": "https://pt.wikipedia.org/wiki/Pal%C3%A1cio_Alverca",
@@ -685,6 +711,8 @@
   "lon": -9.147724,
   "quelle": "name",
   "infos": {},
+  "dauer": "15–20",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "Santa Catarina ist ein Stadtteil und eine ehemalige portugiesische Gemeinde im 1. Bairro der Hauptstadt Lissabon. 2013 ging im Zuge einer Verwaltungsreform aus den Gemeinden São Paulo, Encarnação, Santa Catarina und Mercês die neue Stadtgemeinde Misericórdia hervor.\nDer hügelige Ort ist umgeben von den Stadtteilen São Paulo, Lapa, Mercês und Encarnação.",
    "url": "https://de.wikipedia.org/wiki/Santa_Catarina_%28Lissabon%29",
@@ -714,6 +742,9 @@
   "lon": -9.206624,
   "quelle": "name",
   "infos": {},
+  "foto": "Kreuzgang: Morgenlicht auf dem Kalkstein. Zur Öffnung oder nach 15 Uhr weniger voll. Stativ, Blitz und Selfie-Stange verboten. Mo geschlossen. Quelle: thebettervacation.com (19.06.2026)",
+  "dauer": "90–180",
+  "dauerQuelle": "artvisitguide.com 90–120 (18.06.2026), thebettervacation.com 120–180 (19.06.2026). Kreuzgang mit Zeitfenster-Ticket",
   "wiki": {
    "text": "Das Hieronymitenkloster ist ein Sakralbau im Stadtteil Belém der portugiesischen Hauptstadt Lissabon. Die dazugehörige Kirche Santa Maria de Belém ist Maria geweiht. Das Hieronymitenkloster ist eines der bedeutendsten Bauwerke der Manuelinik, einer portugiesischen Variante der Spätgotik, die auch einige Elemente der Renaissance enthält. Unter anderem beherbergt es die Sarkophage von Fernando Pessoa, Vasco da Gama und Luís de Camões und portugiesischer Könige.",
    "url": "https://de.wikipedia.org/wiki/Mosteiro_dos_Jer%C3%B3nimos",
@@ -749,6 +780,8 @@
    "rollstuhl": "yes",
    "kueche": "regional"
   },
+  "dauer": "20–30",
+  "dauerQuelle": "sitzend; Mitnahme-Schlange zur Stoßzeit 20–40 Min.; thebettervacation.com, 02.09.2026",
   "bild": {
    "src": "bilder/pasteis-de-belem.jpg",
    "autor": "User: (WT-shared) Shoestring at  wts wikivoyage",
@@ -776,6 +809,9 @@
    "telefon": "+351 213 031 950",
    "rollstuhl": "no"
   },
+  "foto": "Spiegelung im Wasserbecken: Kamera tief am Beckenrand. Sonnenaufgang hinter der Ponte 25 de Abril, morgens ruhiges Wasser. Stativ, ISO 100, f/8–f/11. Quelle: locationscout.net (Seite ohne Datum, abgerufen 24.10.2026)",
+  "dauer": "45–60",
+  "dauerQuelle": "thebettervacation.com, 02.09.2026",
   "wiki": {
    "text": "Das Padrão dos Descobrimentos steht im Stadtteil Belém in Lissabon am Ufer des Flusses Tejo. Es wurde 1960 zum 500. Todestag von Heinrich dem Seefahrer durch das Salazar-Regime errichtet. Das Denkmal hat eine Höhe von 56 Metern.",
    "url": "https://de.wikipedia.org/wiki/Padr%C3%A3o_dos_Descobrimentos",
@@ -808,6 +844,9 @@
    "oeffnungszeiten": "Oct-Apr: Tu-Su 10:00-17:30; May-Sep: Tu-Su 10:00-18:30",
    "rollstuhl": "no"
   },
+  "foto": "Vor der Öffnung: Brücke ohne Menschen. Später von der Wiese an der Ufermauer. Goldene Stunde, Polfilter, kurze Zeit für Boote. Mo geschlossen, außen immer. Quellen: 24hourslayover.com (27.11.2023), thatadventurer.co.uk (09.08.2024)",
+  "dauer": "30–75",
+  "dauerQuelle": "artvisitguide.com 30–60 (18.06.2026), thebettervacation.com 45–75 (19.06.2026). Zeitfenster-Ticket, Mo zu",
   "wiki": {
    "text": "Der Torre de Belém im Stadtteil Belém an der Tejomündung ist eines der bekanntesten Wahrzeichen Lissabons. Neben dem nahegelegenen Mosteiro dos Jerónimos gehört der Turm zu den wenigen herausragenden Bauwerken des manuelinischen Stils, die das Erdbeben von Lissabon im Jahr 1755 überstanden haben. Die oberste, 35 Meter hohe, freiliegende Etage des Turms ist heute eine Aussichtsplattform.",
    "url": "https://de.wikipedia.org/wiki/Torre_de_Bel%C3%A9m",
@@ -842,6 +881,9 @@
    "telefon": "+351 210 028 130",
    "rollstuhl": "yes"
   },
+  "foto": "Nebenan das MAAT-Dach: Panorama über Tejo und Brücke, etwa 45 Min. vor Sonnenuntergang. Siehe Foto-Spot „MAAT-Dach“.",
+  "dauer": "90–120",
+  "dauerQuelle": "MAAT und Central zusammen; nur Dach 15–20 Min.; thebettervacation.com, 31.08.2026",
   "wiki": {
    "text": "Das Museum für Kunst, Architektur und Technologie ist ein Museum in Lissabon und wurde im November 2016 eröffnet. Das Gebäude der britischen Architektin Amanda Levete wurde am 9. März 2017 fertiggestellt und liegt direkt am Ufer des Flusses Tejo, unmittelbar neben dem Industriedenkmal und Elektrizitätsmuseum Central Tejo im Stadtteil Belém.",
    "url": "https://de.wikipedia.org/wiki/Museu_de_Arte%2C_Arquitetura_e_Tecnologia",
@@ -876,6 +918,8 @@
    "telefon": "+351 217 823 461",
    "rollstuhl": "limited"
   },
+  "dauer": "120–180",
+  "dauerQuelle": "beide Sammlungen und Garten; thebettervacation.com, 19.06.2026. Time Out (21.03.2025): Hauptsammlung bis Juli 2026 zu; aktueller Stand nicht geprüft",
   "wiki": {
    "text": "Das Museu Calouste Gulbenkian ist ein Museum in Lissabon, Portugal.\nDas Gebäude entstand von 1964 bis 1969 nach Plänen eines Architektenteams aus Ruy Jervis d’Athouguia, Pedro Cid und Alberto Pessoa. 1984 wurde es um das Centro de Arte Moderna als Museum für Moderne Kunst erweitert.\nDie Dauerausstellung bildet das vielseitige Kunstinteresse des Stifters Calouste Gulbenkian ab und umfasst ein breites Spektrum an Kunstobjekten aus allen Epochen.",
    "url": "https://de.wikipedia.org/wiki/Museu_Calouste_Gulbenkian",
@@ -890,37 +934,6 @@
    "quelle": "https://commons.wikimedia.org/wiki/File:Museu_Calouste_Gulbenkian_(Main_Entrance).jpg",
    "breite": 720,
    "hoehe": 480
-  }
- },
- {
-  "id": "panoramico-de-monsanto",
-  "name": "Panorâmico de Monsanto",
-  "adresse": "Panorâmico de Monsanto, Alto da Serafina, Lisboa",
-  "ort": "Lisboa",
-  "kategorie": "Aussichtspunkt",
-  "notiz": "Verlassenes Restaurant, 360-Grad-Blick, gratis (Geheimtipp)",
-  "typ": "aussicht",
-  "stand": "2026-10-24",
-  "lat": 38.728633,
-  "lon": -9.184572,
-  "quelle": "manuell",
-  "infos": {
-   "webseite": "https://informacoeseservicos.lisboa.pt/contactos/diretorio-da-cidade/miradouro-panoramico-de-monsanto"
-  },
-  "wiki": {
-   "text": "O Restaurante Panorâmico de Monsanto é um edifício localizado nos Montes Claros, em Monsanto, Lisboa, construído no Estado Novo. O edifício é da autoria do arquitecto Chaves Costa.\nTrata-se de um edifício circular, com um raio de 16 metros, cinco pisos e uma vista panorâmica de 270 graus.\nApós décadas de abandono, foi convertido num Miradouro municipal.",
-   "url": "https://pt.wikipedia.org/wiki/Restaurante_Panor%C3%A2mico_de_Monsanto",
-   "lang": "pt",
-   "titel": "Restaurante Panorâmico de Monsanto"
-  },
-  "bild": {
-   "src": "bilder/panoramico-de-monsanto.jpg",
-   "autor": "Hipersyl",
-   "lizenz": "CC BY-SA 4.0",
-   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
-   "quelle": "https://commons.wikimedia.org/wiki/File:Panor%C3%A2mico_Monsanto.jpg",
-   "breite": 720,
-   "hoehe": 540
   }
  },
  {
@@ -955,6 +968,9 @@
    "webseite": "https://www.lxfactory.com/",
    "telefon": "+351 21 314 3399"
   },
+  "foto": "Dachterrasse Rio Maravilha: Blick auf Ponte 25 de Abril und Cristo Rei. Früh kommen, wird voll. Quelle: thatadventurer.co.uk (09.08.2024)",
+  "dauer": "90–180",
+  "dauerQuelle": "thebettervacation.com, 31.08.2026",
   "wiki": {
    "text": "A LXFactory é um espaço comercial e artístico da cidade de Lisboa. Ubicado no bairro de Alcântara, uma antiga zona industrial da capital portuguesa, a estrutura foi reformada em 2008 e hoje representa a inovação, criatividade e o empreendedorismo, com inspiração industrial.",
    "url": "https://pt.wikipedia.org/wiki/LXFactory",
@@ -1046,6 +1062,9 @@
   "infos": {
    "rollstuhl": "yes"
   },
+  "foto": "Sonnenaufgang mitten auf dem Tejo. Quelle: Time Out (23.11.2016)",
+  "dauer": "8–10",
+  "dauerQuelle": "Überfahrt; thebettervacation.com (28.08.2026), lisbonlisboaportugal.com (24.08.2026)",
   "wiki": {
    "text": "O Terminal Fluvial do Cais do Sodré é um dos três pontos de ligação da Transtejo e Soflusa à Margem Sul do rio Tejo, permitindo o acesso às embarcações que fazem o trajeto entre o Cais do Sodré e Cacilhas, Montijo e Seixal: ~C~ Cais do Sodré ⇄ Cacilhas\n~M~ Cais do Sodré ⇄ Montijo\n~S~ Cais do Sodré ⇄ Seixal\nO terminal está situado na Rua da Cintura do Porto de Lisboa, na zona do Cais do Sodré, entre o Cais do Gás e o Jardim Roque Gameiro. Faz interface com a Estação Ferroviária do Cais do Sodré, que serve a Linha de Cascais, e com a estação Cais do Sodré, que serve a Linha Verde do Metropolitano de Lisboa, para além de ligar a inúmeras carreiras da Carris e linhas da Carris Metropolitana nas paragens circundantes e de contar com uma praça de táxis.",
    "url": "https://pt.wikipedia.org/wiki/Terminal_Fluvial_do_Cais_do_Sodr%C3%A9",
@@ -1074,7 +1093,8 @@
   "lat": 38.685138,
   "lon": -9.157423,
   "quelle": "manuell",
-  "infos": {}
+  "infos": {},
+  "foto": "Graffiti und Wandbilder wie eine Freiluftgalerie, Licht auf dem Fluss. Etwa 10 Min. zu Fuß von der Fähre. Quellen: livetheworld.com (19.09.2022), thatadventurer.co.uk (09.08.2024)"
  },
  {
   "id": "jardim-do-rio-und-elevador-da-boca-do-vento",
@@ -1088,7 +1108,8 @@
   "lat": 38.684581,
   "lon": -9.158791,
   "quelle": "adresse",
-  "infos": {}
+  "infos": {},
+  "foto": "Gratis-Aufzug am Kliff. Sonnenuntergang über Fluss und Brücken. Quelle: thatadventurer.co.uk (09.08.2024)"
  },
  {
   "id": "cristo-rei",
@@ -1103,6 +1124,9 @@
   "lon": -9.171337,
   "quelle": "name",
   "infos": {},
+  "foto": "Plattform in 82 m, Blick über den Tejo auf Lissabon. Laut locationscout.net alle Tageszeiten gleich gut. Quellen: Time Out (25.07.2024), locationscout.net (ohne Datum)",
+  "dauer": "60–120",
+  "dauerQuelle": "vor Ort, ohne Anreise (ca. 45 Min. je Richtung); thebettervacation.com, 28.08.2026",
   "wiki": {
    "text": "Der Cristo Rei ist eine Christus-Statue in Almada südlich von Lissabon, Portugal.",
    "url": "https://de.wikipedia.org/wiki/Cristo_Rei_%28Almada%29",
@@ -1132,6 +1156,8 @@
   "lon": -9.430821,
   "quelle": "name",
   "infos": {},
+  "dauer": "20–30",
+  "dauerQuelle": "realjourneytravels.com, 11.06.2025",
   "wiki": {
    "text": "Boca do Inferno ist eine Schlucht in den Küstenklippen nahe der portugiesischen Stadt Cascais.\nDas Wasser des Atlantiks hat Zugang zum tiefen Grund der Schlucht. Bei Flut werden die Wellen in die senkrechten „Felsschlote“ gepresst und weit nach oben an Land geschleudert.\nDer britische Okkultist und Dichter Aleister Crowley täuschte hier im September 1930 seine Selbsttötung vor.",
    "url": "https://de.wikipedia.org/wiki/Boca_do_Inferno",
@@ -1876,6 +1902,392 @@
    "quelle": "https://commons.wikimedia.org/wiki/File:Avenida_da_Liberdade_(22344060581)_(cropped).jpg",
    "breite": 720,
    "hoehe": 864
+  }
+ },
+ {
+  "id": "arco-da-rua-augusta",
+  "name": "Arco da Rua Augusta",
+  "adresse": "Rua Augusta 2, 1100-053 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Oben: Blick auf Praça do Comércio, Tejo und Rua Augusta. Gleich um 10 Uhr wenig Leute, oder spätes Licht. Von unten: abends beleuchtet. Aufzug, dann 74 Stufen Wendeltreppe. 3,50 €, täglich 10–19 Uhr. Quellen: storyhunt.io (12.01.2026), thebettervacation.com (19.06.2026)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.708443,
+  "lon": -9.136816,
+  "quelle": "name",
+  "infos": {
+   "telefon": "+351 21 099 8599"
+  },
+  "dauer": "45–60",
+  "dauerQuelle": "thebettervacation.com, 19.06.2026",
+  "wiki": {
+   "text": "Der Arco da Rua Augusta ist ein Triumphbogen im Zentrum der portugiesischen Hauptstadt Lissabon. Er befindet sich an der Nordseite der Praça do Comércio und bildet den Auftakt der Rua Augusta, der Zentralachse der Baixa Pombalina.",
+   "url": "https://de.wikipedia.org/wiki/Arco_da_Rua_Augusta",
+   "lang": "de",
+   "titel": "Arco da Rua Augusta"
+  },
+  "bild": {
+   "src": "bilder/arco-da-rua-augusta.jpg",
+   "autor": "Berthold Werner",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisbon_Pra%C3%A7a_do_Com%C3%A9rcio_BW_2018-10-03_13-33-44_s.jpg",
+   "breite": 720,
+   "hoehe": 965
+  }
+ },
+ {
+  "id": "cais-das-colunas",
+  "name": "Cais das Colunas",
+  "adresse": "Cais das Colunas, Praça do Comércio, 1100-148 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Sonnenaufgang: freier Blick nach Osten über den Fluss (Sa 07:54, So 06:55). Sonnenuntergang im Herbst hinter der Ponte 25 de Abril. Westlich die Promenade Ribeira das Naus mit Brücke und Cristo Rei. Quellen: Time Out (23.11.2016), thatadventurer.co.uk (09.08.2024)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.706615,
+  "lon": -9.136153,
+  "quelle": "pruefen",
+  "infos": {
+   "rollstuhl": "limited"
+  },
+  "wiki": {
+   "text": "O Cais das Colunas localiza-se no Terreiro do Paço, no centro histórico da cidade, concelho e distrito de Lisboa, em Portugal. Permitia o acesso aos cacilheiros ou outras embarcações que fazem a trajectória entre o Terreiro do Paço e a Margem Sul do rio Tejo.",
+   "url": "https://pt.wikipedia.org/wiki/Cais_das_Colunas",
+   "lang": "pt",
+   "titel": "Cais das Colunas"
+  },
+  "bild": {
+   "src": "bilder/cais-das-colunas.jpg",
+   "autor": "Alvesgaspar",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisboa_January_2015-11.jpg",
+   "breite": 720,
+   "hoehe": 959
+  }
+ },
+ {
+  "id": "rua-da-bica-de-duarte-belo",
+  "name": "Rua da Bica de Duarte Belo",
+  "adresse": "Rua da Bica de Duarte Belo, 1200-057 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Steile Gasse mit Pastellhäusern und Kopfsteintreppen. Tagsüber, kurze Belichtung, früh kommen. Die Bica-Bahn fährt nicht (seit Sept. 2025, RFM 02.09.2026), nur die Straße ist Motiv. Nicht auf die Gleise stellen. Steil. Quellen: islands.com (20.07.2025), locationscout.net",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.709831,
+  "lon": -9.146187,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=227"
+  },
+  "wiki": {
+   "text": "Der Ascensor da Bica, auch Elevador da Bica genannt, ist eine von drei historischen Standseilbahnen in Lissabon. Er verläuft durch die namensgebende Rua da Bica de Duarte Belcio im öffentlichen Straßenraum und verbindet die Rua de São Paulo mit dem in der Oberstadt gelegenen Largo do Calhariz. Die Anlage wird vom Verkehrsunternehmen Carris betrieben, ist als Linie 53E in das städtische Verkehrsnetz integriert und überwindet auf einer Länge von 283 Metern einen Höhenunterschied von 45 Metern, die durchschnittliche Steigung beträgt 18,5 Prozent. Wegen des Streckenverlaufes im Straßenraum laufen die Wagen auf Rillenschienen.",
+   "url": "https://de.wikipedia.org/wiki/Ascensor_da_Bica",
+   "lang": "de",
+   "titel": "Ascensor da Bica"
+  },
+  "bild": {
+   "src": "bilder/rua-da-bica-de-duarte-belo.jpg",
+   "autor": "BKP",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Ascensor_da_Bica_01.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "tram-kurve-calcada-de-sao-francisco",
+  "name": "Tram-Kurve Calçada de São Francisco",
+  "adresse": "Calçada de São Francisco, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Trams 24E und 28 fahren langsam durch die enge Kurve. Früh am Morgen oder blaue Stunde, Tele 70–300 mm, tief ansetzen, Schienen als Linien. Stativ erlaubt, Drohnen nicht. Wenig Gehen. Quellen: photohound.co (ohne Datum), fstoppers.com (19.01.2022)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.708721,
+  "lon": -9.139615,
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1874"
+  }
+ },
+ {
+  "id": "azulejo-haus-am-largo-rafael-bordalo-pinheiro",
+  "name": "Azulejo-Haus am Largo Rafael Bordalo Pinheiro",
+  "adresse": "Largo Rafael Bordalo Pinheiro, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Gilt als meistfotografiertes Kachelhaus Lissabons. Weitere Kachel-Fassaden: Campo de Santa Clara 124–126, Rua das Cruzes da Sé 13–15, Rua do Possolo 76. Quelle: lisbonlux.com (Seite ohne Datum, abgerufen 24.10.2026)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.711554,
+  "lon": -9.141723,
+  "quelle": "adresse",
+  "infos": {}
+ },
+ {
+  "id": "convento-do-carmo",
+  "name": "Convento do Carmo",
+  "adresse": "Largo do Carmo, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Kirchenschiff ohne Dach (seit dem Erdbeben 1755). Fotografieren ohne Blitz erlaubt, Stativ verboten. So geschlossen, sonst 10–18 Uhr (Nov.–Apr.) bzw. 10–19 Uhr. 7 €, ab 65 J. 5 €. Zeiten auf der Seite widersprüchlich. Quelle: storyhunt.io (14.01.2026)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.711929,
+  "lon": -9.140845,
+  "quelle": "pruefen",
+  "infos": {},
+  "wiki": {
+   "text": "Der Largo do Carmo ist ein typischer kleiner Platz der portugiesischen Hauptstadt Lissabon im Altstadtviertel Chiado. In der Mitte des Platzes steht der Springbrunnen Chafariz do Carmo von 1771, umgeben von Jacaranda-Bäumen, die dem gesamten Bereich Schatten spenden.\nObwohl das Areal klein ist, hat es große historische Bedeutung. Er liegt bei den Ruinen des Convento do Carmo, einem ehemaligen Kloster des Karmeliter-Ordens aus dem 14.",
+   "url": "https://de.wikipedia.org/wiki/Largo_do_Carmo",
+   "lang": "de",
+   "titel": "Largo do Carmo"
+  },
+  "bild": {
+   "src": "bilder/convento-do-carmo.jpg",
+   "autor": "Ruipedrocarvalho",
+   "lizenz": "Public domain",
+   "lizenz_url": "",
+   "quelle": "https://commons.wikimedia.org/wiki/File:LargodoCarmo.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "castelo-de-sao-jorge",
+  "name": "Castelo de São Jorge",
+  "adresse": "Rua de Santa Cruz do Castelo, 1100-129 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Südmauern bei Sonnenuntergang: Tejo hinter der Ponte 25 de Abril. Östliche Türme: Alfama-Dächer. Früh oder goldene Stunde, mittags hartes Licht. Steiler Weg, unebene Stufen. 17 €, ab 65 J. 14 €. Quellen: lisbontourism.org (21.10.2026), flytographer.com (02.03.2025)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.713926,
+  "lon": -9.133483,
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 09:00-21:00",
+   "webseite": "https://www.castelodesaojorge.pt/",
+   "telefon": "+351 218 800 620",
+   "rollstuhl": "yes"
+  },
+  "dauer": "60–180",
+  "dauerQuelle": "Tripadvisor 60–120 (Okt. 2026), thebettervacation.com 120–180 (19.06.2026)",
+  "wiki": {
+   "text": "Das Castelo de São Jorge ist eine Festungsanlage mit integrierter Burgruine in Lissabon und gehört zu den vielen Sehenswürdigkeiten der Stadt.",
+   "url": "https://de.wikipedia.org/wiki/Castelo_de_S%C3%A3o_Jorge",
+   "lang": "de",
+   "titel": "Castelo de São Jorge"
+  },
+  "bild": {
+   "src": "bilder/castelo-de-sao-jorge.jpg",
+   "autor": "unbekannt",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Castelo_Sao_Jorge_Lisboa_1.JPG",
+   "breite": 720,
+   "hoehe": 959
+  }
+ },
+ {
+  "id": "alfama-gassen-ab-largo-de-sao-miguel",
+  "name": "Alfama-Gassen ab Largo de São Miguel",
+  "adresse": "Largo de São Miguel, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Largo de São Miguel, Escadinhas de São Miguel, Rua da Adiça, Beco das Cruzes (Porträts von Anwohnern an den Fassaden, Camilla Watson). Start am Miradouro das Portas do Sol. Viele Treppen, nichts für schwache Knie. Quellen: lisbonlux.com (ohne Datum), 24hourslayover.com (27.11.2023)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.711103,
+  "lon": -9.129558,
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2123"
+  }
+ },
+ {
+  "id": "miradouro-do-monte-agudo",
+  "name": "Miradouro do Monte Agudo",
+  "adresse": "Rua Heliodoro Salgado 81, 1170-175 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Ruhig, wenig Leute. Kachel-Stadtplan neben den Bänken. Liegt niedrig, Wahrzeichen schwer zu erkennen. Frei, 7:30–22 Uhr (Okt.–Apr.). Aufstieg durch einen Pinienweg. Quellen: playocean.net (01.05.2015), 24hourslayover.com (27.11.2023)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.725916,
+  "lon": -9.131146,
+  "quelle": "name",
+  "infos": {}
+ },
+ {
+  "id": "pink-street-rua-nova-do-carvalho",
+  "name": "Pink Street (Rua Nova do Carvalho)",
+  "adresse": "Rua Nova do Carvalho, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Rosa Pflaster. Sonntagvormittag etwa 10–13 Uhr leer, nachts Neon und Menschen. Taschendiebe. Quellen: 24hourslayover.com (27.11.2023), lisbontourism.org (21.10.2026)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.70725,
+  "lon": -9.143845,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2451"
+  }
+ },
+ {
+  "id": "maat-dach",
+  "name": "MAAT-Dach",
+  "adresse": "MAAT, Avenida Brasília, 1300-598 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Panorama über Tejo, Brücke und Stadt, etwa 45 Min. vor Sonnenuntergang (So 17:44). Dach laut lisbontourism.org frei. Aufzug und Treppe. Mi–Mo 10–19 Uhr, Di zu. Quellen: lisbontourism.org (21.10.2026), Time Out PT (09.08.2024)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.695934,
+  "lon": -9.193624,
+  "quelle": "adresse",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 12:00-20:00; Tu off; Jan 01,May 01,Dec 25",
+   "webseite": "www.maat.pt",
+   "telefon": "+351 210 028 130",
+   "rollstuhl": "yes"
+  },
+  "dauer": "15–20",
+  "dauerQuelle": "nur Dach; thebettervacation.com, 31.08.2026",
+  "wiki": {
+   "text": "Das Museum für Kunst, Architektur und Technologie ist ein Museum in Lissabon und wurde im November 2016 eröffnet. Das Gebäude der britischen Architektin Amanda Levete wurde am 9. März 2017 fertiggestellt und liegt direkt am Ufer des Flusses Tejo, unmittelbar neben dem Industriedenkmal und Elektrizitätsmuseum Central Tejo im Stadtteil Belém.",
+   "url": "https://de.wikipedia.org/wiki/Museu_de_Arte%2C_Arquitetura_e_Tecnologia",
+   "lang": "de",
+   "titel": "Museu de Arte, Arquitetura e Tecnologia"
+  },
+  "bild": {
+   "src": "bilder/maat-dach.jpg",
+   "autor": "Susanne Nilsson",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:The_MAAT_(34943440096).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
+ },
+ {
+  "id": "fundacao-champalimaud",
+  "name": "Fundação Champalimaud",
+  "adresse": "Avenida Brasília, 1400-038 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Geschwungene Steinmauern, große Rundöffnungen, Wasserbecken mit Spiegelungen. Früh, goldene oder blaue Stunde, Stativ empfohlen, Polfilter. Wege eben, Außenbereich frei. Quellen: pixeoapp.com (29.03.2026), Visit Lisboa (ohne Datum)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.69626,
+  "lon": -9.195411,
+  "quelle": "pruefen",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=171"
+  }
+ },
+ {
+  "id": "doca-de-santo-amaro",
+  "name": "Doca de Santo Amaro",
+  "adresse": "Doca de Santo Amaro, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Ponte 25 de Abril von unten. Sonnenuntergang und blaue Stunde: roter Stahl, Lichter im Wasser. Wenige Menschen. 3–4 Min. vom Bahnhof Alcântara-Mar. Quelle: locationscout.net (Seiten ohne Datum, abgerufen 24.10.2026)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.699366,
+  "lon": -9.177543,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.portodelisboa.pt/doca-de-santo-amaro"
+  },
+  "bild": {
+   "src": "bilder/doca-de-santo-amaro.jpg",
+   "autor": "Ricardo Liberato",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Docas_(2231587104).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
+ },
+ {
+  "id": "pilar-7-bruckenpfeiler",
+  "name": "Pilar 7 (Brückenpfeiler)",
+  "adresse": "Avenida da Índia, 1349-028 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Foto",
+  "notiz": "Plattform in etwa 80 m Höhe, teils Glasboden. Später Nachmittag: warmes Licht auf rotem Stahl. Täglich 10–18 Uhr, etwa 6 €. Visit Lisboa meldet „Aufzug in Reparatur“ (ohne Datum), vor Ort klären. Quellen: thebettervacation.com (02.09.2026), Time Out (25.07.2024)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.698842,
+  "lon": -9.181973,
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1211"
+  }
+ },
+ {
+  "id": "miradouro-da-casa-da-cerca",
+  "name": "Miradouro da Casa da Cerca",
+  "adresse": "Rua da Cerca, 2800-050 Almada",
+  "ort": "Almada",
+  "kategorie": "Foto",
+  "notiz": "Einer der besten Blicke auf Lissabon, die Ponte 25 de Abril und die Tejo-Mündung. Di–So 10–17:30 Uhr, Mo zu. Quellen: Visit Lisboa (ohne Datum), lisboasecreta.co (28.05.2025)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.684325,
+  "lon": -9.158891,
+  "quelle": "name",
+  "infos": {}
+ },
+ {
+  "id": "jardim-do-castelo-almada",
+  "name": "Jardim do Castelo (Almada)",
+  "adresse": "Largo 1º de Maio, Almada",
+  "ort": "Almada",
+  "kategorie": "Foto",
+  "notiz": "Lissabon am Horizont, Ponte 25 de Abril, Cristo Rei; Standpunkt am Gartenrand. Anstieg über Rua Elias Garcia. Quelle: livetheworld.com (19.09.2022)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.649339,
+  "lon": -9.189414,
+  "quelle": "pruefen",
+  "infos": {}
+ },
+ {
+  "id": "farol-de-santa-marta",
+  "name": "Farol de Santa Marta",
+  "adresse": "Rua do Farol de Santa Marta, 2750-341 Cascais",
+  "ort": "Cascais",
+  "kategorie": "Foto",
+  "notiz": "Leuchtturm mit Villa. Sonnenuntergang am schönsten. Weitwinkel, ND-Filter, Stativ erlaubt. Unebene Wege. Quellen: photohound.co, visitcascais.com (ohne Datum)",
+  "typ": "foto",
+  "stand": "2026-10-24",
+  "lat": 38.690394,
+  "lon": -9.420975,
+  "quelle": "pruefen",
+  "infos": {},
+  "wiki": {
+   "text": "O farol de Santa Marta é um farol português que se localiza no Forte de Santa Marta, na Ponta do Salmôdo, vila de Cascais, distrito de Lisboa.\nTrata-se de uma torre quadrangular de alvenaria, revestida com azulejos, branca, com faixas horizontais azuis e lanterna vermelha; tem 20 metros de altura.",
+   "url": "https://pt.wikipedia.org/wiki/Farol_de_Santa_Marta_%28Cascais%29",
+   "lang": "pt",
+   "titel": "Farol de Santa Marta (Cascais)"
+  },
+  "bild": {
+   "src": "bilder/farol-de-santa-marta.jpg",
+   "autor": "Jaime Silva",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Farol_de_Santa_Marta.jpg",
+   "breite": 720,
+   "hoehe": 479
   }
  }
 ]

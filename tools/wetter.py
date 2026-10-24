@@ -15,10 +15,19 @@ import sys
 import time
 import urllib.request
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 UA = 'Fasan-Karte/1.5 (+https://github.com/CUK999/Fasan-Karte)'
 LAT, LON = 38.7139, -9.1394  # Baixa, Lissabon
 IPMA_ORT = 1110600
+
+
+LISSABON = ZoneInfo('Europe/Lisbon')
+
+
+def lokal(utc_iso):
+    """'2026-10-25T17:44' in UTC → Ortszeit Lissabon als 'YYYY-MM-DDTHH:MM' (mit Zeitumstellung)."""
+    return datetime.fromisoformat(utc_iso).replace(tzinfo=timezone.utc).astimezone(LISSABON).strftime('%Y-%m-%dT%H:%M')
 
 
 def hole(url):
@@ -75,15 +84,21 @@ def ipma():
 def open_meteo():
     url = ('https://api.open-meteo.com/v1/forecast?latitude=%s&longitude=%s'
            '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code'
-           '&daily=sunrise,sunset&timezone=Europe%%2FLisbon&forecast_days=4') % (LAT, LON)
+           '&daily=sunrise,sunset&timezone=GMT&forecast_days=4') % (LAT, LON)
+    # In UTC abrufen und hier umrechnen: Mit timezone=Europe/Lisbon kamen am 24.10.2026 die Zeiten für So/Mo mit
+    # Sommerzeit-Versatz (Sonnenuntergang So 18:44 statt 17:44 laut RFM, 20.10.2026). zoneinfo kennt die Umstellung.
     d = hole(url)
     h, t = d.get('hourly') or {}, d.get('daily') or {}
-    print('Open-Meteo Felder:', sorted(h.keys()), sorted(t.keys()))
+    print('Open-Meteo Felder:', sorted(h.keys()), sorted(t.keys()), 'utc_offset_seconds:', d.get('utc_offset_seconds'))
     stunden = []
     for i, zeit in enumerate(h.get('time') or []):
-        stunden.append({'t': zeit, 'temp': h['temperature_2m'][i], 'regen': h['precipitation_probability'][i],
+        stunden.append({'t': lokal(zeit), 'temp': h['temperature_2m'][i], 'regen': h['precipitation_probability'][i],
                         'mm': h['precipitation'][i], 'code': h['weather_code'][i]})
-    sonne = [{'datum': t['time'][i], 'auf': t['sunrise'][i][-5:], 'unter': t['sunset'][i][-5:]} for i in range(len(t.get('time') or []))]
+    sonne = []
+    for i in range(len(t.get('time') or [])):
+        auf, unter = lokal(t['sunrise'][i]), lokal(t['sunset'][i])
+        sonne.append({'datum': auf[:10], 'auf': auf[11:16], 'unter': unter[11:16]})
+    print('Sonne (Lissabon-Zeit):', sonne)
     return {'quelle': 'Open-Meteo', 'url': 'https://open-meteo.com/', 'lizenz': 'CC BY 4.0', 'stunden': stunden, 'sonne': sonne}
 
 

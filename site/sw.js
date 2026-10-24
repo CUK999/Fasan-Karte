@@ -1,9 +1,9 @@
 /* Offline zuerst: App-Hülle und Daten liegen im Gerät, Bilder nach dem ersten Ansehen.
    Kartenkacheln regelt der Browser-Cache (OSM-Regeln: kein Vorab-Herunterladen). */
-const KERN = 'fk-kern-v2';
+const KERN = 'fk-kern-v3';
 const BILDER = 'fk-bilder-v1';
 const DATEIEN = ['./', 'index.html', 'style.css', 'app.js', 'oeffnungszeiten.js', 'orte.json', 'plaene.json',
-  'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'fasan-aufbruch.svg', 'manifest.webmanifest', 'icon-180.png'];
+  'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/qrcode/qrcode.js', 'fasan-aufbruch.svg', 'manifest.webmanifest', 'icon-180.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(KERN).then((c) => Promise.all(DATEIEN.map((d) => c.add(d).catch(() => null)))).then(() => self.skipWaiting()));

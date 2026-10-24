@@ -4,6 +4,8 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Gruppen-Abgleich ohne Server: Paket (Stimmen, Umfragen, Namen) komprimiert im Link-Teil hinter „#“, verteilt per QR-Code (Handy-Kamera) oder WhatsApp; jedes Paket trägt alles Bekannte, Zusammenführen je Person nach Zeitstempel | Live-P2P im Browser braucht Vermittler und scheitert oft im Mobilfunk; „#“-Teil erreicht den Server nicht |
+| 2026-10-24 | Später automatischer Abgleich über eigenen Nostr-Relay auf dem VPS, Ende-zu-Ende-verschlüsselt, Kopplung per QR | Fasan: P2P oder offene Netze; wartet auf stabilen VPS |
 | 2026-10-24 | Web-App auf GitHub Pages (öffentlich), ohne Installation, ohne Server; Unterkunft nie im Repo | Muss in Stunden auf Android und iPhone laufen; VPS bleibt unangetastet |
 | 2026-10-24 | Karte: Leaflet + OpenStreetMap-Kacheln; Navigation per Übergabe an Apple Karten, Google Maps oder Geo-Link | Turn-by-turn im Browser ist unzuverlässig (Display aus = kein GPS) |
 | 2026-10-24 | Orte aus `data/orte.csv`; GitHub Action prüft jede Position gegen OSM-Name, OSM-Adresse und Wikidata und schreibt `data/pruefbericht.md` | Drei Orte lagen falsch; jede Position braucht eine zweite Quelle |

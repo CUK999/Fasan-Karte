@@ -122,7 +122,7 @@ body[data-blatt="gross"] .kartenknopf { opacity: 0; pointer-events: none; }
 /* Leiste unten */
 .leiste {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 1300;
-  display: grid; grid-template-columns: repeat(4, 1fr);
+  display: grid; grid-template-columns: repeat(5, 1fr);
   padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   background: var(--surface); border-top: 1px solid var(--line);
 }
@@ -135,7 +135,7 @@ body[data-blatt="gross"] .kartenknopf { opacity: 0; pointer-events: none; }
 .leiste button[aria-current="page"] { color: var(--text); }
 .leiste button[aria-current="page"] svg { stroke: var(--accent); }
 .leiste button[aria-current="page"] .pille { background: color-mix(in srgb, var(--accent) 18%, transparent); }
-.leiste .pille { display: grid; place-items: center; width: 64px; height: 32px; border-radius: 16px; transition: background var(--t-kurz); }
+.leiste .pille { display: grid; place-items: center; width: 56px; height: 32px; border-radius: 16px; transition: background var(--t-kurz); }
 :root[data-profil="einfach"] .leiste button, :root[data-profil="lesbar"] .leiste button { font-size: 15px; }
 
 /* Blatt */
@@ -252,7 +252,7 @@ body[data-blatt="gross"] .kartenknopf { opacity: 0; pointer-events: none; }
 .abzeichen { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--raised); color: var(--text); }
 .abzeichen.tipp { background: color-mix(in srgb, var(--stern) 22%, transparent); }
 .abzeichen.warn { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
-.aktionen { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.aktionen { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
 .aktion {
   min-height: 76px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface);
   display: grid; justify-items: center; align-content: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 6px 2px;
@@ -329,3 +329,34 @@ details.tipps ul { margin: 0 0 14px; padding-left: 20px; display: grid; gap: 6px
 .filterzeile { display: flex; gap: 8px; margin-top: 10px; }
 .filterzeile .knopf { flex: 1; }
 .filterpanel { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+/* Gruppe */
+.qr { position: fixed; inset: 0; z-index: 4500; background: rgb(0 0 0 / .55); display: grid; place-items: center; padding: 16px; }
+.qr-karte { background: #fff; color: #111; border-radius: var(--r-gross); padding: 20px; display: grid; gap: 14px; justify-items: center; width: min(100%, 460px); }
+.qr-karte canvas { max-width: 100%; height: auto; image-rendering: pixelated; }
+.qr-karte .knopf.haupt { background: #9A4A1C; border-color: #9A4A1C; color: #fff; }
+.segmente.stimme button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.segmente.stimme button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.segmente.stimme button.ja[aria-pressed="true"] { background: var(--ok); color: #fff; }
+.segmente.stimme button.nein[aria-pressed="true"] { background: var(--danger); color: #fff; }
+.stimmen { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.stimmen .ja { color: var(--ok); font-weight: 600; }
+.stimmen .nein { color: var(--danger); font-weight: 600; }
+.umfrage { margin-top: 12px; padding: 14px 16px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); display: grid; gap: 2px; }
+.umfrage-frage { font-size: var(--fs-t); }
+.option { position: relative; overflow: hidden; min-height: var(--ziel); border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface);
+  display: flex; align-items: center; gap: 12px; padding: 8px 14px; text-align: left; }
+.option .balken { position: absolute; left: 0; top: 0; bottom: 0; background: color-mix(in srgb, var(--accent) 16%, transparent); transition: width var(--t-mittel) var(--kurve); }
+.option > :not(.balken) { position: relative; }
+.option-text { display: grid; font-weight: 600; }
+.option-text small { font-weight: 500; color: var(--muted); font-size: var(--fs-k); }
+.kasten { flex: none; width: 30px; height: 30px; border-radius: 8px; border: 2px solid var(--muted); display: grid; place-items: center; color: transparent; }
+.kasten svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 3; }
+[aria-pressed="true"] > .kasten { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.option[aria-pressed="true"] { border-color: var(--accent); }
+.auswahl { max-height: 320px; overflow-y: auto; margin: 0; border: 1px solid var(--line); border-radius: var(--r); padding: 0 10px; }
+.waehle { width: 100%; min-height: var(--ziel); border: 0; border-bottom: 1px solid var(--line); background: none; display: flex; align-items: center; gap: 12px; text-align: left; }
+.waehle span:last-child { display: grid; }
+.waehle small { color: var(--muted); font-size: var(--fs-k); }
+#umfrage-frage, #umfrage-suche, #gruppe-name { width: 100%; min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); font-size: var(--fs); }
+body[data-blatt="gross"] .toast { bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 14px); }

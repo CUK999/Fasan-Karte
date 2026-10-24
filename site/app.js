@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.1';
+  const VERSION = '1.2';
   const TAGE = [
     { id: 'sa', kurz: 'Sa 24.', lang: 'Samstag, 24. Oktober', datum: '2026-10-24' },
     { id: 'so', kurz: 'So 25.', lang: 'Sonntag, 25. Oktober', datum: '2026-10-25' },
@@ -30,6 +30,10 @@
     kopie: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
     notiz: '<path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/>',
     haus: '<path d="M3 11 12 4l9 7M5.5 9.5V20h13V9.5"/>',
+    gruppe: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14c2.4.2 4 1.9 4.5 4.5"/>',
+    qr: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h3v3h-3zM17.5 17.5h3v3h-3zM14 20.5h.01M20.5 14h.01"/>',
+    hoch: '<path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.2 2.6L12.6 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/>',
+    runter: '<path d="M7 13V4H4v9zM7 13l4 7c1.5 0 2.5-1 2.2-2.6l-.6-3.4H19a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 17.8 4H7"/>',
   };
   const GRUPPEN = [
     { id: 'sehen', label: 'Sehen', kats: ['Sehenswürdigkeit', 'Museum', 'Markt', 'Event'] },
@@ -114,7 +118,7 @@
   const heuteTag = TAGE.find((t) => t.datum === iso);
   if (heuteTag) S.tag = heuteTag.id;
   if (!['A', 'B', 'C'].includes(S.plan)) S.plan = 'A';
-  if (!['plan', 'orte', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
+  if (!['plan', 'orte', 'gruppe', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
 
   let M = speicher.get('markierungen', {});
   const mk = (id) => M[id] || {};
@@ -126,6 +130,132 @@
   }
 
   let ORTE = [], NACH_NAME = new Map(), NACH_ID = new Map(), PLAENE = {};
+
+  // ---------- Gruppe: Abgleich ohne Server ----------
+  // Jedes Handy hält, was es kennt. Ein Paket (Link oder QR) trägt alles davon. Zusammenführen je Person: neuere Fassung gewinnt.
+  // Die Daten stehen im Teil hinter „#“; der wird beim Laden der Seite nicht an den Server geschickt (RFC 3986, Abschnitt 3.5).
+  let G = Object.assign({ ich: null, leute: {}, umfragen: {} }, speicher.get('gruppe', {}));
+  const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
+  const speichereG = () => speicher.set('gruppe', G);
+  function ich() {
+    if (!G.ich) { G.ich = { id: neueId(), name: '' }; }
+    if (!G.leute[G.ich.id]) G.leute[G.ich.id] = { name: G.ich.name, s: {}, a: {}, t: Date.now() };
+    return G.leute[G.ich.id];
+  }
+  const meinName = () => (G.ich && G.ich.name) || 'Ich';
+  function stimme(ortId, wert) {
+    const me = ich();
+    if (wert) me.s[ortId] = wert; else delete me.s[ortId];
+    me.t = Date.now(); speichereG();
+  }
+  const meineStimme = (ortId) => (G.ich && G.leute[G.ich.id] && G.leute[G.ich.id].s[ortId]) || 0;
+  function gruppenStimmen(ortId) {
+    const ja = [], nein = [];
+    for (const [id, p] of Object.entries(G.leute)) {
+      const v = p.s && p.s[ortId];
+      const n = id === (G.ich && G.ich.id) ? meinName() : p.name || 'Jemand';
+      if (v === 1) ja.push(n); else if (v === -1) nein.push(n);
+    }
+    return { ja, nein };
+  }
+  function rangliste() {
+    return ORTE.map((o) => ({ o, ...gruppenStimmen(o.id) })).filter((x) => x.ja.length || x.nein.length)
+      .sort((a, b) => (b.ja.length - b.nein.length) - (a.ja.length - a.nein.length) || b.ja.length - a.ja.length || a.o.name.localeCompare(b.o.name, 'pt'));
+  }
+
+  const b64u = {
+    enc(bytes) { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); },
+    dec(str) { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((str.length + 3) % 4)); return Uint8Array.from(s, (c) => c.charCodeAt(0)); },
+  };
+  async function packe() {
+    if (G.ich) { const me = ich(); me.name = G.ich.name; }
+    const l = {};
+    for (const [id, p] of Object.entries(G.leute)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}];
+    const u = {};
+    for (const [id, x] of Object.entries(G.umfragen)) u[id] = [x.von, x.frage, x.o, x.t];
+    const roh = new TextEncoder().encode(JSON.stringify({ v: 1, l, u }));
+    if ('CompressionStream' in window) {
+      try {
+        const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
+        return 'z' + b64u.enc(z);
+      } catch (e) { /* ohne Kompression weiter */ }
+    }
+    return 'j' + b64u.enc(roh);
+  }
+  async function entpacke(text) {
+    let bytes = b64u.dec(text.slice(1));
+    if (text[0] === 'z') bytes = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    const d = JSON.parse(new TextDecoder().decode(bytes));
+    if (!d || d.v !== 1) throw new Error('Format');
+    return d;
+  }
+  function fuehreZusammen(d) {
+    const neu = [];
+    for (const [id, p] of Object.entries(d.l || {})) {
+      if (G.ich && id === G.ich.id) continue; // eigene Daten bleiben maßgeblich
+      if (!Array.isArray(p)) continue;
+      const [name, t, s, a] = p;
+      const alt = G.leute[id];
+      if (!alt || (t || 0) > (alt.t || 0)) {
+        G.leute[id] = { name: String(name || '').slice(0, 40), t: +t || 0, s: s && typeof s === 'object' ? s : {}, a: a && typeof a === 'object' ? a : {} };
+        neu.push(String(name || 'Jemand').slice(0, 40));
+      }
+    }
+    for (const [id, x] of Object.entries(d.u || {})) {
+      if (!G.umfragen[id] && Array.isArray(x)) G.umfragen[id] = { von: x[0], frage: String(x[1] || '').slice(0, 120), o: (x[2] || []).filter((oid) => NACH_ID.has(oid)).slice(0, 8), t: +x[3] || 0 };
+    }
+    speichereG();
+    return neu;
+  }
+  const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
+  async function importiereAusHash() {
+    const m = /^#g=([zj][A-Za-z0-9_-]+)$/.exec(location.hash);
+    if (!m) return false;
+    try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ }
+    try {
+      const neu = fuehreZusammen(await entpacke(m[1]));
+      S.tab = 'gruppe'; speicher.set('tab', 'gruppe'); S.ort = null; hoehe('gross'); zeichne({ anpassen: true });
+      toast(neu.length ? `Abgeglichen: ${neu.join(', ')}.` : 'Abgeglichen. Es war nichts Neues dabei.');
+    } catch (e) { toast('Dieser Gruppen-Link ist beschädigt. Bitte neu senden lassen.'); }
+    return true;
+  }
+  addEventListener('hashchange', () => { if (/^#g=/.test(location.hash)) importiereAusHash(); });
+
+  async function teileGruppe() {
+    if (!G.ich || !G.ich.name) { toast('Gib zuerst deinen Namen ein.'); return; }
+    const url = await paketLink();
+    const text = `${meinName()}s Stimmen für Lissabon. Antippen zum Abgleichen:`;
+    if (navigator.share) navigator.share({ title: 'Fasan Karte · Gruppe', text, url }).catch(() => {});
+    else kopiere(`${text} ${url}`, 'Link kopiert. Jetzt in WhatsApp einfügen.');
+  }
+  async function zeigeQr() {
+    if (!G.ich || !G.ich.name) { toast('Gib zuerst deinen Namen ein.'); return; }
+    const url = await paketLink();
+    const box = $('#qr');
+    let inhalt;
+    try {
+      if (!window.qrcode) throw new Error('fehlt');
+      const qr = window.qrcode(0, 'L');
+      qr.addData(url); qr.make();
+      const n = qr.getModuleCount(), rand = 4, groesse = Math.min(innerWidth - 48, innerHeight - 260, 420);
+      const zelle = Math.max(1, Math.floor(groesse / (n + rand * 2)));
+      const cv = el('canvas', { width: (n + rand * 2) * zelle, height: (n + rand * 2) * zelle, 'aria-label': 'QR-Code mit deinen Gruppen-Daten', role: 'img' });
+      const c = cv.getContext('2d');
+      c.fillStyle = '#fff'; c.fillRect(0, 0, cv.width, cv.height); c.fillStyle = '#000';
+      for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) c.fillRect((k + rand) * zelle, (r + rand) * zelle, zelle, zelle);
+      inhalt = cv;
+    } catch (e) {
+      inhalt = el('p', { style: 'max-width:320px;text-align:center' }, e.message === 'fehlt' ? 'Der QR-Code lädt nicht. Schick den Link per WhatsApp.' : 'Zu viele Daten für einen QR-Code. Schick den Link per WhatsApp.');
+    }
+    setze(box, el('div', { class: 'qr-karte', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'QR-Code zeigen' },
+      el('strong', { style: 'font-size:var(--fs-t)' }, `${meinName()} · Gruppe`),
+      inhalt,
+      el('p', { style: 'margin:0;text-align:center' }, 'Die anderen öffnen ihre Handy-Kamera und richten sie auf den Code. Dann den Link antippen.'),
+      el('p', { class: 'klein', style: 'margin:0;text-align:center;opacity:.75' }, 'Tipp: Bildschirm heller stellen.'),
+      el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => { box.hidden = true; } }, 'Fertig')));
+    box.hidden = false;
+    try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) { /* egal */ }
+  }
 
   // ---------- Aussehen ----------
   const dunkelMq = matchMedia('(prefers-color-scheme: dark)');
@@ -206,6 +336,7 @@
       if (S.extra.has('fav') && !m.fav) return false;
       if (S.extra.has('offen')) { const st = status(o); if (!st || !st.offen) return false; }
       if (S.extra.has('offenNicht') && m.fertig) return false;
+      if (S.extra.has('gruppe') && !gruppenStimmen(o.id).ja.length) return false;
       return true;
     });
   }
@@ -248,6 +379,9 @@
         if (hatPos(o)) linie.push([o.lat, o.lon]);
         (s.alt || []).map((n) => NACH_NAME.get(n)).filter(Boolean).forEach((a) => { if (!orte.includes(a)) orte.push(a); });
       }
+    } else if (S.tab === 'gruppe') {
+      rangliste().forEach(({ o }, i) => { orte.push(o); nummern.set(o.id, i + 1); });
+      for (const u of Object.values(G.umfragen)) u.o.map((id) => NACH_ID.get(id)).filter(Boolean).forEach((o) => { if (!orte.includes(o)) orte.push(o); });
     } else if (S.tab === 'gemerkt') {
       orte = ORTE.filter((o) => { const m = mk(o.id); return !m.aus && (m.fav || m.notiz || m.sterne || m.fertig); });
     } else {
@@ -308,6 +442,7 @@
     else if (S.tab === 'plan') zeichnePlan(box);
     else if (S.tab === 'orte') zeichneOrte(box);
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
+    else if (S.tab === 'gruppe') zeichneGruppe(box);
     else zeichneMehr(box);
     box.scrollTop = scroll;
     if (opt.karte !== false) karteZeichnen(opt.anpassen);
@@ -424,7 +559,7 @@
       if (ico) b.append(ic(ico)); b.append(label); return b;
     };
     const extras = el('div', { class: 'filterpanel nur-voll', role: 'group', 'aria-label': 'Weitere Filter', hidden: !S.filterOffen },
-      ex('tipp', 'Geheimtipps', 'stern'), ex('offen', 'Jetzt offen'), ex('offenNicht', 'Noch nicht erledigt', 'haken'), ex('fav', 'Gemerkt', 'herz'), ex('aus', 'Ausgeblendete zeigen', 'aus'));
+      ex('tipp', 'Geheimtipps', 'stern'), ex('offen', 'Jetzt offen'), ex('offenNicht', 'Noch nicht erledigt', 'haken'), ex('fav', 'Gemerkt', 'herz'), ex('gruppe', 'Gruppe will hin', 'gruppe'), ex('aus', 'Ausgeblendete zeigen', 'aus'));
     const nExtra = S.extra.size;
     const sortName = S.sort === 'naehe' ? 'Nähe' : 'Name';
     const zeile = el('div', { class: 'filterzeile' },
@@ -528,7 +663,7 @@
         tipps('Fahren', ['Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten.', 'Einzelfahrt 1,90 €. 24-Stunden-Ticket 7,25 €, mit Fähre 10,35 €, mit Zug nach Cascais 11,40 €.', 'Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 €.', 'Gesperrt: Elevador de Santa Justa sowie die Standseilbahnen Glória, Bica und Lavra. Der Funicular da Graça fährt 7–21 Uhr.']),
         tipps('Zeiten', ['Nacht auf Sonntag: Uhren 1 Stunde zurück.', 'Montag zu: Jerónimos und staatliche Museen. Dienstag zu: Gulbenkian.', 'Gulbenkian sonntags ab 14 Uhr gratis.', 'Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend).']),
         tipps('Vor Ort', ['Couvert (Brot, Oliven, Häppchen) kostet extra. Ablehnen mit „Não, obrigado“. Oft ist Schinken dabei.', 'Trinkgeld 5–10 %. Bei Gruppen steht manchmal schon Service auf der Rechnung.', 'Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren.', 'Bargeld am Multibanco-Automaten holen.']),
-        tipps('Diese Karte', ['Nummern zeigen die Reihenfolge des Tages. Die gepunktete Linie ist Luftlinie; den Fußweg zeigt die Navigation.', 'Gehzeiten sind geschätzt: 1,3 × Luftlinie bei 4 km/h.', 'Öffnungszeiten stammen aus OpenStreetMap und können veraltet sein.', 'Zum Startbildschirm hinzufügen: im Browser-Menü „Zum Startbildschirm“. Dann startet die Karte wie eine App.'])),
+        tipps('Diese Karte', ['Nummern zeigen die Reihenfolge des Tages. Die gepunktete Linie ist Luftlinie; den Fußweg zeigt die Navigation.', 'Gehzeiten sind geschätzt: 1,3 × Luftlinie bei 4 km/h.', 'Öffnungszeiten stammen aus OpenStreetMap und können veraltet sein.', 'Android: im Chrome-Menü „Zum Startbildschirm hinzufügen“. iPhone: die Karte in Safari nutzen, denn Gruppen-Links aus der Kamera öffnen sich in Safari, und ein Symbol auf dem Home-Bildschirm hätte einen eigenen, getrennten Speicher.'])),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Daten und Verbindungen'),
         el('ul', { class: 'klein', style: 'margin:0;padding-left:20px;display:grid;gap:6px' },
           el('li', {}, 'Keine Konten, keine Statistik, keine Werbung.'),
@@ -545,6 +680,119 @@
             el('button', { type: 'button', class: 'knopf warn', onclick: () => { M = {}; speicher.set('markierungen', M); toast('Alles gelöscht.'); zeichne(); } }, 'Ja, löschen'))) }, 'Markierungen löschen'))));
   }
   const tipps = (titel, punkte) => el('details', { class: 'tipps' }, el('summary', {}, titel), el('ul', {}, punkte.map((p) => el('li', {}, p))));
+
+  // ---------- Gruppe: Ansicht ----------
+  const zeitHer = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} Tagen`; };
+  function zeichneGruppe(box) {
+    if (!G.ich || !G.ich.name) {
+      const feld = el('input', { id: 'gruppe-name', type: 'text', autocomplete: 'given-name', placeholder: 'Dein Vorname', maxlength: '30' });
+      const los = () => { const n = feld.value.trim(); if (!n) { feld.focus(); return; } ich(); G.ich.name = n; G.leute[G.ich.id].name = n; G.leute[G.ich.id].t = Date.now(); speichereG(); zeichne(); };
+      feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') los(); });
+      setze(box, el('div', { class: 'leer' }, fasan(), el('strong', { style: 'font-size:var(--fs-t)' }, 'Gemeinsam entscheiden')),
+        el('p', { style: 'margin:0 0 6px' }, 'Jede und jeder stimmt bei Orten ab: „Will hin“ oder „Lieber nicht“. Dazu kommen Umfragen wie „Wohin heute Abend?“.'),
+        el('p', { class: 'leise klein', style: 'margin:0 0 14px' }, 'Abgeglichen wird per QR-Code oder Link, ohne Konto und ohne Server. Dein Name ist nur für die Gruppe.'),
+        el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: los }, 'Los')));
+      return;
+    }
+    const leute = Object.entries(G.leute).filter(([id]) => id !== G.ich.id).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+    const liste = rangliste();
+    const umfragen = Object.entries(G.umfragen).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
+
+    const abgleich = el('section', { class: 'karte-box', style: 'margin-top:4px;display:grid;gap:10px' },
+      el('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
+        el('strong', {}, `Du bist ${meinName()}`),
+        el('button', { type: 'button', class: 'knopf flach nur-voll', style: 'min-height:48px;padding:0 10px', onclick: () => { G.ich.name = ''; speichereG(); zeichne(); } }, 'Ändern')),
+      el('div', { class: 'reihe' },
+        el('button', { type: 'button', class: 'knopf haupt', style: 'flex:1 1 140px', onclick: zeigeQr }, ic('qr'), 'QR zeigen'),
+        el('button', { type: 'button', class: 'knopf', style: 'flex:1 1 140px', onclick: teileGruppe }, ic('teilen'), 'Link senden')),
+      el('p', { class: 'leise klein', style: 'margin:0' }, leute.length
+        ? `Abgeglichen mit: ${leute.map(([, p]) => `${p.name || 'Jemand'} (${zeitHer(p.t)})`).join(', ')}.`
+        : 'Noch niemand abgeglichen. Zeig deinen QR-Code oder schick den Link in eure WhatsApp-Gruppe. Jeder Link enthält alles, was dein Handy kennt.'));
+
+    const umfrageTeil = el('section', { class: 'abschnitt' }, el('h3', {}, 'Umfragen'),
+      S.neueUmfrage ? formUmfrage() : el('button', { type: 'button', class: 'knopf breit nur-voll', onclick: () => { S.neueUmfrage = { frage: 'Wohin heute Abend?', o: [] }; zeichne({ scroll: true, karte: false }); } }, ic('plan'), 'Neue Umfrage'),
+      umfragen.length ? umfragen.map(([id, u]) => karteUmfrage(id, u)) : (S.neueUmfrage ? null : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Umfrage. Wer eine startet, schickt danach den Link oder zeigt den QR-Code.')));
+
+    const rang = el('section', { class: 'abschnitt' }, el('h3', {}, 'Was die Gruppe will'),
+      liste.length ? el('ol', { class: 'liste' }, liste.map(({ o, ja, nein }, i) => {
+        const li = eintragOrt(o, { nr: i + 1 });
+        const zeile = el('span', { class: 'unter stimmen' },
+          ja.length ? el('span', { class: 'ja' }, `👍 ${ja.length}: ${ja.join(', ')}`) : null,
+          nein.length ? el('span', { class: 'nein' }, `👎 ${nein.length}: ${nein.join(', ')}`) : null,
+          ja.length && nein.length ? el('span', { class: 'abzeichen warn', style: 'font-size:12px' }, 'uneinig') : null);
+        li.querySelector('.text').append(zeile);
+        return li;
+      })) : el('p', { class: 'leise klein', style: 'margin:0' }, 'Noch keine Stimmen. Öffne einen Ort und tippe auf „Will hin“ oder „Lieber nicht“.'));
+    setze(box, abgleich, umfrageTeil, rang);
+  }
+
+  function formUmfrage() {
+    const f = S.neueUmfrage;
+    const frage = el('input', { id: 'umfrage-frage', type: 'text', value: f.frage, maxlength: '100', 'aria-label': 'Frage' });
+    frage.addEventListener('input', () => { f.frage = frage.value; });
+    const such = el('input', { id: 'umfrage-suche', type: 'search', placeholder: 'Orte filtern', 'aria-label': 'Orte filtern', value: f.q || '' });
+    const auswahl = el('ul', { class: 'liste auswahl' });
+    const fuelle = () => {
+      const q = falte(f.q || '');
+      const kandidaten = ORTE.filter((o) => !mk(o.id).aus && (!q || falte(o.name + ' ' + o.kategorie).includes(q)))
+        .sort((a, b) => (f.o.includes(b.id) - f.o.includes(a.id)) || (mk(b.id).fav ? 1 : 0) - (mk(a.id).fav ? 1 : 0) || a.name.localeCompare(b.name, 'pt'));
+      setze(auswahl, kandidaten.map((o) => el('li', {},
+        el('button', { type: 'button', class: 'waehle', 'aria-pressed': String(f.o.includes(o.id)), onclick: () => {
+          if (f.o.includes(o.id)) f.o = f.o.filter((x) => x !== o.id); else if (f.o.length < 6) f.o.push(o.id); else toast('Höchstens 6 Orte pro Umfrage.');
+          fuelle(); zaehler.textContent = `${f.o.length} von 6 gewählt`;
+        } }, el('span', { class: 'kasten' }, ic('haken')), el('span', {}, o.name, el('small', {}, o.kategorie))))));
+    };
+    such.addEventListener('input', () => { f.q = such.value; fuelle(); });
+    const zaehler = el('span', { class: 'leise klein' }, `${f.o.length} von 6 gewählt`);
+    fuelle();
+    return el('div', { class: 'karte-box', style: 'display:grid;gap:10px' },
+      el('label', { for: 'umfrage-frage', class: 'klein leise' }, 'Frage'), frage,
+      el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('span', { class: 'klein leise' }, 'Orte zur Auswahl (2–6)'), zaehler),
+      such, auswahl,
+      el('div', { class: 'reihe' },
+        el('button', { type: 'button', class: 'knopf', onclick: () => { S.neueUmfrage = null; zeichne({ scroll: true, karte: false }); } }, 'Abbrechen'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: () => {
+          if (f.o.length < 2) { toast('Wähle mindestens 2 Orte.'); return; }
+          if (!f.frage.trim()) { toast('Gib eine Frage ein.'); return; }
+          const me = ich();
+          const id = neueId();
+          G.umfragen[id] = { von: G.ich.id, frage: f.frage.trim(), o: f.o.slice(), t: Date.now() };
+          me.t = Date.now(); speichereG();
+          S.neueUmfrage = null; zeichne();
+          toast('Umfrage gestartet. Jetzt QR zeigen oder Link senden.', { aktion: 'Link senden', fn: teileGruppe });
+        } }, 'Umfrage starten')));
+  }
+
+  function karteUmfrage(id, u) {
+    const me = ich();
+    const meine = (me.a && me.a[id]) || [];
+    const stimmen = u.o.map((oid) => {
+      const namen = [];
+      for (const [pid, p] of Object.entries(G.leute)) if (((p.a || {})[id] || []).includes(oid)) namen.push(pid === G.ich.id ? meinName() : p.name || 'Jemand');
+      return { oid, namen };
+    });
+    const max = Math.max(1, ...stimmen.map((s) => s.namen.length));
+    const teilnehmer = Object.values(G.leute).filter((p) => ((p.a || {})[id] || []).length).length;
+    const vonName = u.von === G.ich.id ? meinName() : (G.leute[u.von] || {}).name || 'Jemand';
+    return el('article', { class: 'umfrage' },
+      el('strong', { class: 'umfrage-frage' }, u.frage),
+      el('span', { class: 'leise klein' }, `von ${vonName} · ${teilnehmer} haben abgestimmt · mehrere Antworten möglich`),
+      el('div', { style: 'display:grid;gap:8px;margin-top:8px' }, stimmen.map(({ oid, namen }) => {
+        const o = NACH_ID.get(oid);
+        if (!o) return null;
+        const an = meine.includes(oid);
+        return el('button', { type: 'button', class: 'option', 'aria-pressed': String(an), onclick: () => {
+          const neu = an ? meine.filter((x) => x !== oid) : meine.concat(oid);
+          me.a = Object.assign({}, me.a, { [id]: neu }); me.t = Date.now(); speichereG(); zeichne({ scroll: true });
+        } },
+        el('span', { class: 'balken', style: `width:${(namen.length / max) * 100}%` }),
+        el('span', { class: 'kasten' }, ic('haken')),
+        el('span', { class: 'option-text' }, o.name, el('small', {}, namen.length ? `${namen.length}: ${namen.join(', ')}` : 'noch keine Stimme')));
+      })),
+      el('div', { class: 'reihe', style: 'margin-top:8px' },
+        el('button', { type: 'button', class: 'knopf flach', onclick: teileGruppe }, ic('teilen'), 'Antwort senden'),
+        u.von === G.ich.id ? el('button', { type: 'button', class: 'knopf flach warn nur-voll', onclick: () => { delete G.umfragen[id]; speichereG(); zeichne({ scroll: true }); toast('Umfrage entfernt (nur auf diesem Handy).'); } }, 'Entfernen') : null));
+  }
 
   // ---------- Ortsdetail ----------
   function oeffneOrt(id, ausListe) {
@@ -566,6 +814,18 @@
     zeichne();
   }
   addEventListener('popstate', () => { if (S.ort && !/^#ort-/.test(location.hash)) schliesseOrt(true); else if (/^#ort-/.test(location.hash)) { const id = location.hash.slice(5); if (NACH_ID.has(id) && S.ort !== id) oeffneOrt(id); } });
+
+  function stimmBlock(o) {
+    const v = meineStimme(o.id);
+    const { ja, nein } = gruppenStimmen(o.id);
+    const setz = (w) => { stimme(o.id, v === w ? 0 : w); zeichne({ scroll: true }); if (!G.ich.name) toast('Gespeichert. Unter „Gruppe“ deinen Namen eingeben, dann abgleichen.'); };
+    return el('section', { class: 'abschnitt' }, el('h3', {}, 'Deine Stimme für die Gruppe'),
+      el('div', { class: 'segmente stimme', role: 'group', 'aria-label': 'Deine Stimme' },
+        el('button', { type: 'button', 'aria-pressed': String(v === 1), class: 'ja', onclick: () => setz(1) }, ic('hoch'), 'Will hin'),
+        el('button', { type: 'button', 'aria-pressed': String(v === -1), class: 'nein', onclick: () => setz(-1) }, ic('runter'), 'Lieber nicht')),
+      ja.length || nein.length ? el('p', { class: 'klein', style: 'margin:8px 0 0' },
+        ja.length ? `👍 ${ja.join(', ')}` : '', ja.length && nein.length ? ' · ' : '', nein.length ? `👎 ${nein.join(', ')}` : '') : null);
+  }
 
   function zeichneOrt(box) {
     const o = NACH_ID.get(S.ort), m = mk(o.id), g = gruppeVon(o.kategorie);
@@ -612,6 +872,7 @@
           if (!m.aus) { schliesseOrt(); toast(`${o.name} ausgeblendet.`, { aktion: 'Rückgängig', fn: () => { markiere(o.id, { aus: false }); zeichne(); } }); } else zeichne({ scroll: true });
         }),
         aktion('nur-voll', 'teilen', 'Teilen', null, () => teile(o))),
+      stimmBlock(o),
       o.bild ? el('figure', { class: 'bild', style: 'margin:16px 0 0' },
         el('img', { src: o.bild.src, alt: `Foto: ${o.name}`, loading: 'lazy', width: o.bild.breite, height: o.bild.hoehe }),
         el('figcaption', {}, 'Foto: ', o.bild.autor, ' · ', el('a', { href: o.bild.quelle, target: '_blank', rel: 'noopener' }, o.bild.lizenz))) : null,
@@ -713,7 +974,7 @@
     if (S.ort) { S.ort = null; try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } }
     if (neu === S.tab && S.hoehe !== 'klein') { $('#ansicht').scrollTop = 0; }
     S.tab = neu; speicher.set('tab', neu);
-    if (neu === 'mehr' || neu === 'gemerkt') hoehe('gross'); else if (S.hoehe === 'gross' && neu === 'plan') hoehe('mitte');
+    if (neu === 'mehr' || neu === 'gemerkt' || neu === 'gruppe') hoehe('gross'); else if (S.hoehe === 'gross' && neu === 'plan') hoehe('mitte');
     zeichne({ anpassen: true });
   }));
   $('#griff').addEventListener('click', () => (S.hoehe === 'gross' ? hoehe('klein') : groesser()));
@@ -752,6 +1013,7 @@
     ORTE = orte; PLAENE = plaene;
     ORTE.forEach((o) => { NACH_NAME.set(o.name, o); NACH_ID.set(o.id, o); });
     zeichne({ anpassen: true });
+    importiereAusHash();
     const h = /^#ort-(.+)$/.exec(location.hash);
     if (h && NACH_ID.has(h[1])) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } oeffneOrt(h[1]); }
     $('#laden').classList.add('weg');

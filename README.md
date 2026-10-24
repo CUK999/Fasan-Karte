@@ -9,7 +9,8 @@ Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohn
 - Tagespläne (Plan A, B, C) mit nummerierten Stopps, nächster Stopp mit „Starten“ (Apple Karten, Google Maps oder andere Karten-App)
 - Alle Orte mit Suche, Kategorien, Filtern (Geheimtipps, jetzt offen, nicht erledigt, gemerkt, ausgeblendet) und Sortierung nach Nähe
 - Ortsseite mit Foto, Wikipedia-Text, Öffnungszeiten, Webseite, Zugang, eigener Notiz und Bewertung
-- Merken, Erledigt, Ausblenden – mit Rückgängig; Austausch mit der Gruppe als Text
+- Merken, Erledigt, Ausblenden – mit Rückgängig
+- Gruppe: Stimmen je Ort (Will hin / Lieber nicht), Umfragen, gemeinsame Rangliste; Abgleich per QR-Code oder Link, ohne Server
 - Profile Standard, Einfach, Gut lesbar; Themes System, Hell, Dunkel, Kontrast, Glas
 - Offline: App und Daten bleiben nach dem ersten Öffnen im Gerät
 

@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.5';
+  const VERSION = '1.6';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -170,6 +170,32 @@
     const leer = !neu.fav && !neu.fertig && !neu.aus && !neu.notiz && !neu.sterne;
     if (leer) delete M[id]; else M[id] = neu;
     speicher.set('markierungen', M);
+    teileMarkierungen();
+  }
+  // Markierungen für die Gruppe: Merken, Erledigt, Sterne, Notiz. „Ausgeblendet“ bleibt privat. Abschaltbar unter „Gemerkt“.
+  function teileMarkierungen() {
+    if (!G.ich || !G.ich.name) return;
+    const me = ich(), m = {};
+    if (E.markTeilen !== false) {
+      for (const [id, x] of Object.entries(M)) if (x.fav || x.fertig || x.sterne || x.notiz) m[id] = [x.fav ? 1 : 0, x.fertig ? 1 : 0, x.sterne || 0, (x.notiz || '').slice(0, 300)];
+    }
+    if (JSON.stringify(me.m || {}) === JSON.stringify(m)) return;
+    me.m = m; me.t = Date.now(); speichereG();
+  }
+  // Was die anderen bei einem Ort markiert haben
+  function gruppeMark(ortId) {
+    const r = { fav: [], fertig: [], sterne: [], notizen: [] };
+    for (const [id, p] of Object.entries(G.leute)) {
+      if (G.ich && id === G.ich.id) continue;
+      const x = p.m && p.m[ortId];
+      if (!Array.isArray(x)) continue;
+      const n = p.name || 'Jemand';
+      if (x[0]) r.fav.push(n);
+      if (x[1]) r.fertig.push(n);
+      if (x[2]) r.sterne.push([n, x[2]]);
+      if (x[3]) r.notizen.push([n, x[3]]);
+    }
+    return r;
   }
 
   let ORTE = [], NACH_NAME = new Map(), NACH_ID = new Map(), PLAENE = {};
@@ -226,13 +252,13 @@
     if (G.ich) { const me = ich(); me.name = G.ich.name; }
     if (G.ich && G.ich.name && window.crypto && crypto.getRandomValues) sichereSchluessel();
     const l = {};
-    for (const [id, p] of Object.entries(G.leute)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}];
+    for (const [id, p] of Object.entries(G.leute)) if (!opt.nurIch || (G.ich && id === G.ich.id)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}, p.m || {}];
     const u = {};
     for (const [id, x] of Object.entries(G.umfragen)) u[id] = [x.von, x.frage, x.o, x.t];
     const tp = G.treff ? [G.treff.name || '', G.treff.lat || 0, G.treff.lon || 0, G.treff.zeit || '', G.treff.von || '', G.treff.t || 0, G.treff.geloescht ? 1 : 0] : null;
     const pn = G.pin ? [G.pin.x || '', G.pin.von || '', G.pin.n || '', G.pin.t || 0, G.pin.weg ? 1 : 0] : null;
-    const n = opt.chat ? nachrichtenListe().map(([id, x]) => [id, x.von, x.n, x.x, x.t]) : undefined;
-    const roh = new TextEncoder().encode(JSON.stringify({ v: 1, l, u, tp, pn, k: G.k || null, n }));
+    const n = opt.chat ? nachrichtenListe().map(([id, x]) => (x.o ? [id, x.von, x.n, x.x, x.t, x.o] : [id, x.von, x.n, x.x, x.t])) : undefined;
+    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -253,10 +279,12 @@
     for (const [id, p] of Object.entries(d.l || {})) {
       if (G.ich && id === G.ich.id) continue; // eigene Daten bleiben maßgeblich
       if (!Array.isArray(p)) continue;
-      const [name, t, s, a] = p;
+      const [name, t, s, a, m] = p;
       const alt = G.leute[id];
       if (!alt || (t || 0) > (alt.t || 0)) {
-        G.leute[id] = { name: String(name || '').slice(0, 40), t: +t || 0, s: s && typeof s === 'object' ? s : {}, a: a && typeof a === 'object' ? a : {} };
+        const mk2 = {};
+        if (m && typeof m === 'object') for (const [oid, x] of Object.entries(m)) if (Array.isArray(x) && NACH_ID.has(oid)) mk2[oid] = [x[0] ? 1 : 0, x[1] ? 1 : 0, Math.max(0, Math.min(5, +x[2] || 0)), String(x[3] || '').slice(0, 300)];
+        G.leute[id] = { name: String(name || '').slice(0, 40), t: +t || 0, s: s && typeof s === 'object' ? s : {}, a: a && typeof a === 'object' ? a : {}, m: p.length > 4 ? mk2 : (alt && alt.m) || {} };
         neu.push(String(name || 'Jemand').slice(0, 40));
       }
     }
@@ -276,9 +304,10 @@
     neu.nachrichten = [];
     for (const x of Array.isArray(d.n) ? d.n : []) {
       if (!Array.isArray(x) || typeof x[0] !== 'string' || G.nachrichten[x[0]]) continue;
-      const [id, von, n, text, t] = x;
+      const [id, von, n, text, t, ort] = x;
       if (!text || !(+t)) continue;
-      G.nachrichten[id.slice(0, 16)] = { von: String(von || '').slice(0, 12), n: String(n || '').slice(0, 40), x: String(text).slice(0, 300), t: +t };
+      G.nachrichten[id.slice(0, 16)] = { von: String(von || '').slice(0, 12), n: String(n || '').slice(0, 40), x: String(text).slice(0, 360), t: +t };
+      if (typeof ort === 'string' && NACH_ID.has(ort)) G.nachrichten[id.slice(0, 16)].o = ort;
       neu.nachrichten.push(G.nachrichten[id.slice(0, 16)]);
     }
     const behalten = new Set(nachrichtenListe().map(([id]) => id));
@@ -374,7 +403,7 @@
       if (fremde.length) {
         const x = fremde[fremde.length - 1];
         if (!(S.tab === 'gruppe' && !S.ort && document.visibilityState === 'visible')) {
-          toast(`${x.n || 'Jemand'}: ${x.x}`, { aktion: 'Öffnen', fn: () => { S.tab = 'gruppe'; S.ort = null; hoehe('gross'); zeichne(); } });
+          toast(`${x.n || 'Jemand'}: ${x.x}`, x.o ? { aktion: 'Ansehen', fn: () => oeffneOrt(x.o) } : { aktion: 'Öffnen', fn: () => { S.tab = 'gruppe'; S.ort = null; hoehe('gross'); zeichne(); } });
           try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) { /* egal */ }
         }
       } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
@@ -411,12 +440,16 @@
     if (!F.an) funkStart(); else { Funk.pruefe(); funkVoll(1000); }
   });
 
-  function nachrichtSenden(text) {
-    const x = String(text || '').trim().slice(0, 300);
+  // Ort in der Gruppe teilen: Nachricht mit Ortsbezug. Der Text beginnt mit „📍 Name“, damit auch ältere Fassungen ihn verstehen.
+  function nachrichtSenden(text, ortId) {
+    const o = ortId && NACH_ID.get(ortId);
+    let x = String(text || '').trim().slice(0, 300);
+    if (o) x = x ? `📍 ${o.name}: ${x}` : `📍 ${o.name}`;
     if (!x) return false;
     const me = ich();
     const id = neueId() + Date.now().toString(36).slice(-4);
     G.nachrichten[id] = { von: G.ich.id, n: meinName(), x, t: Date.now() };
+    if (o) G.nachrichten[id].o = o.id;
     me.t = Date.now();
     speichereG();
     return true;
@@ -451,8 +484,11 @@
     let inhalt;
     try {
       if (!window.qrcode) throw new Error('fehlt');
-      const qr = window.qrcode(0, 'L');
-      qr.addData(url); qr.make();
+      let qr = window.qrcode(0, 'L');
+      try { qr.addData(url); qr.make(); } catch (e) {
+        // Zu viele Daten: nur Schlüssel und eigener Stand; den Rest bringt der Live-Abgleich
+        qr = window.qrcode(0, 'L'); qr.addData(`${location.origin}${location.pathname}#g=${await packe({ nurIch: true })}`); qr.make();
+      }
       const n = qr.getModuleCount(), rand = 4, groesse = Math.min(innerWidth - 48, innerHeight - 260, 420);
       const zelle = Math.max(1, Math.floor(groesse / (n + rand * 2)));
       const cv = el('canvas', { width: (n + rand * 2) * zelle, height: (n + rand * 2) * zelle, 'aria-label': 'QR-Code mit deinen Gruppen-Daten', role: 'img' });
@@ -692,6 +728,8 @@
     if (o.ort && o.ort !== 'Lisboa') unter.push(o.ort);
     if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(`${strecke(d)} · ${gehzeit(d)} Min.`); }
     if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
+    const gm = gruppeMark(o.id).fav.length;
+    if (gm) unter.push(`♥ ${gm} in der Gruppe`);
     const gs = gruppenStimmen(o.id);
     if (gs.ja.length || gs.nein.length) unter.push(`👍 ${gs.ja.length}${gs.nein.length ? ` 👎 ${gs.nein.length}` : ''}`);
     const offen = st ? el('span', { class: 'status ' + (st.offen ? 'offen' : 'zu') }, st.offen ? `offen bis ${st.bis}` : st.naechste ? `zu, öffnet ${st.naechste}` : 'geschlossen') : null;
@@ -888,43 +926,22 @@
     setze(box,
       teile.length ? teile : el('div', { class: 'leer' }, fasan(), el('strong', {}, 'Noch nichts gemerkt.'),
         el('span', {}, 'Öffne einen Ort und tippe auf „Merken“. Hier sammeln sich Favoriten, Notizen, Bewertungen und Erledigtes.')),
-      el('section', { class: 'abschnitt nur-voll' }, el('h3', {}, 'Mit der Gruppe teilen'),
-        el('p', { class: 'leise klein', style: 'margin:0 0 10px' }, 'Deine Markierungen liegen nur auf diesem Handy. Schick sie als Text, zum Beispiel per WhatsApp. Die anderen fügen ihn unter „Einfügen“ ein.'),
-        el('div', { class: 'reihe' },
-          el('button', { type: 'button', class: 'knopf', onclick: exportiere }, ic('teilen'), 'Senden'),
-          el('button', { type: 'button', class: 'knopf', onclick: zeigeImport }, ic('kopie'), 'Einfügen')),
-        el('div', { id: 'import-box' })));
+      gruppeGemerkt(),
+      el('section', { class: 'abschnitt' }, el('h3', {}, 'Mit der Gruppe teilen'),
+        !G.ich || !G.ich.name
+          ? el('p', { class: 'leise klein', style: 'margin:0' }, 'Tritt unter „Gruppe“ bei. Dann sieht die Gruppe live, was du merkst, erledigst, bewertest und notierst.')
+          : el('div', { style: 'display:grid;gap:8px' },
+            el('p', { class: 'leise klein', style: 'margin:0' }, E.markTeilen !== false
+              ? 'Die Gruppe sieht live, was du merkst, erledigst, bewertest und notierst. Ausgeblendetes bleibt auf deinem Handy.'
+              : 'Deine Markierungen bleiben gerade nur auf diesem Handy.'),
+            el('button', { type: 'button', class: 'knopf', style: 'justify-self:start', onclick: () => { E.markTeilen = E.markTeilen === false; speichereE(); teileMarkierungen(); zeichne({ scroll: true, karte: false }); toast(E.markTeilen === false ? 'Deine Markierungen werden nicht mehr geteilt.' : 'Deine Markierungen werden wieder geteilt.'); } },
+              E.markTeilen !== false ? 'Nicht mehr teilen' : 'Wieder mit der Gruppe teilen'))));
   }
-
-  function exportiere() {
-    const daten = {};
-    for (const [id, m] of Object.entries(M)) daten[id] = m;
-    const text = 'FASAN-KARTE ' + btoa(unescape(encodeURIComponent(JSON.stringify({ v: 1, m: daten }))));
-    if (navigator.share) navigator.share({ title: 'Meine Lissabon-Markierungen', text }).catch(() => {});
-    else kopiere(text, 'Markierungen kopiert. Jetzt in WhatsApp einfügen.');
-  }
-  function zeigeImport() {
-    const feld = el('textarea', { class: 'textfeld', id: 'import-text', placeholder: 'Text mit FASAN-KARTE … hier einfügen' });
-    setze($('#import-box'), el('div', { style: 'display:grid;gap:8px;margin-top:10px' }, feld,
-      el('button', { type: 'button', class: 'knopf haupt', onclick: () => {
-        const m = /FASAN-KARTE\s+([A-Za-z0-9+/=]+)/.exec(feld.value);
-        if (!m) { toast('Kein gültiger Text gefunden. Er beginnt mit „FASAN-KARTE“.'); return; }
-        try {
-          const d = JSON.parse(decodeURIComponent(escape(atob(m[1]))));
-          let n = 0;
-          for (const [id, x] of Object.entries(d.m || {})) {
-            if (!NACH_ID.has(id)) continue;
-            const mein = mk(id);
-            M[id] = Object.assign({}, mein, { fav: mein.fav || x.fav, fertig: mein.fertig || x.fertig, sterne: mein.sterne || x.sterne,
-              notiz: [mein.notiz, x.notiz].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join('\n— ') || undefined, aus: mein.aus, t: Date.now() });
-            n += 1;
-          }
-          speicher.set('markierungen', M);
-          toast(`${n} Orte übernommen. Notizen wurden ergänzt, nichts gelöscht.`);
-          zeichne();
-        } catch (e) { toast('Der Text ist beschädigt. Bitte neu kopieren.'); }
-      } }, 'Übernehmen')));
-    feld.focus();
+  function gruppeGemerkt() {
+    const l = ORTE.map((o) => ({ o, r: gruppeMark(o.id) })).filter((x) => x.r.fav.length).sort((a, b) => b.r.fav.length - a.r.fav.length);
+    if (!l.length) return null;
+    return el('section', { class: 'abschnitt' }, el('h3', {}, `Von der Gruppe gemerkt (${l.length})`),
+      el('ul', { class: 'liste' }, l.map(({ o, r }) => { const li = eintragOrt(o); li.querySelector('.text').append(el('span', { class: 'unter' }, `♥ ${r.fav.join(', ')}`)); return li; })));
   }
 
   function wahl(liste, aktiv, fn) {
@@ -1192,7 +1209,7 @@
         el('strong', {}, verbunden ? 'Live verbunden' : F.an ? 'Verbinde …' : 'Live aus'),
         verbunden ? el('span', { class: 'leise klein' }, `${st.verbunden} von ${st.gesamt} Servern · verschlüsselt`) : null),
       el('p', { class: 'leise klein', style: 'margin:0' }, verbunden
-        ? (da.length ? `Gerade auch offen: ${da.join(', ')}. ` : 'Gerade ist sonst niemand online. ') + 'Stimmen, Umfragen, Treffpunkt und Nachrichten gleichen sich von selbst ab, sobald ein anderes Handy die App offen hat.'
+        ? (da.length ? `Gerade auch offen: ${da.join(', ')}. ` : 'Gerade ist sonst niemand online. ') + 'Stimmen, Umfragen, Treffpunkt, Nachrichten, geteilte Orte und Markierungen gleichen sich von selbst ab, sobald ein anderes Handy die App offen hat.'
         : F.an ? 'Noch kein Server erreicht. Der Abgleich per QR-Code oder Link geht immer.' : E.funk === false ? 'Du hast den Live-Abgleich ausgeschaltet. Abgleich per QR-Code oder Link.' : 'Live-Abgleich startet …'),
       teilen,
       liste,
@@ -1220,8 +1237,18 @@
         return el('li', { class: 'nachricht' + (meine ? ' meine' : '') },
           el('div', { class: 'n-kopf' }, el('strong', {}, meine ? 'Du' : x.n || 'Jemand'), el('span', { class: 'leise klein' }, uhrzeit(x.t)),
             el('button', { type: 'button', class: 'knopf flach nur-voll n-pin', onclick: () => { anpinnen(x.x); zeichne({ scroll: true, karte: false }); toast('Angepinnt. Alle sehen es oben im Tagesplan.'); } }, ic('pin'), 'Anpinnen')),
-          el('p', {}, x.x));
+          x.o && NACH_ID.has(x.o) ? ortNachricht(x) : el('p', {}, x.x));
       })) : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Nachrichten. Was du schreibst, sehen alle in eurer Gruppe. Wichtiges zum Anpinnen: Treffpunkt, Zeiten, Notfallnummer.'));
+  }
+
+  function ortNachricht(x) {
+    const o = NACH_ID.get(x.o);
+    const kommentar = x.x.startsWith(`📍 ${o.name}: `) ? x.x.slice(`📍 ${o.name}: `.length) : x.x === `📍 ${o.name}` ? '' : x.x;
+    return el('div', {},
+      kommentar ? el('p', {}, kommentar) : null,
+      el('button', { type: 'button', class: 'n-ort g-' + gruppeVon(o.kategorie), onclick: () => oeffneOrt(o.id, true), 'aria-label': `${o.name} öffnen` },
+        el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o)),
+        el('span', {}, el('strong', {}, o.name), el('small', {}, [TYP_NAME[o.typ] || o.kategorie, S.me && hatPos(o) ? `${strecke(meter(S.me, o))} entfernt` : null].filter(Boolean).join(' · ')))));
   }
 
   // ---------- Gruppe: Ansicht ----------
@@ -1230,7 +1257,7 @@
   function zeichneGruppe(box) {
     if (!G.ich || !G.ich.name) {
       const feld = el('input', { id: 'gruppe-name', type: 'text', autocomplete: 'given-name', placeholder: 'Dein Vorname', maxlength: '30' });
-      const los = () => { const n = feld.value.trim(); if (!n) { feld.focus(); return; } ich(); G.ich.name = n; G.leute[G.ich.id].name = n; G.leute[G.ich.id].t = Date.now(); speichereG(); funkStart(); zeichne(); };
+      const los = () => { const n = feld.value.trim(); if (!n) { feld.focus(); return; } ich(); G.ich.name = n; G.leute[G.ich.id].name = n; G.leute[G.ich.id].t = Date.now(); speichereG(); funkStart(); teileMarkierungen(); zeichne(); };
       feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') los(); });
       setze(box, el('div', { class: 'leer' }, fasan(), el('strong', { style: 'font-size:var(--fs-t)' }, 'Gemeinsam entscheiden')),
         el('p', { style: 'margin:0 0 6px' }, 'Jede und jeder stimmt bei Orten ab: „Will hin“ oder „Lieber nicht“. Dazu kommen Umfragen wie „Wohin heute Abend?“.'),
@@ -1434,8 +1461,10 @@
           markiere(o.id, { aus: !m.aus });
           if (!m.aus) { schliesseOrt(); toast(`${o.name} ausgeblendet.`, { aktion: 'Rückgängig', fn: () => { markiere(o.id, { aus: false }); zeichne(); } }); } else zeichne({ scroll: true });
         }),
-        aktion('nur-voll', 'teilen', 'Teilen', null, () => teile(o))),
+        aktion('', 'teilen', 'An Gruppe', S.teilen === o.id, () => { S.teilen = S.teilen === o.id ? null : o.id; zeichne({ scroll: true, karte: false }); if (S.teilen) setTimeout(() => { const f = $('#teil-text'); if (f) f.focus(); }, 50); })),
+      S.teilen === o.id ? teilBox(o) : null,
       stimmBlock(o),
+      gruppeMarkBlock(o),
       o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, o.kategorie === 'Foto' ? 'Foto-Tipp' : 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
         el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut /.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
       o.foto ? el('section', { class: 'abschnitt' }, el('h3', {}, el('span', { class: 'marker g-foto', style: 'width:28px;height:28px;display:inline-grid;vertical-align:middle;margin-right:8px' }, symbol({ typ: 'foto' })), 'Foto-Tipp'), el('p', { style: 'margin:0' }, o.foto)) : null,
@@ -1457,7 +1486,8 @@
           info('Telefon', o.infos && o.infos.telefon ? el('a', { href: 'tel:' + o.infos.telefon.replace(/[^+\d]/g, '') }, o.infos.telefon) : null),
           info('Küche', [kueche, veg].filter(Boolean).join(', ') || null),
           info('Zugang', rollstuhl))),
-      el('section', { class: 'abschnitt' }, el('h3', {}, 'Meine Notiz'), notiz, gespeichert),
+      el('section', { class: 'abschnitt' }, el('h3', {}, 'Meine Notiz'), notiz, gespeichert,
+        G.ich && G.ich.name && E.markTeilen !== false ? el('p', { class: 'leise klein', style: 'margin:4px 0 0' }, 'Notiz, Merken, Erledigt und Bewertung sieht deine Gruppe. Abschalten unter „Gemerkt“.') : null),
       el('section', { class: 'abschnitt nur-voll' }, el('h3', {}, 'Meine Bewertung'),
         el('div', { class: 'sterne', role: 'group', 'aria-label': 'Bewertung' }, [1, 2, 3, 4, 5].map((n) => el('button', {
           type: 'button', 'aria-pressed': String((m.sterne || 0) >= n), 'aria-label': `${n} von 5 Sternen`,
@@ -1466,10 +1496,33 @@
       el('p', { class: 'quelle' }, 'Daten: OpenStreetMap', o.wiki ? ', Wikipedia' : '', o.bild ? ', Wikimedia Commons' : '', '.'));
   }
 
-  function teile(o) {
-    const url = location.href.split('#')[0] + '#ort-' + o.id;
-    if (navigator.share) navigator.share({ title: o.name, text: `${o.name}, ${o.adresse}`, url }).catch(() => {});
-    else kopiere(url, 'Link kopiert.');
+  // Ort an die Gruppe senden: läuft über den Live-Abgleich, nicht über fremde Apps
+  function teilBox(o) {
+    if (!G.ich || !G.ich.name) return el('div', { class: 'hilfe', style: 'margin-top:10px' }, el('span', {}, 'Tritt zuerst der Gruppe bei, dann kannst du Orte an alle senden.'),
+      el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.teilen = null; S.ort = null; S.tab = 'gruppe'; hoehe('gross'); zeichne(); } }, 'Zur Gruppe'));
+    const feld = el('input', { id: 'teil-text', type: 'text', maxlength: '300', placeholder: 'Kommentar, z. B. „Hier um 15 Uhr?“ (freiwillig)', enterkeyhint: 'send', autocomplete: 'off', 'aria-label': 'Kommentar zum Ort' });
+    const senden = () => {
+      nachrichtSenden(feld.value, o.id);
+      S.teilen = null; F.warteZeichnen = false; feld.blur();
+      zeichne({ scroll: true, karte: false });
+      toast(F.an && F.status.verbunden ? `${o.name} an die Gruppe gesendet.` : `${o.name} gespeichert. Geht raus, sobald Live verbunden ist.`);
+    };
+    feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); senden(); } });
+    return el('section', { class: 'karte-box', style: 'margin-top:10px;display:grid;gap:8px' },
+      el('strong', {}, 'An die Gruppe senden'),
+      el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: senden }, 'Senden')),
+      el('p', { class: 'leise klein', style: 'margin:0' }, 'Erscheint unter „Gruppe → Nachrichten“. Ein Tipp darauf öffnet den Ort.'));
+  }
+  function gruppeMarkBlock(o) {
+    const r = gruppeMark(o.id);
+    if (!r.fav.length && !r.fertig.length && !r.sterne.length && !r.notizen.length) return null;
+    const schnitt = r.sterne.length ? (r.sterne.reduce((a, [, v]) => a + v, 0) / r.sterne.length).toFixed(1).replace('.', ',') : null;
+    return el('section', { class: 'abschnitt' }, el('h3', {}, 'Aus der Gruppe'),
+      el('ul', { class: 'klein', style: 'margin:0;padding-left:20px;display:grid;gap:4px' },
+        r.fav.length ? el('li', {}, `Gemerkt: ${r.fav.join(', ')}`) : null,
+        r.fertig.length ? el('li', {}, `Schon da gewesen: ${r.fertig.join(', ')}`) : null,
+        r.sterne.length ? el('li', {}, `Bewertung: ${r.sterne.map(([n, v]) => `${n} ${v}`).join(', ')} (Schnitt ${schnitt} von 5)`) : null,
+        r.notizen.map(([n, t]) => el('li', {}, el('b', {}, `${n}: `), t))));
   }
   function kopiere(text, meldung) {
     const ok = () => toast(meldung);
@@ -1888,7 +1941,7 @@
     zeichne({ anpassen: true });
     if (!speicher.get('einfuehrung', false) && !/^#g=/.test(location.hash)) zeigeEinfuehrung(0);
     importiereAusHash();
-    funkStart(); leisteZahl();
+    funkStart(); leisteZahl(); teileMarkierungen();
     if (E.teilenBis && !teileOrt()) { E.teilenBis = 0; speichereE(); }
     if (teileOrt()) { if (S.watchId == null) starteGps(false); setTimeout(() => toast(`Du teilst deinen Standort mit der Gruppe bis ${uhrzeit(E.teilenBis)}.`, { aktion: 'Beenden', fn: () => { teilenEnde(); zeichne({ scroll: true, karte: false }); } }), 1500); }
     fetch('wetter.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((w) => { if (w && (w.ipma || w.om)) { W = w; if (S.tab === 'plan' && !S.ort) zeichne({ scroll: true, karte: false }); } }).catch(() => {});

@@ -514,3 +514,8 @@ body[data-blatt="klein"] .naechst-karte .kachel.gross.ohne svg { width: 36px; he
 .w-stunden li span { font-size: 20px; line-height: 1.1; }
 .w-stunden small { color: var(--muted); font-size: 12px; min-height: 14px; }
 .w-stunden small.nass { color: var(--person); font-weight: 700; }
+/* Ort in einer Nachricht */
+.n-ort { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 6px; padding: 8px 10px; min-height: 60px; text-align: left;
+  border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; }
+.n-ort span:last-child { display: grid; gap: 2px; min-width: 0; }
+.n-ort small { color: var(--muted); }

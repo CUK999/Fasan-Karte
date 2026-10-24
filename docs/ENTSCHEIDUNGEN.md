@@ -4,6 +4,7 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Orte teilen und Markierungen (Merken, Erledigt, Bewertung, Notiz) laufen über den Live-Abgleich statt über WhatsApp-Text; „Ausgeblendet“ bleibt privat, Teilen abschaltbar. Nur der Beitritt (QR-Code oder Link mit Schlüssel) bleibt außerhalb | Wunsch: nichts mehr über fremde Apps. Den Schlüssel muss ein Handy einmal ohne Server bekommen |
 | 2026-10-24 | Foto-Ebene: 17 Foto-Spots (Kategorie „Foto“) erscheinen nur mit dem Filter „Foto“; 15 bekannte Orte haben zusätzlich einen Foto-Tipp. Jede Angabe mit Quelle und Datum | Wunsch: Fotografie getrennt, damit die Karte für alle übersichtlich bleibt. Recherche `docs/recherche/2026-10-24-fotospots.md` |
 | 2026-10-24 | Zeitbedarf je Ort nur mit Quelle (Spalten `Dauer`, `DauerQuelle`); ohne Quelle keine Zahl. Der Gruppenplan nimmt den Mittelwert, sonst einen Schätzwert je Typ | Wunsch: Zeit je Spot; Regel „nichts erfinden“. Recherche `docs/recherche/2026-10-24-besuchsdauer.md` |
 | 2026-10-24 | Panorâmico de Monsanto entfernt (auch aus Plan B, Montag) | Gesperrt seit Juli 2023 (idealista, 18.01.2024), „permanently closed“ (wetravelportugal, Stand 23.06.2026) |

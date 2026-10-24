@@ -956,7 +956,9 @@
     const liste = rangliste();
     const umfragen = Object.entries(G.umfragen).sort((a, b) => (b[1].t || 0) - (a[1].t || 0));
 
+    const iosApp = IOS && (navigator.standalone || matchMedia('(display-mode: standalone)').matches);
     const abgleich = el('section', { class: 'karte-box', style: 'margin-top:4px;display:grid;gap:10px' },
+      iosApp ? el('p', { class: 'hilfe', style: 'margin:0' }, el('span', {}, 'Auf dem iPhone öffnen sich Gruppen-Links in Safari, nicht in diesem Home-Bildschirm-Symbol. Nutze für die Gruppe die Karte direkt in Safari.')) : null,
       el('div', { style: 'display:flex;justify-content:space-between;align-items:center;gap:8px' },
         el('strong', {}, `Du bist ${meinName()}`),
         el('button', { type: 'button', class: 'knopf flach nur-voll', style: 'min-height:48px;padding:0 10px', onclick: () => { G.ich.name = ''; speichereG(); zeichne(); } }, 'Ändern')),
@@ -1485,7 +1487,8 @@
     if (e.code === 1) {
       if (S.watchId != null) navigator.geolocation.clearWatch(S.watchId);
       S.watchId = null; S.follow = false;
-      toast('Standort nicht erlaubt. Gib ihn in den Browser-Einstellungen für diese Seite frei und lade neu.');
+      toast(IOS ? 'Standort gesperrt. iPhone: Einstellungen → Datenschutz → Ortungsdienste → Safari-Websites → „Beim Verwenden“. Dann die Seite neu laden.'
+        : 'Standort gesperrt. Chrome: links in der Adresszeile auf das Symbol tippen → Berechtigungen → Standort erlauben. Dann neu laden.', { aktion: 'Neu laden', fn: () => location.reload() });
     } else if (e.code === 3 && S.me) {
       /* kurze Funklöcher: letzte Position bleibt gültig */
     } else if (Date.now() - S.fehlerZeit > 60000) { S.fehlerZeit = Date.now(); toast('Standort gerade nicht verfügbar. Draußen klappt es meist besser.'); }

@@ -36,6 +36,17 @@ jobs:
             rm -rf package leaflet-1.9.4.tgz
           fi
 
+      - name: QR-Code-Bibliothek einbinden (qrcode-generator, MIT; einmalig ins Repo)
+        run: |
+          if [ ! -f site/vendor/qrcode/qrcode.js ]; then
+            npm pack qrcode-generator@1.4.4 --silent || npm pack qrcode-generator --silent
+            mkdir -p qr && tar -xzf qrcode-generator-*.tgz -C qr
+            mkdir -p site/vendor/qrcode
+            cp qr/package/qrcode.js site/vendor/qrcode/
+            cp qr/package/LICENSE* site/vendor/qrcode/ 2>/dev/null || true
+            rm -rf qr qrcode-generator-*.tgz
+          fi
+
       - name: Ergebnisse im Repo sichern
         run: |
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor

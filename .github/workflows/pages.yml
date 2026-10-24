@@ -69,7 +69,8 @@ jobs:
 
       - name: Ergebnisse im Repo sichern
         run: |
-          git add site/orte.json site/umgebung.json site/bilder data/cache.json data/pruefbericht.md site/vendor
+          git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor
+          if [ -f site/umgebung.json ]; then git add site/umgebung.json; fi
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"

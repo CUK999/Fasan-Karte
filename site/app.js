@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.3';
+  const VERSION = '1.3.1';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -843,11 +843,13 @@
       let uhr = 10 * 60, pos = anker[t.id].start, mittag = false;
       const fmt = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(Math.round(m % 60 / 5) * 5 % 60).padStart(2, '0')}`;
       const essenWahl = (abends, nahe) => {
-        const k = essen.filter((x) => !vergeben.has(x.o.id) && erlaubteTage(x.o).has(t.id) && (abends || !/Nur abends|Abends ab/i.test(x.o.notiz)))
-          .sort((a, b) => b.wert - a.wert || meter(nahe, a.o) - meter(nahe, b.o))[0];
+        const moeglich = essen.filter((x) => !vergeben.has(x.o.id) && erlaubteTage(x.o).has(t.id) && (abends || !/Nur abends|Abends ab/i.test(x.o.notiz)));
+        const radius = abends ? 2500 : 1500; // kein Umweg quer durch die Stadt fürs Mittagessen
+        const k = moeglich.filter((x) => meter(nahe, x.o) <= radius).sort((a, b) => b.wert - a.wert || meter(nahe, a.o) - meter(nahe, b.o))[0];
         if (k) { vergeben.add(k.o.id); return { o: k.o, text: `${abends ? 'Abendessen' : 'Mittagessen'} · 👍 ${k.ja.join(', ')}` }; }
         const ausPlan = planEssen(t.id, abends ? 'Abend' : 'Mittag');
-        if (!ausPlan || vergeben.has((NACH_NAME.get(ausPlan.ort) || {}).id)) {
+        const planOrt = ausPlan && NACH_NAME.get(ausPlan.ort);
+        if (!planOrt || vergeben.has(planOrt.id) || !hatPos(planOrt) || meter(nahe, planOrt) > radius * 1.5) {
           const nah = ORTE.filter((o) => ESSEN.includes(o.kategorie) && hatPos(o) && o.ort === 'Lisboa' && !vergeben.has(o.id) && !mk(o.id).aus
             && erlaubteTage(o).has(t.id) && (abends || !/Nur abends|Abends ab/i.test(o.notiz)) && gruppenStimmen(o.id).nein.length === 0)
             .sort((a, b) => meter(nahe, a) - meter(nahe, b))[0];
@@ -859,12 +861,15 @@
         return { o: NACH_NAME.get(ausPlan.ort), text: `${abends ? 'Abendessen' : 'Mittagessen'} aus Plan A (noch keine Stimmen dafür)` };
       };
       weg.forEach((x, i) => {
-        uhr += gehzeit(meter(pos, x.o));
-        if (!mittag && uhr >= 12 * 60 + 30) {
-          const e = essenWahl(false, x.o);
-          if (e && e.o) { uhr += gehzeit(meter(pos, e.o)); steps.push({ ort: e.o.name, zeit: fmt(uhr), text: e.text }); uhr += 75; pos = e.o; uhr += gehzeit(meter(pos, x.o)); }
+        // Mittag dort, wo man gerade ist, bevor es weitergeht
+        if (!mittag && i > 0 && uhr >= 12 * 60 + 15) {
+          const e = essenWahl(false, pos);
+          if (e && e.o) { uhr = Math.max(uhr + gehzeit(meter(pos, e.o)), 12 * 60 + 30); steps.push({ ort: e.o.name, zeit: fmt(uhr), text: e.text }); uhr += 75; pos = e.o; }
           mittag = true;
         }
+        const strecke_m = meter(pos, x.o);
+        if (strecke_m > 2500) steps.push({ hinweis: `Weiter Weg (${strecke(strecke_m)}): besser Tram, Bus oder Metro nehmen` });
+        uhr += strecke_m > 2500 ? 35 : gehzeit(strecke_m);
         if (i === 3 && E.profil !== 'standard') steps.push({ hinweis: 'Kurze Pause: hinsetzen, etwas trinken' });
         steps.push({ ort: x.o.name, zeit: fmt(uhr), text: `👍 ${x.ja.join(', ')}${x.nein.length ? ` · 👎 ${x.nein.join(', ')}` : ''}` });
         uhr += DAUER[x.o.typ] || 40; pos = x.o;

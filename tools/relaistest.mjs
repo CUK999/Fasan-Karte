@@ -4,6 +4,11 @@
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
+// Node: das Paket „ws“ statt des eingebauten WebSocket (der löst bei Verbindungsfehlern eine Endlosschleife in
+// AbstractRelay.connect aus: onerror → ws.close() → onerror …; in Chromium geprüft: dort tritt das nicht auf, 24.10.2026).
+globalThis.WebSocket = (await import('ws')).default;
+process.on('uncaughtException', (e) => console.log('UNERWARTET', String(e).slice(0, 200)));
+process.on('unhandledRejection', (e) => console.log('ABGELEHNT', String(e).slice(0, 200)));
 vm.runInThisContext(readFileSync('site/vendor/nostr/nostr.bundle.js', 'utf8') + ';globalThis.NostrTools = NostrTools;');
 const { SimplePool, generateSecretKey, finalizeEvent } = globalThis.NostrTools;
 

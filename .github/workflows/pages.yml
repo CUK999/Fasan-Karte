@@ -29,7 +29,7 @@ jobs:
         run: python3 tools/daten.py
 
       - name: Wetter holen (IPMA, Open-Meteo; nur hier, nie vom Handy)
-        run: python3 tools/wetter.py || true
+        run: python3 tools/wetter.py 2>&1 | tee wetter.txt || true
 
       - name: Leaflet einbinden (einmalig ins Repo)
         run: |
@@ -74,6 +74,12 @@ jobs:
             git pull --rebase origin main
             git push
           fi
+
+      - name: Protokoll sichern (Branch ci-logs)
+        if: always()
+        continue-on-error: true
+        run: |
+          bash tools/ci-log.sh wetter.txt site/wetter.json
 
       - uses: actions/configure-pages@v5
 

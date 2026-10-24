@@ -93,7 +93,7 @@
 | Miradouro da Casa da Cerca | name | 38.68433, -9.15889 | ok | Miradouro da Casa da Cerca, Olho de Boi, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal,  |
 | Jardim do Castelo (Almada) | manuell | 38.68432, -9.15654 | ok | Jardim do Castelo, Ginjal, Almada, Cova da Piedade, Pragal e Cacilhas, Almada, Setúbal, Portugal |
 | Farol de Santa Marta | manuell | 38.69039, -9.42098 | ok | Farol de Santa Marta, Farol Museu de Santa Marta, Gandarinha, Cascais e Estoril, Cascais, Lissabon, 2750-341,  |
-| Estrela do Bairro | pruefen | 38.71197, -9.14411 | Name und Adresse 12096 m auseinander | Estrela, Rua Alves Redol, Bairro Martins do Vale, Catujal, Camarate, Unhos e Apelação, Loures, Lissabon, 2680- |
+| Estrela do Bairro | manuell | 38.71197, -9.14411 | ok | Estrela, Rua Alves Redol, Bairro Martins do Vale, Catujal, Camarate, Unhos e Apelação, Loures, Lissabon, 2680- |
 | Volta dos Sabores | name | 38.71245, -9.14454 | ok | Volta dos Sabores, Travessa do Poço da Cidade, Oberstadt, Misericórdia, Lissabon, 1200-334, Portugal |
 | Tabernário do Bairro | name | 38.71956, -9.12267 | ok | Tabernário do Bairro, 2A, Rua Afonso Domingues, Santa Engrácia, Graça, São Vicente, Lissabon, 1170-381, Portug |
 | Taberna Sal Grosso | name | 38.71370, -9.12444 | ok | Taberna Sal Grosso, 22, Calçada do Forte, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-256, Portuga |
@@ -102,8 +102,8 @@
 | LEGO Certified Store Chiado | adresse | 38.71100, -9.13939 | ok | Armazéns do Chiado, 2, Rua do Carmo, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-093, Portugal |
 | Rua de Campo de Ourique | name | 38.72122, -9.16697 | ok | Rua de Campo de Ourique, Santo Condestável, Santa Isabel, Campo de Ourique, Lissabon, 1350-270, Portugal |
 | Bairro Alto | name | 38.71339, -9.14555 | ok | Oberstadt, Misericórdia, Lissabon, Portugal |
-| Alfama | pruefen | 38.71177, -9.12838 | Wikidata-Position 369 m entfernt | Alfama, Santa Maria Maior, Madalena, Lissabon, 1100-095, Portugal |
-| Mosteiro de São Vicente de Fora | pruefen | 38.73024, -9.40768 | Name und Adresse 24368 m auseinander | Igreja de São Vicente de Fora, Largo de São Vicente, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-5 |
+| Alfama | manuell | 38.71177, -9.12838 | Wikidata-Position 369 m entfernt | Alfama, Santa Maria Maior, Madalena, Lissabon, 1100-095, Portugal |
+| Mosteiro de São Vicente de Fora | manuell | 38.71473, -9.12749 | ok | Igreja de São Vicente de Fora, Largo de São Vicente, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-5 |
 | Museu Nacional do Azulejo | name | 38.72472, -9.11391 | ok | Museu Nacional do Azulejo, 4, Rua da Madre de Deus, São João, Penha de França, Lissabon, 1900-455, Portugal |
 | Elevador de Santa Justa | name | 38.71212, -9.13937 | ok | Elevador de Santa Justa, Rua de Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal |
 | Tram 28E Start Martim Moniz | adresse | 38.71600, -9.13635 | ok | Praça Martim Moniz, Mouraria, Santa Maria Maior, Madalena, Lissabon, 1100-341, Portugal |

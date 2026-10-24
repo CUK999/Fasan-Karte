@@ -2306,7 +2306,7 @@
   "stand": "2026-10-24",
   "lat": 38.711967,
   "lon": -9.144113,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=528"
   },
@@ -2515,7 +2515,7 @@
   "stand": "2026-10-24",
   "lat": 38.71177,
   "lon": -9.12838,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {},
   "wiki": {
    "text": "Alfama ist ein Stadtteil und eine ehemalige Freguesia in der portugiesischen Hauptstadt Lissabon zwischen dem Castelo de São Jorge und dem Tejoufer. Alfama, das in den heutigen Freguesias Santa Maria Maior und São Vicente liegt, ist besonders für seine zahlreichen Sehenswürdigkeiten wie das Panteão Nacional und das Castelo de São Jorge sowie für seine zahlreichen Restaurants und Fadolokale bekannt. Der Name „Alfama“ stammt vermutlich vom arabischen Al-hamma, was in etwa „Quellen“ oder „Bäder“ bedeutet.",
@@ -2542,9 +2542,9 @@
   "notiz": "Aus eurer Google-Liste. Gleich daneben ist samstags die Feira da Ladra",
   "typ": "kirche",
   "stand": "2026-10-24",
-  "lat": 38.730236,
-  "lon": -9.407677,
-  "quelle": "pruefen",
+  "lat": 38.714729,
+  "lon": -9.127489,
+  "quelle": "manuell",
   "infos": {}
  },
  {

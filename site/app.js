@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.8';
+  const VERSION = '1.9';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -174,7 +174,7 @@
   const iso = `${heute.getFullYear()}-${String(heute.getMonth() + 1).padStart(2, '0')}-${String(heute.getDate()).padStart(2, '0')}`;
   const heuteTag = TAGE.find((t) => t.datum === iso);
   if (heuteTag) S.tag = heuteTag.id;
-  if (!['A', 'B', 'C', 'G'].includes(S.plan)) S.plan = 'A';
+  if (!['A', 'B', 'C', 'G'].includes(S.plan) && !String(S.plan).startsWith('P:')) S.plan = 'A';
   if (!['plan', 'orte', 'gruppe', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
 
   let M = speicher.get('markierungen', {});
@@ -220,6 +220,8 @@
   let G = Object.assign({ ich: null, leute: {}, umfragen: {}, nachrichten: {}, kosten: {} }, speicher.get('gruppe', {}));
   if (!G.nachrichten) G.nachrichten = {};
   if (!G.kosten) G.kosten = {};
+  if (!G.plaene) G.plaene = {};
+  if (!G.gesehen) G.gesehen = {};
   const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
   // Live-Abgleich (Funk, siehe funk.js): Zustand nur im Speicher
   const F = { an: false, sig: null, timer: {}, leuteOrt: new Map(), gehoert: new Map(), status: { an: false, verbunden: 0, gesamt: 0 }, ortT: 0, ortP: null, warteZeichnen: false };
@@ -275,7 +277,11 @@
     const n = opt.chat ? nachrichtenListe().map(([id, x]) => (x.o ? [id, x.von, x.n, x.x, x.t, x.o] : [id, x.von, x.n, x.x, x.t])) : undefined;
     const ko = {};
     for (const [id, x] of Object.entries(G.kosten)) ko[id] = [x.v, x.b, x.z, x.f, x.t, x.m, x.x ? 1 : 0, x.a ? 1 : 0];
-    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko }));
+    const ep = {};
+    for (const [id, x] of Object.entries(G.plaene)) ep[id] = [x.n, x.von, x.tag, x.s, x.d, x.t, x.x ? 1 : 0, x.e || x.von];
+    const gs = {};
+    for (const [id, x] of Object.entries(G.gesehen)) gs[id] = [x.w, x.t];
+    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko, ep, gs }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -347,6 +353,24 @@
       G.kosten[id] = { v: v.slice(0, 16), b: +b, z: String(z || '').slice(0, 60), f: f.filter((y) => typeof y === 'string').slice(0, 30).map((y) => y.slice(0, 16)), t: +t || 0, m: +m || 0, x: weg ? 1 : 0, a: ausgleich ? 1 : 0 };
       neu.kosten += 1;
     }
+    neu.plaene = [];
+    for (const [id, x] of Object.entries(d.ep && typeof d.ep === 'object' ? d.ep : {})) {
+      if (!Array.isArray(x) || id.length > 20) continue;
+      const [n, von, tag, st, dn, t, weg, bearb] = x;
+      const alt = G.plaene[id];
+      if (alt && (+t || 0) <= (alt.t || 0)) continue;
+      if (!['sa', 'so', 'mo'].includes(tag) || !Array.isArray(st)) continue;
+      G.plaene[id] = { n: String(n || 'Plan').slice(0, 40), von: String(von || '').slice(0, 16), tag, s: st.filter((y) => NACH_ID.has(y)).slice(0, 40), d: (Array.isArray(dn) ? dn : []).filter((y) => NACH_ID.has(y)), t: +t || 0, x: weg ? 1 : 0, e: String(bearb || von || '').slice(0, 16) };
+      neu.plaene.push(id);
+    }
+    neu.gesehen = 0;
+    for (const [id, x] of Object.entries(d.gs && typeof d.gs === 'object' ? d.gs : {})) {
+      if (!Array.isArray(x) || !NACH_ID.has(id)) continue;
+      const alt = G.gesehen[id];
+      if (alt && (+x[1] || 0) <= (alt.t || 0)) continue;
+      G.gesehen[id] = { w: (Array.isArray(x[0]) ? x[0] : []).filter((y) => typeof y === 'string').slice(0, 30), t: +x[1] || 0 };
+      neu.gesehen += 1;
+    }
     speicher.set('gruppe', G); // nicht speichereG: Empfangenes löst kein eigenes Senden aus
     return neu;
   }
@@ -361,6 +385,8 @@
     if (G.k && (!Array.isArray(d.k) || d.k[0] !== G.k[0])) return true;
     if (Array.isArray(d.n)) { const ihre = new Set(d.n.map((x) => x && x[0])); for (const [id] of nachrichtenListe()) if (!ihre.has(id)) return true; }
     if (d.ko && typeof d.ko === 'object') for (const [id, x] of Object.entries(G.kosten)) { const y = d.ko[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.m || 0)) return true; }
+    if (d.ep && typeof d.ep === 'object') for (const [id, x] of Object.entries(G.plaene)) { const y = d.ep[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.t || 0)) return true; }
+    if (d.gs && typeof d.gs === 'object') for (const [id, x] of Object.entries(G.gesehen)) { const y = d.gs[id]; if (!Array.isArray(y) || (+y[1] || 0) < (x.t || 0)) return true; }
     return false;
   }
   const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
@@ -435,7 +461,9 @@
           try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) { /* egal */ }
         }
       } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
-      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten) neuZeichnen();
+      const aktiv = aktiverEigenplan();
+      if (aktiv && neu.plaene.includes(S.plan.slice(2)) && aktiv.e !== (G.ich && G.ich.id)) toast(aktiv.x ? `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ gelöscht.` : `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ geändert.`);
+      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten || neu.plaene.length || neu.gesehen) neuZeichnen();
       leisteZahl();
       return;
     }
@@ -558,8 +586,16 @@
   }
 
   // ---------- Daten ----------
+  // Eigene Pläne (Reiseführer-Modus): Wer einen Plan baut, führt; alle mit offener App sehen Änderungen sofort
+  const aktiverEigenplan = () => (String(S.plan).startsWith('P:') ? G.plaene[S.plan.slice(2)] || null : null);
+  function fertig(o) { const p = S.tab === 'plan' || S.tab === undefined ? aktiverEigenplan() : null; return p && p.s.includes(o.id) ? p.d.includes(o.id) : !!mk(o.id).fertig; }
+  const allePersonen = () => Object.keys(G.leute);
+  const gesehenVon = (ortId) => ((G.gesehen[ortId] && G.gesehen[ortId].w) || []).filter((id) => G.leute[id]);
+  const vonAllenGesehen = (ortId) => { const a = allePersonen(); const w = gesehenVon(ortId); return a.length > 1 && a.every((id) => w.includes(id)); };
+  function setzeGesehen(ortId, wer) { G.gesehen[ortId] = { w: [...new Set(wer)], t: Date.now() }; speichereG(); }
   function schritte(plan = S.plan, tag = S.tag) {
     if (plan === 'G') return ORTE.length ? gruppenplan()[tag] || [] : [];
+    if (String(plan).startsWith('P:')) { const p = G.plaene[plan.slice(2)]; return p && !p.x ? p.s.map((id) => NACH_ID.get(id)).filter(Boolean).map((o) => ({ ort: o.name })) : []; }
     let s = PLAENE[plan] && PLAENE[plan].tage && PLAENE[plan].tage[tag];
     if (typeof s === 'string') s = PLAENE[s] && PLAENE[s].tage && PLAENE[s].tage[tag];
     return Array.isArray(s) ? s : [];
@@ -640,7 +676,7 @@
 
   function punktIcon(o, nr, opt = {}) {
     const m = mk(o.id), g = o.nah ? 'nah' : gruppeVon(o.kategorie);
-    const kl = ['punkt', 'g-' + g, nr ? 'nr' : '', m.fertig ? 'erledigt' : '', S.ort === o.id ? 'gewaehlt' : '', opt.naechster ? 'naechster' : ''].filter(Boolean).join(' ');
+    const kl = ['punkt', 'g-' + g, nr ? 'nr' : '', (o.nah ? m.fertig : fertig(o)) ? 'erledigt' : '', S.ort === o.id ? 'gewaehlt' : '', opt.naechster ? 'naechster' : ''].filter(Boolean).join(' ');
     const innen = `<svg viewBox="0 0 24 24">${symbolSvg(o)}</svg>` + (nr ? `<span class="nummer">${nr}</span>` : '');
     const marke = m.fav ? `<span class="marke herz"><svg viewBox="0 0 24 24">${SVG.herz}</svg></span>`
       : istTipp(o) ? `<span class="marke tipp"><svg viewBox="0 0 24 24">${SVG.stern}</svg></span>` : '';
@@ -655,7 +691,7 @@
     if (N.aktiv && N.ziel) {
       if (N.ziel.id !== 'treff') { orte.push(N.ziel); naechsterId = N.ziel.id; }
     } else if (S.tab === 'plan') {
-      const nx = planStopps().find(({ o }) => !mk(o.id).fertig);
+      const nx = planStopps().find(({ o }) => !fertig(o));
       naechsterId = nx ? nx.o.id : null;
       for (const { o, nr, s } of planStopps()) {
         orte.push(o); nummern.set(o.id, nr);
@@ -770,14 +806,16 @@
 
   // Feder als CSS-Kurve: gedämpfte Schwingung x(t) = 1 − e^(−ζωt)(cos ω_d t + ζω/ω_d · sin ω_d t), als linear()-Punkte
   (function feder() {
-    const antwort = 0.42, daempfung = 0.86; // Sekunden bis zur Hauptbewegung, Dämpfung (1 = ohne Überschwingen)
-    const w = (2 * Math.PI) / antwort, wd = w * Math.sqrt(1 - daempfung ** 2);
-    const x = (t) => 1 - Math.exp(-daempfung * w * t) * (Math.cos(wd * t) + ((daempfung * w) / wd) * Math.sin(wd * t));
+    // Werte laut Recherche (natives-gefuehl.md): response 0,35 s, Dämpfung 0,85–1; bei „Bewegung reduzieren“ ohne Überschwingen
+    const ruhig = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const antwort = 0.35, daempfung = ruhig ? 1 : 0.88;
+    const w = (2 * Math.PI) / antwort, wd = w * Math.sqrt(Math.max(1e-6, 1 - daempfung ** 2));
+    const x = daempfung >= 1 ? (t) => 1 - Math.exp(-w * t) * (1 + w * t)
+      : (t) => 1 - Math.exp(-daempfung * w * t) * (Math.cos(wd * t) + ((daempfung * w) / wd) * Math.sin(wd * t));
     let dauer = 0.2;
     while (dauer < 1.5 && (Math.abs(1 - x(dauer)) > 0.002 || Math.abs(1 - x(dauer - 0.05)) > 0.002)) dauer += 0.02;
     const punkte = []; for (let i = 0; i <= 32; i++) punkte.push(+x((dauer * i) / 32).toFixed(4));
     punkte[punkte.length - 1] = 1;
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.style.setProperty('--feder-zeit', '0ms'); return; }
     if (window.CSS && CSS.supports && CSS.supports('transition-timing-function', 'linear(0, 1)')) {
       document.documentElement.style.setProperty('--feder', `linear(${punkte.join(', ')})`);
       document.documentElement.style.setProperty('--feder-zeit', `${Math.round(dauer * 1000)}ms`);
@@ -813,6 +851,8 @@
     if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
     const gm = gruppeMark(o.id).fav.length;
     if (gm) unter.push(`♥ ${gm} in der Gruppe`);
+    const gw = gesehenVon(o.id).length, ga = allePersonen().length;
+    if (gw && ga > 1) unter.push(gw >= ga ? 'alle waren da' : `${gw} von ${ga} waren da`);
     const gs = gruppenStimmen(o.id);
     if (gs.ja.length || gs.nein.length) unter.push(`👍 ${gs.ja.length}${gs.nein.length ? ` 👎 ${gs.nein.length}` : ''}`);
     const offen = st ? el('span', { class: 'status ' + (st.offen ? 'offen' : 'zu') }, st.offen ? `offen bis ${st.bis}` : st.naechste ? `zu, öffnet ${st.naechste}` : 'geschlossen') : null;
@@ -820,7 +860,7 @@
       m.fav ? ic('herz') : null, istTipp(o) ? ic('stern') : null, m.notiz ? ic('notiz') : null);
     zeichen.querySelectorAll('svg').forEach((s, i) => { s.style.fill = 'none'; s.style.stroke = 'currentColor'; s.style.strokeWidth = '2'; });
     const marker = el('span', { class: 'marker g-' + g }, symbol(o), opt.nr ? el('span', { class: 'nummer' }, String(opt.nr)) : null);
-    const li = el('li', { class: 'eintrag' + (m.fertig ? ' erledigt' : '') },
+    const li = el('li', { class: 'eintrag' + (fertig(o) ? ' erledigt' : '') },
       el('button', { type: 'button', class: 'auf', onclick: () => oeffneOrt(o.id, true) },
         marker,
         el('span', { class: 'text' },
@@ -829,20 +869,40 @@
           el('span', { class: 'unter' }, unter.join(' · '), offen ? ' · ' : '', offen)),
         opt.ohneBild ? null : bildKachel(o)),
       opt.haken ? el('button', {
-        type: 'button', class: 'haken', 'aria-pressed': String(!!m.fertig), 'aria-label': `${o.name} als erledigt markieren`,
+        type: 'button', class: 'haken', 'aria-pressed': String(fertig(o)), 'aria-label': `${o.name} als erledigt markieren`,
         onclick: () => schalteErledigt(o),
       }, ic('haken')) : null);
     return li;
   }
 
   function schalteErledigt(o) {
-    const vorher = !!mk(o.id).fertig;
+    const p = aktiverEigenplan(), imPlan = p && p.s.includes(o.id) && S.tab === 'plan';
+    const vorher = fertig(o);
     markiere(o.id, { fertig: !vorher });
+    if (imPlan) { p.d = !vorher ? [...new Set([...p.d, o.id])] : p.d.filter((x) => x !== o.id); p.t = Date.now(); p.e = G.ich && G.ich.id; }
+    const gruppe = G.ich && G.ich.name && allePersonen().length > 1;
+    if (G.ich && G.ich.name) { const w = gesehenVon(o.id); setzeGesehen(o.id, !vorher ? [...w, G.ich.id] : w.filter((x) => x !== G.ich.id)); } else if (imPlan) speichereG();
+    haptik(12);
     zeichne({ scroll: true });
-    const n = !vorher && S.tab === 'plan' ? planStopps().find(({ o: x }) => !mk(x.id).fertig) : null;
-    toast(!vorher ? (n ? `Erledigt. Weiter zu: ${n.o.name}` : 'Erledigt.') : 'Wieder offen.', {
-      aktion: 'Rückgängig', fn: () => { markiere(o.id, { fertig: vorher }); zeichne({ scroll: true }); },
-    });
+    const n = !vorher && S.tab === 'plan' ? planStopps().find(({ o: x }) => !fertig(x)) : null;
+    if (!vorher && gruppe) {
+      toast(`Erledigt${n ? `. Weiter: ${n.o.name}` : ''}. Waren alle dabei?`, { aktion: 'Alle dabei', fn: () => { setzeGesehen(o.id, allePersonen()); zeichne({ scroll: true }); toast('Für alle als gesehen markiert.'); } });
+    } else {
+      toast(!vorher ? (n ? `Erledigt. Weiter zu: ${n.o.name}` : 'Erledigt.') : 'Wieder offen.', { aktion: 'Rückgängig', fn: () => schalteErledigt(o) });
+    }
+  }
+  // „Gesehen von“: wer bei einem Ort dabei war, wenn sich die Gruppe teilt
+  function gesehenBlock(o) {
+    const alle = allePersonen();
+    if (!G.ich || !G.ich.name || alle.length < 2) return null;
+    const w = gesehenVon(o.id), fehlt = alle.filter((id) => !w.includes(id));
+    const satz = !w.length ? 'Noch von niemandem gesehen.' : !fehlt.length ? 'Von allen gesehen.' : `Gesehen von ${w.map(personName).join(', ')}. Noch nicht: ${fehlt.map(personName).join(', ')}.`;
+    return el('section', { class: 'abschnitt' }, el('h3', {}, 'Wer war schon da?'),
+      el('p', { style: 'margin:0 0 8px' }, satz),
+      el('div', { class: 'chips' },
+        alle.map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(w.includes(id)), onclick: () => { setzeGesehen(o.id, w.includes(id) ? w.filter((x) => x !== id) : [...w, id]); haptik(); zeichne({ scroll: true, karte: false }); } }, personName(id))),
+        el('button', { type: 'button', class: 'chip', onclick: () => { setzeGesehen(o.id, fehlt.length ? alle : []); haptik(); zeichne({ scroll: true, karte: false }); } }, fehlt.length ? 'Alle' : 'Keiner')),
+      el('p', { class: 'leise klein', style: 'margin:6px 0 0' }, 'Was nicht alle gesehen haben, schlägt der Gruppenplan weiter vor.'));
   }
 
   // ---------- Wetter: wetter.json entsteht im Bauprozess (tools/wetter.py), die Handys fragen keinen Wetterdienst ----------
@@ -882,11 +942,12 @@
   }
 
   function zeichnePlan(box) {
-    const plan = S.plan === 'G' ? { titel: 'Gruppenplan', untertitel: '' } : PLAENE[S.plan] || { titel: 'Plan ' + S.plan, untertitel: '' };
+    const ep = aktiverEigenplan();
+    const plan = S.plan === 'G' ? { titel: 'Gruppenplan', untertitel: '' } : ep ? { titel: `„${ep.n}“`, untertitel: `Reiseführer: ${personName(ep.von)}` } : PLAENE[S.plan] || { titel: 'Plan ' + S.plan, untertitel: '' };
     const tag = TAGE.find((t) => t.id === S.tag);
     const stopps = planStopps();
-    const fertig = stopps.filter(({ o }) => mk(o.id).fertig).length;
-    const naechster = stopps.find(({ o }) => !mk(o.id).fertig);
+    const nFertig = stopps.filter(({ o }) => fertig(o)).length;
+    const naechster = stopps.find(({ o }) => !fertig(o));
 
     let zusammen;
     if (naechster) {
@@ -912,8 +973,14 @@
 
     const tageSeg = el('div', { class: 'segmente', role: 'group', 'aria-label': 'Tag' },
       TAGE.map((t) => el('button', { type: 'button', 'aria-pressed': String(t.id === S.tag), onclick: () => { S.tag = t.id; speicher.set('tag', S.tag); zeichne({ anpassen: true }); } }, t.kurz)));
-    const planSeg = el('div', { class: 'segmente nur-voll', role: 'group', 'aria-label': 'Plan' },
-      ['A', 'B', 'C', 'G'].map((p) => el('button', { type: 'button', 'aria-pressed': String(p === S.plan), onclick: () => { S.plan = p; speicher.set('plan', p); zeichne({ anpassen: true }); } }, p === 'G' ? 'Gruppe' : 'Plan ' + p)));
+    const waehle = (p) => { S.plan = p; S.planEdit = null; speicher.set('plan', p); haptik(); zeichne({ anpassen: true }); };
+    const eigene = Object.entries(G.plaene).filter(([, x]) => !x.x).sort((a, b) => b[1].t - a[1].t);
+    const planSeg = el('div', { class: 'chips plan-chips', role: 'group', 'aria-label': 'Plan' },
+      ['A', 'B', 'C', 'G'].map((p) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(p === S.plan), onclick: () => waehle(p) }, p === 'G' ? 'Gruppenplan' : 'Plan ' + p)),
+      eigene.map(([id, x]) => el('button', { type: 'button', class: 'chip eigen', 'aria-pressed': String(S.plan === 'P:' + id), onclick: () => waehle('P:' + id) }, el('span', { class: 'marker person mini' }, initialen(personName(x.von))), x.n)),
+      el('button', { type: 'button', class: 'chip', onclick: () => neuerPlan() }, '+ Eigener Plan'));
+    const editor = ep && S.planEdit === S.plan.slice(2) ? planEditor(S.plan.slice(2)) : ep ? el('div', { class: 'reihe', style: 'margin-top:8px' },
+      el('button', { type: 'button', class: 'knopf', onclick: () => { S.planEdit = S.plan.slice(2); zeichne({ scroll: true, karte: false }); } }, ic('notiz'), 'Plan bearbeiten')) : null;
 
     const liste = el('ol', { class: 'liste' });
     let nr = 0;
@@ -934,12 +1001,75 @@
       treffKarte(),
       zusammen,
       el('div', { class: 'abschnitt', style: 'display:grid;gap:8px' }, tageSeg, planSeg),
+      editor,
       wetterTeil(S.tag),
       el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, S.plan === 'G' ? `Gruppenplan aus ${Object.keys(G.leute).length} ${Object.keys(G.leute).length === 1 ? 'Person' : 'Personen'}: passt sich bei jedem Abgleich an. Zeiten sind geschätzt. ${tag.lang}.` : `${plan.titel}: ${plan.untertitel}. ${tag.lang}.`),
-      stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${fertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(fertig / stopps.length) * 100}%` })) : null,
+      stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${nFertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(nFertig / stopps.length) * 100}%` })) : null,
       stopps.length ? el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Die App führt euch Stopp für Stopp. Am Ziel geht es mit einem Tipp zum nächsten.') : null,
       el('div', { class: 'reihe', style: 'margin-top:12px' }, heimKnopf()),
       liste);
+  }
+
+  // ---------- Eigene Pläne ----------
+  function planSpeichern(p) { p.t = Date.now(); p.e = G.ich && G.ich.id; speichereG(); }
+  function neuerPlan(mitOrt) {
+    if (!G.ich || !G.ich.name) { toast('Tritt zuerst unter „Gruppe“ bei. Dann können alle deinem Plan folgen.'); S.tab = 'gruppe'; hoehe('gross'); zeichne(); return null; }
+    const id = neueId();
+    G.plaene[id] = { n: `Plan von ${meinName()}`, von: G.ich.id, tag: S.tag, s: mitOrt ? [mitOrt] : [], d: [], t: Date.now(), e: G.ich.id, x: 0 };
+    speichereG();
+    S.plan = 'P:' + id; S.planEdit = id; speicher.set('plan', S.plan);
+    if (!mitOrt) { S.tab = 'plan'; S.ort = null; hoehe('gross'); }
+    zeichne({ anpassen: true });
+    return id;
+  }
+  function planEditor(id) {
+    const p = G.plaene[id];
+    const name = el('input', { type: 'text', maxlength: '40', value: p.n, 'aria-label': 'Name des Plans' });
+    name.addEventListener('change', () => { p.n = name.value.trim() || p.n; planSpeichern(p); });
+    const schiebe = (i, d) => { const j = i + d; if (j < 0 || j >= p.s.length) return; [p.s[i], p.s[j]] = [p.s[j], p.s[i]]; planSpeichern(p); haptik(); zeichne({ scroll: true }); };
+    const stopps = el('ol', { class: 'liste plan-edit' }, p.s.map((oid, i) => {
+      const o = NACH_ID.get(oid);
+      return el('li', { class: 'eintrag' },
+        el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o), el('span', { class: 'nummer' }, String(i + 1))),
+        el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), o.dauer ? el('span', { class: 'unter' }, `vor Ort ${o.dauer} Min.`) : null),
+        el('span', { class: 'plan-knoepfe' },
+          el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} nach oben`, disabled: i === 0 ? true : null, onclick: () => schiebe(i, -1) }, '↑'),
+          el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} nach unten`, disabled: i === p.s.length - 1 ? true : null, onclick: () => schiebe(i, 1) }, '↓'),
+          el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} entfernen`, onclick: () => { p.s.splice(i, 1); planSpeichern(p); haptik(); zeichne({ scroll: true }); } }, ic('x'))));
+    }));
+    const treffer = el('div', { class: 'plan-treffer' });
+    const suche2 = el('input', { type: 'search', placeholder: 'Ort hinzufügen: Name eingeben', 'aria-label': 'Ort zum Plan hinzufügen', autocomplete: 'off' });
+    const zeigeTreffer = () => {
+      const q = falte(suche2.value.trim());
+      const l = q ? ORTE.filter((o) => !p.s.includes(o.id) && falte(`${o.name} ${o.kategorie} ${TYP_NAME[o.typ] || ''}`).includes(q)).slice(0, 8) : [];
+      setze(treffer, l.map((o) => el('button', { type: 'button', class: 'chip', onclick: () => { p.s.push(o.id); planSpeichern(p); haptik(); suche2.value = ''; F.warteZeichnen = false; zeichne({ scroll: true }); toast(`${o.name} hinzugefügt.`); } }, el('span', { class: 'marker mini g-' + gruppeVon(o.kategorie) }, symbol(o)), o.name)));
+    };
+    suche2.addEventListener('input', zeigeTreffer);
+    const uebernehmen = !p.s.length ? el('div', { style: 'display:grid;gap:6px' }, el('span', { class: 'klein leise' }, `Schnell starten: Stopps übernehmen für ${TAGE.find((t) => t.id === S.tag).kurz}`),
+      el('div', { class: 'chips' }, ['A', 'B', 'C', 'G'].map((q) => el('button', { type: 'button', class: 'chip', onclick: () => {
+        p.s = schritte(q, S.tag).filter((x) => x.ort && NACH_NAME.has(x.ort)).map((x) => NACH_NAME.get(x.ort).id); planSpeichern(p); zeichne({ scroll: true, anpassen: true });
+      } }, q === 'G' ? 'Gruppenplan' : 'Plan ' + q)))) : null;
+    return el('section', { class: 'karte-box', style: 'display:grid;gap:10px;margin-top:10px' },
+      el('strong', {}, 'Plan bearbeiten'),
+      el('div', { class: 'feld' }, name),
+      el('p', { class: 'leise klein', style: 'margin:0' }, `Reiseführer: ${personName(p.von)}. Alle mit offener App sehen jede Änderung sofort und können folgen.`),
+      uebernehmen,
+      p.s.length ? stopps : null,
+      el('div', { class: 'suche', style: 'min-height:56px' }, ic('suche'), suche2), treffer,
+      el('div', { class: 'reihe' },
+        el('button', { type: 'button', class: 'knopf warn', onclick: () => { p.x = 1; planSpeichern(p); S.plan = 'A'; S.planEdit = null; speicher.set('plan', 'A'); zeichne({ anpassen: true }); toast('Plan gelöscht.', { aktion: 'Rückgängig', fn: () => { p.x = 0; planSpeichern(p); S.plan = 'P:' + id; zeichne({ anpassen: true }); } }); } }, 'Löschen'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: () => { S.planEdit = null; haptik(); zeichne({ scroll: true, anpassen: true }); } }, 'Fertig')));
+  }
+  function inPlanBox(o) {
+    const eigene = Object.entries(G.plaene).filter(([, x]) => !x.x);
+    return el('section', { class: 'karte-box', style: 'margin-top:10px;display:grid;gap:8px' }, el('strong', {}, 'Zu welchem Plan?'),
+      el('div', { class: 'chips' },
+        eigene.map(([id, x]) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(x.s.includes(o.id)), onclick: () => {
+          if (!x.s.includes(o.id)) { x.s.push(o.id); planSpeichern(x); toast(`Zu „${x.n}“ hinzugefügt.`, { aktion: 'Zum Plan', fn: () => { S.plan = 'P:' + id; S.tab = 'plan'; S.ort = null; zeichne({ anpassen: true }); } }); } else { x.s = x.s.filter((y) => y !== o.id); planSpeichern(x); toast(`Aus „${x.n}“ entfernt.`); }
+          haptik(); S.inPlan = null; zeichne({ scroll: true, karte: false });
+        } }, x.n)),
+        el('button', { type: 'button', class: 'chip', onclick: () => { const id = neuerPlan(o.id); if (id) { S.inPlan = null; toast('Neuer Plan mit diesem Ort. Unter „Tagesplan“ bearbeiten.'); zeichne({ scroll: true, karte: false }); } } }, '+ Neuer Plan')),
+      el('p', { class: 'leise klein', style: 'margin:0' }, 'Eigene Pläne sieht die ganze Gruppe. Wer ihn baut, ist Reiseführer; die anderen wählen ihn im Tagesplan und folgen.'));
   }
 
   const heimOrt = () => (E.heimPos ? { id: 'heim', name: 'Unterkunft', kategorie: 'Verkehr', typ: 'haus', adresse: '', notiz: '', lat: E.heimPos.lat, lon: E.heimPos.lon } : null);
@@ -1215,9 +1345,9 @@
   }
   let gpCache = { key: '', plan: null };
   function gruppenplan() {
-    const key = JSON.stringify([G.leute, E.profil, Object.keys(M).filter((id) => M[id].aus)]);
+    const key = JSON.stringify([G.leute, G.gesehen, E.profil, Object.keys(M).filter((id) => M[id].aus)]);
     if (gpCache.key === key && gpCache.plan) return gpCache.plan;
-    const wertung = ORTE.filter((o) => hatPos(o) && !mk(o.id).aus && o.kategorie !== 'Verkehr' && o.ort === 'Lisboa').map((o) => {
+    const wertung = ORTE.filter((o) => hatPos(o) && !mk(o.id).aus && !vonAllenGesehen(o.id) && o.kategorie !== 'Verkehr' && o.ort === 'Lisboa').map((o) => {
       const { ja, nein } = gruppenStimmen(o.id);
       return { o, ja, nein, wert: ja.length - nein.length };
     }).filter((x) => x.ja.length && !x.nein.length); // ein „Lieber nicht“ = strittig, nicht im Plan (Masthoff 2004: Average Without Misery)
@@ -1444,9 +1574,12 @@
     }
     return s2;
   }
-  function ausgleichWege(s2) {
-    const plus = Object.entries(s2).filter(([, v]) => v > 0).map(([id, v]) => [id, v]);
-    const minus = Object.entries(s2).filter(([, v]) => v < 0).map(([id, v]) => [id, -v]);
+  // Wenigste Überweisungen: Personen in möglichst viele Gruppen mit Summe 0 teilen (exakt über alle Teilmengen,
+  // bei 6 Personen 64); jede Gruppe mit k Personen braucht k − 1 Überweisungen. Gierig allein ist nicht immer optimal
+  // (Gegenbeispiel in docs/recherche/2026-10-24-kosten-und-fuehrung.md).
+  function gierig(ids, s2) {
+    const plus = ids.filter((id) => s2[id] > 0).map((id) => [id, s2[id]]);
+    const minus = ids.filter((id) => s2[id] < 0).map((id) => [id, -s2[id]]);
     const wege = [];
     while (plus.length && minus.length) {
       plus.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)); minus.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
@@ -1456,6 +1589,27 @@
       if (!plus[0][1]) plus.shift();
       if (!minus[0][1]) minus.shift();
     }
+    return wege;
+  }
+  function ausgleichWege(s2) {
+    const ids = Object.keys(s2).filter((id) => s2[id] !== 0).sort();
+    const n = ids.length;
+    if (!n) return [];
+    if (n > 14) return gierig(ids, s2);
+    const N = 1 << n, summe = new Array(N).fill(0), dp = new Array(N).fill(-1), wahl = new Array(N).fill(0);
+    for (let m = 1; m < N; m++) { const low = m & -m; summe[m] = summe[m ^ low] + s2[ids[31 - Math.clz32(low)]]; }
+    dp[0] = 0;
+    for (let m = 1; m < N; m++) {
+      if (summe[m] !== 0) continue;
+      const low = m & -m;
+      for (let sub = m; sub; sub = (sub - 1) & m) {
+        if (!(sub & low) || summe[sub] !== 0 || dp[m ^ sub] < 0) continue;
+        if (dp[m ^ sub] + 1 > dp[m]) { dp[m] = dp[m ^ sub] + 1; wahl[m] = sub; }
+      }
+    }
+    if (dp[N - 1] < 0) return gierig(ids, s2);
+    const wege = [];
+    for (let m = N - 1; m; m ^= wahl[m]) wege.push(...gierig(ids.filter((_, i) => wahl[m] & (1 << i)), s2));
     return wege;
   }
   function kostenSpeichern(e) {
@@ -1742,9 +1896,12 @@
           markiere(o.id, { aus: !m.aus });
           if (!m.aus) { schliesseOrt(); toast(`${o.name} ausgeblendet.`, { aktion: 'Rückgängig', fn: () => { markiere(o.id, { aus: false }); zeichne(); } }); } else zeichne({ scroll: true });
         }),
+        aktion('', 'plan', 'In Plan', S.inPlan === o.id, () => { S.inPlan = S.inPlan === o.id ? null : o.id; S.teilen = null; zeichne({ scroll: true, karte: false }); }),
         aktion('', 'teilen', 'An Gruppe', S.teilen === o.id, () => { S.teilen = S.teilen === o.id ? null : o.id; zeichne({ scroll: true, karte: false }); if (S.teilen) setTimeout(() => { const f = $('#teil-text'); if (f) f.focus(); }, 50); })),
       S.teilen === o.id ? teilBox(o) : null,
+      S.inPlan === o.id ? inPlanBox(o) : null,
       stimmBlock(o),
+      gesehenBlock(o),
       gruppeMarkBlock(o),
       o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, o.kategorie === 'Foto' ? 'Foto-Tipp' : 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
         el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut /.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
@@ -2185,7 +2342,8 @@
   }));
   $('#griff').addEventListener('click', () => (S.hoehe === 'gross' ? hoehe('klein') : groesser()));
   // Blatt folgt dem Finger. Beim Loslassen rastet es ein; ein Wisch zählt mit seinem Schwung
-  // (Projektion wie UIScrollView: Weg = v · 0,998 / (1 − 0,998), v in px/ms · 1000 / 1000). Sichtbarer Zwilling: der Griff.
+  // (Projektion: Weg = (v/1000) · r / (1 − r), v in px/s, r = 0,99; Wisch ab 500 px/s geht mindestens eine Raste weiter;
+  // Gummiband (1 − 1/(x · 0,55/d + 1)) · d. Quelle: docs/recherche/2026-10-24-natives-gefuehl.md). Sichtbarer Zwilling: der Griff.
   const zug = { an: false };
   const zone = $('#blatt');
   zone.addEventListener('touchstart', (e) => {
@@ -2206,8 +2364,9 @@
     e.preventDefault();
     const p = stufenPx();
     let h = zug.h0 - dy;
-    if (h > p.gross) h = p.gross + (h - p.gross) * 0.25; // Gummiband an den Enden
-    if (h < p.mini) h = p.mini - (p.mini - h) * 0.25;
+    const gummi = (x2) => (1 - 1 / ((x2 * 0.55) / innerHeight + 1)) * innerHeight;
+    if (h > p.gross) h = p.gross + gummi(h - p.gross);
+    if (h < p.mini) h = p.mini - gummi(p.mini - h);
     setzeBlatt(h);
     zug.pkt.push([e.timeStamp, t.clientY]); if (zug.pkt.length > 5) zug.pkt.shift();
   }, { passive: false });
@@ -2218,9 +2377,14 @@
     document.body.classList.remove('zieht');
     const [t0, y0] = zug.pkt[0], [t1, y1] = zug.pkt[zug.pkt.length - 1];
     const v = t1 > t0 ? (y1 - y0) / (t1 - t0) : 0; // px/ms, positiv = nach unten
-    const ziel = blattPx() - v * 0.998 / (1 - 0.998);
+    const ziel = blattPx() - (v * 1000 / 1000) * 0.99 / (1 - 0.99);
     const p = stufenPx();
-    const naechste = STUFEN.reduce((a, b) => (Math.abs(p[b] - ziel) < Math.abs(p[a] - ziel) ? b : a), 'mini');
+    let naechste = STUFEN.reduce((a, b) => (Math.abs(p[b] - ziel) < Math.abs(p[a] - ziel) ? b : a), 'mini');
+    // Schneller Wisch (ab 500 px/s): mindestens eine Raste in Wischrichtung
+    const start = STUFEN.reduce((a, b) => (Math.abs(p[b] - zug.h0) < Math.abs(p[a] - zug.h0) ? b : a), 'mini');
+    const i0 = STUFEN.indexOf(start), i1 = STUFEN.indexOf(naechste);
+    if (v < -0.5 && i1 <= i0) naechste = STUFEN[Math.min(3, i0 + 1)];
+    if (v > 0.5 && i1 >= i0) naechste = STUFEN[Math.max(0, i0 - 1)];
     hoehe(naechste, { spuerbar: true });
     karte && karte.invalidateSize({ pan: false });
   };

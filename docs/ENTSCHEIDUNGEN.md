@@ -4,6 +4,9 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | „Wer war schon da?“ je Ort (geteilt): Beim Abhaken „Waren alle dabei?“; Orte, die alle gesehen haben, fallen aus dem Gruppenplan, die anderen bleiben vorgeschlagen | Wunsch: Gruppe teilt sich unterwegs |
+| 2026-10-24 | Eigene Pläne (Reiseführer-Modus): aus allen Orten bauen, aus Plan A/B/C/Gruppenplan übernehmen, umsortieren, unterwegs ändern; alle sehen Änderungen live und folgen; Abhaken im Plan gilt für alle, die ihm folgen | Wunsch: eine Person führt; Recherche `docs/recherche/2026-10-24-kosten-und-fuehrung.md` |
+| 2026-10-24 | Ausgleich der Kosten exakt mit den wenigsten Überweisungen (Teilmengen mit Summe 0), nicht nur gierig | Gegenbeispiel aus der Recherche: gierig 5, optimal 4 |
 | 2026-10-24 | Kosten teilen unter „Gruppe → Kosten“: Ausgabe mit Zahler, Betrag in Cent, Zweck, für wen (gleich geteilt); Rest-Cents nach Kennung; Ausgleich mit wenigen Überweisungen (größte Schuld an größtes Guthaben); „Bezahlt“ trägt eine Ausgleichs-Buchung ein; Löschen mit Rückgängig. Gruppe in drei Reiter: Unterwegs, Abstimmen, Kosten | Wunsch: Prinzip Splid/Splitwise in der App |
 | 2026-10-24 | „In der Nähe“ unter Orte: Supermärkte, Toiletten, Apotheken, Geldautomaten, Trinkwasser aus OSM (Overpass, höchstens täglich im Bauprozess). „Günstige“ zeigt nur große Ketten; Stufen nur mit Beleg (Einkaufstests 2026, DECO online 2026), Kleinformate ohne Preisangabe | Wunsch: günstig einkaufen statt Kiosk. Recherche `docs/recherche/2026-10-24-supermaerkte.md` |
 | 2026-10-24 | Blatt mit vier Rasten (mini, klein, mitte, groß), folgt dem Finger, rastet mit Schwung und Feder ein; Karte ziehen macht unter „Orte“ das Blatt mini. Einführung: vier Seiten, „Weiter“ immer sichtbar, Standort erst im Zusammenhang | Rückmeldung: Karte verdeckt, Einführung unklar auf manchen Handys |

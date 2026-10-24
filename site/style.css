@@ -544,6 +544,7 @@ body.zieht .ansicht { overflow: hidden; }
 .griff span { transition: width 160ms var(--kurve-aus), opacity 160ms; }
 body.zieht .griff span { width: 56px; opacity: .9; }
 /* Drücken sichtbar machen: kurz kleiner, wie bei Apple-Knöpfen */
+.chip, .eintrag .auf, .aktion, .segmente button, .haken, .leiste button, .n-ort, .naechst-karte, .wahl button, .knopf { touch-action: manipulation; }
 .chip, .eintrag .auf, .aktion, .segmente button, .haken, .leiste button, .n-ort, .naechst-karte, .wahl button { transition: transform 120ms var(--kurve-aus), background var(--t-kurz), opacity var(--t-kurz); -webkit-tap-highlight-color: transparent; }
 .chip:active, .aktion:active, .segmente button:active, .haken:active, .n-ort:active, .wahl button:active { transform: scale(.95); }
 .eintrag .auf:active, .naechst-karte:active { transform: scale(.98); opacity: .85; }
@@ -592,3 +593,19 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .euro-zeichen { align-self: center; font-weight: 700; font-size: var(--fs-l); padding: 0 6px; }
 #k-betrag { font-size: calc(var(--fs-t) + 2px); font-weight: 700; font-variant-numeric: tabular-nums; }
 #k-zweck { min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); }
+/* Eigene Pläne */
+.plan-chips { margin-top: 2px; }
+.chip.eigen { padding-left: 8px; }
+.marker.mini { width: 28px; height: 28px; font-size: 12px; }
+.marker.mini svg { width: 16px; height: 16px; }
+.plan-edit .eintrag { align-items: center; gap: 10px; padding: 6px 0; }
+.plan-edit .text { flex: 1; min-width: 0; }
+.plan-knoepfe { display: flex; gap: 4px; flex: none; }
+.plan-knoepfe .haken { font-size: 20px; font-weight: 700; }
+.haken[disabled] { opacity: .3; }
+.plan-treffer { display: flex; flex-wrap: wrap; gap: 8px; }
+.plan-treffer .chip { padding-left: 8px; }
+/* Raster in Kästen nie breiter als der Bildschirm */
+.karte-box { grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.karte-box > * { min-width: 0; }
+.plan-edit .titel { overflow-wrap: anywhere; hyphens: auto; }

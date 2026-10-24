@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.0';
+  const VERSION = '2.1';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -270,14 +270,14 @@
     if (G.ich) { const me = ich(); me.name = G.ich.name; }
     if (G.ich && G.ich.name && window.crypto && crypto.getRandomValues) sichereSchluessel();
     const l = {};
-    for (const [id, p] of Object.entries(G.leute)) if (!opt.nurIch || (G.ich && id === G.ich.id)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}, p.m || {}];
+    for (const [id, p] of Object.entries(G.leute)) if (!opt.nurIch || (G.ich && id === G.ich.id)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}, p.m || {}, p.ohne ? 1 : 0];
     const u = {};
     for (const [id, x] of Object.entries(G.umfragen)) u[id] = [x.von, x.frage, x.o, x.t];
     const tp = G.treff ? [G.treff.name || '', G.treff.lat || 0, G.treff.lon || 0, G.treff.zeit || '', G.treff.von || '', G.treff.t || 0, G.treff.geloescht ? 1 : 0] : null;
     const pn = G.pin ? [G.pin.x || '', G.pin.von || '', G.pin.n || '', G.pin.t || 0, G.pin.weg ? 1 : 0] : null;
     const n = opt.chat ? nachrichtenListe().map(([id, x]) => (x.o ? [id, x.von, x.n, x.x, x.t, x.o] : [id, x.von, x.n, x.x, x.t])) : undefined;
     const ko = {};
-    for (const [id, x] of Object.entries(G.kosten)) ko[id] = [x.v, x.b, x.z, x.f, x.t, x.m, x.x ? 1 : 0, x.a ? 1 : 0];
+    for (const [id, x] of Object.entries(G.kosten)) ko[id] = [x.v, x.b, x.z, x.f, x.t, x.m, x.x ? 1 : 0, x.a ? 1 : 0, x.an || 0, x.za || 0, x.art || '', x.pos || 0, x.tip || 0];
     const ep = {};
     for (const [id, x] of Object.entries(G.plaene)) ep[id] = [x.n, x.von, x.tag, x.s, x.d, x.t, x.x ? 1 : 0, x.e || x.von];
     const gs = {};
@@ -308,7 +308,7 @@
       if (!alt || (t || 0) > (alt.t || 0)) {
         const mk2 = {};
         if (m && typeof m === 'object') for (const [oid, x] of Object.entries(m)) if (Array.isArray(x) && NACH_ID.has(oid)) mk2[oid] = [x[0] ? 1 : 0, x[1] ? 1 : 0, Math.max(0, Math.min(5, +x[2] || 0)), String(x[3] || '').slice(0, 300)];
-        G.leute[id] = { name: String(name || '').slice(0, 40), t: +t || 0, s: s && typeof s === 'object' ? s : {}, a: a && typeof a === 'object' ? a : {}, m: p.length > 4 ? mk2 : (alt && alt.m) || {} };
+        G.leute[id] = { name: String(name || '').slice(0, 40), t: +t || 0, s: s && typeof s === 'object' ? s : {}, a: a && typeof a === 'object' ? a : {}, m: p.length > 4 ? mk2 : (alt && alt.m) || {}, ohne: p[5] ? 1 : 0 };
         neu.push(String(name || 'Jemand').slice(0, 40));
       }
     }
@@ -347,11 +347,14 @@
     neu.kosten = 0;
     for (const [id, x] of Object.entries(d.ko && typeof d.ko === 'object' ? d.ko : {})) {
       if (!Array.isArray(x) || typeof id !== 'string' || id.length > 20) continue;
-      const [v, b, z, f, t, m, weg, ausgleich] = x;
+      const [v, b, z, f, t, m, weg, ausgleich, an, za, art, pos, tip] = x;
       const alt = G.kosten[id];
       if (alt && (+m || 0) <= (alt.m || 0)) continue;
       if (typeof v !== 'string' || !(Number.isInteger(+b) && +b > 0 && +b < 10000000) || !Array.isArray(f) || !f.length) continue;
-      G.kosten[id] = { v: v.slice(0, 16), b: +b, z: String(z || '').slice(0, 60), f: f.filter((y) => typeof y === 'string').slice(0, 30).map((y) => y.slice(0, 16)), t: +t || 0, m: +m || 0, x: weg ? 1 : 0, a: ausgleich ? 1 : 0 };
+      G.kosten[id] = { v: v.slice(0, 16), b: +b, z: String(z || '').slice(0, 60), f: f.filter((y) => typeof y === 'string').slice(0, 30).map((y) => y.slice(0, 16)), t: +t || 0, m: +m || 0, x: weg ? 1 : 0, a: ausgleich ? 1 : 0,
+        an: centMap(an, +b), za: centMap(za, +b), art: ['gleich', 'betrag', 'anteile', 'posten'].includes(art) ? art : '',
+        pos: Array.isArray(pos) ? pos.filter((q) => Array.isArray(q) && Number.isInteger(q[1]) && Array.isArray(q[2])).slice(0, 80).map((q) => [String(q[0] || '').slice(0, 40), q[1], q[2].filter((y) => typeof y === 'string').slice(0, 30)]) : null,
+        tip: Array.isArray(tip) && ['%', '€'].includes(tip[0]) && Number.isFinite(+tip[1]) ? [tip[0], +tip[1]] : null };
       neu.kosten += 1;
     }
     neu.plaene = [];
@@ -1596,13 +1599,30 @@
     for (const id of Object.keys(G.leute)) s2[id] = 0;
     for (const x of Object.values(G.kosten)) {
       if (x.x) continue;
-      const f = [...new Set(x.f)].sort();
-      if (!f.length) continue;
-      const teil = Math.floor(x.b / f.length), rest = x.b - teil * f.length;
-      s2[x.v] = (s2[x.v] || 0) + x.b;
-      f.forEach((p2, i) => { s2[p2] = (s2[p2] || 0) - teil - (i < rest ? 1 : 0); });
+      const za = x.za || { [x.v]: x.b };
+      const an = x.an || verteile(x.b, [...new Set(x.f)].map((id) => [id, 1]));
+      for (const [id, c] of Object.entries(za)) s2[id] = (s2[id] || 0) + c;
+      for (const [id, c] of Object.entries(an)) s2[id] = (s2[id] || 0) - c;
     }
     return s2;
+  }
+  // Größte-Reste-Verfahren: Cent nach Gewichten, die Summe stimmt immer; Gleichstand nach Kennung (alle Handys rechnen gleich)
+  function verteile(betrag, gewichte) {
+    const summe = gewichte.reduce((a, [, w]) => a + w, 0);
+    if (!summe || !betrag) return {};
+    const roh = gewichte.map(([id, w]) => { const exakt = (betrag * w) / summe; return { id, c: Math.floor(exakt), r: exakt - Math.floor(exakt) }; });
+    let rest = betrag - roh.reduce((a, x) => a + x.c, 0);
+    roh.slice().sort((a, b) => b.r - a.r || (a.id < b.id ? -1 : 1)).forEach((x) => { if (rest > 0) { x.c += 1; rest -= 1; } });
+    const aus = {};
+    for (const x of roh) if (x.c) aus[x.id] = (aus[x.id] || 0) + x.c;
+    return aus;
+  }
+  // Prüft Anteile/Zahler aus dem Netz: nur ganze Cent, Summe muss genau stimmen
+  function centMap(o, b) {
+    if (!o || typeof o !== 'object') return null;
+    let s2 = 0; const aus = {};
+    for (const [id, c] of Object.entries(o)) { if (typeof id !== 'string' || !Number.isInteger(c) || c < 0) return null; if (c) { aus[id.slice(0, 16)] = c; s2 += c; } }
+    return s2 === b ? aus : null;
   }
   // Wenigste Überweisungen: Personen in möglichst viele Gruppen mit Summe 0 teilen (exakt über alle Teilmengen,
   // bei 6 Personen 64); jede Gruppe mit k Personen braucht k − 1 Überweisungen. Gierig allein ist nicht immer optimal
@@ -1645,42 +1665,192 @@
   function kostenSpeichern(e) {
     const id = e.id || neueId();
     const alt = G.kosten[id];
-    G.kosten[id] = { v: e.v, b: e.b, z: String(e.z || '').slice(0, 60), f: [...new Set(e.f)], t: alt ? alt.t : Date.now(), m: Date.now(), x: 0, a: e.a ? 1 : 0 };
+    G.kosten[id] = { v: e.v, b: e.b, z: String(e.z || '').slice(0, 60), f: [...new Set(e.f)], t: alt ? alt.t : Date.now(), m: Date.now(), x: 0, a: e.a ? 1 : 0,
+      an: e.an || null, za: e.za || null, art: e.art || '', pos: e.pos || null, tip: e.tip || null };
     speichereG();
     return id;
   }
   function kostenLoeschen(id, weg) { const x = G.kosten[id]; if (!x) return; x.x = weg ? 1 : 0; x.m = Date.now(); speichereG(); }
   const betragLesen = (t) => { const v = parseFloat(String(t || '').replace(/\s|€/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); return Number.isFinite(v) && v > 0 ? Math.round(v * 100) : 0; };
+  // ---------- Kassenzettel-Fotos: nur auf diesem Handy (IndexedDB), werden nie gesendet ----------
+  const fotoDb = () => new Promise((ok, fehler) => { const r = indexedDB.open('fasan-karte', 1); r.onupgradeneeded = () => r.result.createObjectStore('fotos'); r.onsuccess = () => ok(r.result); r.onerror = () => fehler(r.error); });
+  async function fotoSpeichern(id, daten) {
+    try {
+      const db = await fotoDb();
+      await new Promise((ok, f2) => { const t = db.transaction('fotos', 'readwrite'); t.objectStore('fotos').put(daten, id); t.oncomplete = ok; t.onerror = () => f2(t.error); });
+      const l = speicher.get('kzFotos', []); if (!l.includes(id)) speicher.set('kzFotos', l.concat(id));
+    } catch (e) { toast('Das Foto konnte auf diesem Handy nicht gespeichert werden.'); }
+  }
+  async function fotoLaden(id) {
+    try { const db = await fotoDb(); return await new Promise((ok) => { const r = db.transaction('fotos').objectStore('fotos').get(id); r.onsuccess = () => ok(r.result || null); r.onerror = () => ok(null); }); } catch (e) { return null; }
+  }
+  // Foto verkleinern (längste Seite 1600 px, JPEG): reicht zum Lesen, spart Speicher
+  function fotoEinlesen(datei) {
+    return new Promise((ok, fehler) => {
+      const r = new FileReader();
+      r.onload = () => { const img = new Image(); img.onload = () => { const f2 = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * f2); c.height = Math.round(img.height * f2); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = fehler; img.src = r.result; };
+      r.onerror = fehler; r.readAsDataURL(datei);
+    });
+  }
+  function zeigeFoto(daten) {
+    const box = el('div', { class: 'foto-voll', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Kassenzettel' });
+    const img = el('img', { src: daten, alt: 'Kassenzettel' });
+    img.addEventListener('click', () => box.classList.toggle('gross'));
+    box.append(img, el('button', { type: 'button', class: 'knopf haupt foto-zu', onclick: () => box.remove() }, 'Schließen'), el('p', { class: 'foto-hilfe' }, 'Tippen zum Vergrößern'));
+    document.body.append(box);
+  }
+
+  const leerForm = () => ({ art: 'gleich', b: 0, z: '', v: G.ich.id, mehr: false, zahler: {}, f: personenListe(), betraege: {}, anteile: Object.fromEntries(personenListe().map((id) => [id, 1])), posten: [{ t: '', b: 0, w: [] }], tipArt: '%', tip: 0, foto: null });
+  function formAus(id, x) {
+    const f = leerForm();
+    Object.assign(f, { id, art: x.art || 'gleich', b: x.b, z: x.z, v: x.v, f: x.f.slice() });
+    if (x.za && Object.keys(x.za).length > 1) { f.mehr = true; f.zahler = { ...x.za }; }
+    if (x.art === 'betrag' && x.an) f.betraege = { ...x.an };
+    if (x.art === 'anteile' && x.an) { const kl = Math.min(...Object.values(x.an)); f.anteile = Object.fromEntries(Object.entries(x.an).map(([k, c]) => [k, Math.max(1, Math.round(c / kl))])); }
+    if (x.art === 'posten' && x.pos) { f.posten = x.pos.map(([t, b, w]) => ({ t, b, w: w.slice() })); if (x.tip) { f.tipArt = x.tip[0]; f.tip = x.tip[1]; } }
+    return f;
+  }
+  // Rechnet das Formular durch: Gesamtbetrag, Anteile je Person (Cent), Zahler je Person (Cent) oder ein Fehlertext
+  function berechne(f) {
+    let b = f.b, an;
+    if (f.art === 'posten') {
+      const items = f.posten.filter((q) => q.b > 0);
+      if (!items.length) return { fehler: 'Trag die Posten vom Kassenzettel ein.' };
+      const ohne = f.posten.findIndex((q) => q.b > 0 && !q.w.length);
+      if (ohne >= 0) return { fehler: `Posten ${ohne + 1}: Wer hatte das? Personen antippen.` };
+      an = {};
+      for (const q of items) for (const [id, c] of Object.entries(verteile(q.b, q.w.map((id) => [id, 1])))) an[id] = (an[id] || 0) + c;
+      const summe = items.reduce((a, q) => a + q.b, 0);
+      const tip = f.tipArt === '%' ? Math.round((summe * (f.tip || 0)) / 100) : Math.round(f.tip || 0);
+      if (tip > 0) for (const [id, c] of Object.entries(verteile(tip, Object.entries(an)))) an[id] += c;
+      b = summe + Math.max(0, tip);
+    } else {
+      if (!b) return { fehler: 'Bitte den Betrag eingeben, z. B. 12,50.' };
+      if (f.art === 'betrag') {
+        an = {}; let s2 = 0;
+        for (const [id, c] of Object.entries(f.betraege)) if (c > 0) { an[id] = c; s2 += c; }
+        if (s2 !== b) return { fehler: s2 < b ? `Noch ${euro(b - s2)} zu verteilen.` : `${euro(s2 - b)} zu viel verteilt.` };
+      } else if (f.art === 'anteile') {
+        const g = Object.entries(f.anteile).filter(([, w]) => w > 0);
+        if (!g.length) return { fehler: 'Mindestens eine Person braucht einen Anteil.' };
+        an = verteile(b, g);
+      } else {
+        if (!f.f.length) return { fehler: 'Für wen? Mindestens eine Person wählen.' };
+        an = verteile(b, f.f.map((id) => [id, 1]));
+      }
+    }
+    let za;
+    if (f.mehr) {
+      za = {}; let s2 = 0;
+      for (const [id, c] of Object.entries(f.zahler)) if (c > 0) { za[id] = c; s2 += c; }
+      if (s2 !== b) return { b, an, fehler: s2 < b ? `Bezahlt sind erst ${euro(s2)} von ${euro(b)}.` : `Bezahlt ist ${euro(s2 - b)} mehr als ${euro(b)}.` };
+    } else za = { [f.v]: b };
+    return { b, an, za };
+  }
+  const centText = (c) => (c ? (c / 100).toFixed(2).replace('.', ',') : '');
   function kostenForm() {
     const f = S.kostenForm;
     const alle = personenListe();
-    const betrag = el('input', { id: 'k-betrag', type: 'text', inputmode: 'decimal', placeholder: '0,00', value: f.b ? (f.b / 100).toFixed(2).replace('.', ',') : '', 'aria-label': 'Betrag in Euro', autocomplete: 'off' });
-    const zweck = el('input', { id: 'k-zweck', type: 'text', maxlength: '60', placeholder: 'Wofür? z. B. Abendessen', value: f.z || '', autocomplete: 'off' });
-    const merke = () => { f.b = betragLesen(betrag.value); f.z = zweck.value; };
-    const zahler = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Bezahlt von' }, alle.map((id) => el('button', { type: 'button', class: 'chip', role: 'radio', 'aria-checked': String(f.v === id), 'aria-pressed': String(f.v === id), onclick: () => { merke(); f.v = id; haptik(); zeichne({ scroll: true, karte: false }); } }, personName(id))));
-    const fuer = el('div', { class: 'chips', role: 'group', 'aria-label': 'Für wen' }, alle.map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(f.f.includes(id)), onclick: () => { merke(); f.f = f.f.includes(id) ? f.f.filter((x) => x !== id) : f.f.concat(id); haptik(); zeichne({ scroll: true, karte: false }); } }, personName(id))));
-    const speichern = () => {
-      merke();
-      if (!f.b) { toast('Bitte einen Betrag eingeben, z. B. 12,50.'); betrag.focus(); return; }
-      if (!f.f.length) { toast('Für wen? Mindestens eine Person wählen.'); return; }
-      kostenSpeichern({ id: f.id, v: f.v, b: f.b, z: f.z, f: f.f });
-      S.kostenForm = null; F.warteZeichnen = false; haptik(12);
-      zeichne({ scroll: true, karte: false });
-      toast(`${euro(f.b)} gespeichert${f.f.length > 1 ? `, je ${euro(Math.floor(f.b / f.f.length))}` : ''}.`);
+    const neu = () => zeichne({ scroll: true, karte: false });
+    const vorschau = el('div', { class: 'k-vorschau', 'aria-live': 'polite' });
+    const aktualisiere = () => {
+      const r = berechne(f);
+      const zeilen = r.an ? Object.entries(r.an).sort((a, c) => personName(a[0]).localeCompare(personName(c[0]), 'de')).map(([id, c]) => el('li', {}, el('span', {}, personName(id)), el('b', {}, euro(c)))) : [];
+      setze(vorschau, r.b ? el('strong', {}, `Summe ${euro(r.b)}`) : null, zeilen.length ? el('ul', {}, zeilen) : null, r.fehler ? el('p', { class: 'k-fehler' }, r.fehler) : el('p', { class: 'k-ok' }, 'Passt. Alle Cent sind verteilt.'));
     };
-    const proKopf = f.b && f.f.length ? `Je Person ${euro(Math.floor(f.b / f.f.length))}` : '';
-    betrag.addEventListener('input', () => { const z = $('#k-kopf'); const b = betragLesen(betrag.value); if (z) z.textContent = b && f.f.length ? `Je Person ${euro(Math.floor(b / f.f.length))}` : ''; });
-    return el('section', { class: 'karte-box', style: 'display:grid;gap:10px;margin-top:10px' },
+    const geldFeld = (wert, setz, label) => {
+      const i = el('input', { type: 'text', inputmode: 'decimal', placeholder: '0,00', value: centText(wert), 'aria-label': label, autocomplete: 'off', class: 'geld' });
+      i.addEventListener('input', () => { setz(betragLesen(i.value)); aktualisiere(); });
+      return i;
+    };
+    const personChips = (gewaehlt, umschalten) => el('div', { class: 'chips' }, alle.map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(gewaehlt.includes(id)), onclick: () => { umschalten(id); haptik(); neu(); } }, personName(id))));
+    const arten = el('div', { class: 'segmente', role: 'group', 'aria-label': 'Aufteilen' },
+      [['gleich', 'Gleich'], ['betrag', 'Beträge'], ['anteile', 'Anteile'], ['posten', 'Posten']].map(([id, n]) => el('button', { type: 'button', 'aria-pressed': String(f.art === id), onclick: () => { f.art = id; haptik(); neu(); } }, n)));
+    const erklaerung = { gleich: 'Gleich auf die gewählten Personen.', betrag: 'Jede Person zahlt einen festen Betrag.', anteile: 'Nach Anteilen, z. B. ein Paar = 2.', posten: 'Nach Kassenzettel: Wer hatte was? Geteilte Posten gehen gleich auf alle Getippten.' }[f.art];
+    let teil;
+    if (f.art === 'gleich') {
+      teil = [el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('span', { class: 'klein leise' }, 'Für wen'),
+        el('button', { type: 'button', class: 'knopf flach', style: 'min-height:44px;padding:0 8px', onclick: () => { f.f = f.f.length === alle.length ? [] : alle.slice(); neu(); } }, f.f.length === alle.length ? 'Keine' : 'Alle')),
+      personChips(f.f, (id) => { f.f = f.f.includes(id) ? f.f.filter((x) => x !== id) : f.f.concat(id); })];
+    } else if (f.art === 'betrag') {
+      teil = el('ul', { class: 'k-zeilen' }, alle.map((id) => el('li', {}, el('span', {}, personName(id)), geldFeld(f.betraege[id] || 0, (c) => { f.betraege[id] = c; }, `Betrag für ${personName(id)}`))));
+    } else if (f.art === 'anteile') {
+      teil = el('ul', { class: 'k-zeilen' }, alle.map((id) => el('li', {}, el('span', {}, personName(id)),
+        el('span', { class: 'stepper' },
+          el('button', { type: 'button', class: 'haken', 'aria-label': `Anteil ${personName(id)} weniger`, onclick: () => { f.anteile[id] = Math.max(0, (f.anteile[id] || 0) - 1); haptik(); neu(); } }, '−'),
+          el('b', { 'aria-label': `Anteil ${personName(id)}` }, String(f.anteile[id] || 0)),
+          el('button', { type: 'button', class: 'haken', 'aria-label': `Anteil ${personName(id)} mehr`, onclick: () => { f.anteile[id] = Math.min(20, (f.anteile[id] || 0) + 1); haptik(); neu(); } }, '+')))));
+    } else {
+      const datei = el('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true });
+      datei.addEventListener('change', async () => { const d = datei.files && datei.files[0]; if (!d) return; try { f.foto = await fotoEinlesen(d); haptik(12); neu(); } catch (e) { toast('Das Foto konnte nicht gelesen werden.'); } });
+      teil = [
+        el('div', { class: 'reihe' }, datei,
+          el('button', { type: 'button', class: 'knopf', onclick: () => datei.click() }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.foto}</svg>`, style: 'display:contents' }), f.foto ? 'Neues Foto' : 'Kassenzettel fotografieren'),
+          f.foto ? el('button', { type: 'button', class: 'k-foto', 'aria-label': 'Kassenzettel groß ansehen', onclick: () => zeigeFoto(f.foto) }, el('img', { src: f.foto, alt: '' })) : null),
+        f.foto ? el('p', { class: 'leise klein', style: 'margin:0' }, 'Das Foto bleibt nur auf diesem Handy. Antippen zum Vergrößern.') : null,
+        el('ol', { class: 'k-posten' }, f.posten.map((q, i) => {
+          const text = el('input', { type: 'text', maxlength: '40', placeholder: `Posten ${i + 1}, z. B. Bacalhau`, value: q.t, 'aria-label': `Bezeichnung Posten ${i + 1}`, autocomplete: 'off' });
+          text.addEventListener('input', () => { q.t = text.value; });
+          return el('li', {},
+            el('div', { class: 'feld' }, geldFeld(q.b, (c) => { q.b = c; }, `Betrag Posten ${i + 1}`), text,
+              el('button', { type: 'button', class: 'haken', 'aria-label': `Posten ${i + 1} entfernen`, onclick: () => { f.posten.splice(i, 1); if (!f.posten.length) f.posten.push({ t: '', b: 0, w: [] }); neu(); } }, ic('x'))),
+            el('div', { class: 'chips' }, alle.map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(q.w.includes(id)), onclick: () => { q.w = q.w.includes(id) ? q.w.filter((x) => x !== id) : q.w.concat(id); haptik(); neu(); } }, personName(id))),
+              el('button', { type: 'button', class: 'chip', onclick: () => { q.w = q.w.length === alle.length ? [] : alle.slice(); neu(); } }, q.w.length === alle.length ? 'Keiner' : 'Alle teilen')));
+        })),
+        el('button', { type: 'button', class: 'knopf breit', onclick: () => { f.posten.push({ t: '', b: 0, w: [] }); neu(); setTimeout(() => { const l = $$('.k-posten .geld'); if (l.length) l[l.length - 1].focus(); }, 60); } }, '+ Posten'),
+        el('div', { style: 'display:grid;gap:6px' }, el('span', { class: 'klein leise' }, 'Trinkgeld oder Service (anteilig nach Posten)'),
+          el('div', { class: 'chips' }, [0, 5, 10, 15].map((pz) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(f.tipArt === '%' && (f.tip || 0) === pz), onclick: () => { f.tipArt = '%'; f.tip = pz; neu(); } }, pz ? `${pz} %` : 'Keins')),
+            el('button', { type: 'button', class: 'chip', 'aria-pressed': String(f.tipArt === '€'), onclick: () => { f.tipArt = '€'; f.tip = 0; neu(); } }, 'Betrag')),
+          f.tipArt === '€' ? geldFeld(f.tip, (c) => { f.tip = c; }, 'Trinkgeld in Euro') : null)];
+    }
+    const zahler = f.mehr
+      ? el('ul', { class: 'k-zeilen' }, alle.map((id) => el('li', {}, el('span', {}, personName(id)), geldFeld(f.zahler[id] || 0, (c) => { f.zahler[id] = c; }, `${personName(id)} hat bezahlt`))))
+      : el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Bezahlt von' }, alle.map((id) => el('button', { type: 'button', class: 'chip', role: 'radio', 'aria-checked': String(f.v === id), 'aria-pressed': String(f.v === id), onclick: () => { f.v = id; haptik(); neu(); } }, personName(id))));
+    const zweck = el('input', { id: 'k-zweck', type: 'text', maxlength: '60', placeholder: 'Wofür? z. B. Abendessen', value: f.z || '', autocomplete: 'off' });
+    zweck.addEventListener('input', () => { f.z = zweck.value; });
+    const speichern = () => {
+      const r = berechne(f);
+      if (r.fehler) { toast(r.fehler); haptik(30); return; }
+      const v = Object.entries(r.za).sort((a, c) => c[1] - a[1])[0][0];
+      const id = kostenSpeichern({ id: f.id, v, b: r.b, z: f.z, f: Object.keys(r.an), an: r.an, za: r.za, art: f.art,
+        pos: f.art === 'posten' ? f.posten.filter((q) => q.b > 0).map((q) => [q.t, q.b, q.w]) : null, tip: f.art === 'posten' && f.tip ? [f.tipArt, f.tip] : null });
+      if (f.foto) fotoSpeichern(id, f.foto);
+      S.kostenForm = null; F.warteZeichnen = false; haptik(12);
+      neu();
+      toast(`${euro(r.b)} gespeichert.`);
+    };
+    const kopf = el('section', { class: 'karte-box k-form', style: 'display:grid;gap:10px;margin-top:10px' },
       el('strong', {}, f.id ? 'Ausgabe ändern' : 'Neue Ausgabe'),
-      el('div', { class: 'feld' }, betrag, el('span', { class: 'euro-zeichen', 'aria-hidden': 'true' }, '€')), zweck,
-      el('span', { class: 'klein leise' }, 'Bezahlt von'), zahler,
-      el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('span', { class: 'klein leise' }, 'Für wen (gleich geteilt)'),
-        el('button', { type: 'button', class: 'knopf flach', style: 'min-height:44px;padding:0 8px', onclick: () => { merke(); f.f = f.f.length === alle.length ? [] : alle.slice(); zeichne({ scroll: true, karte: false }); } }, f.f.length === alle.length ? 'Keine' : 'Alle')),
-      fuer, el('span', { id: 'k-kopf', class: 'klein' }, proKopf),
+      arten, el('p', { class: 'leise klein', style: 'margin:0' }, erklaerung),
+      f.art !== 'posten' ? el('div', { class: 'feld' }, geldFeld(f.b, (c) => { f.b = c; }, 'Gesamtbetrag in Euro'), el('span', { class: 'euro-zeichen', 'aria-hidden': 'true' }, '€')) : null,
+      zweck,
+      f.art === 'posten' ? el('span', { class: 'klein leise' }, 'Posten vom Kassenzettel') : null,
+      teil,
+      el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('span', { class: 'klein leise' }, 'Bezahlt von'),
+        el('button', { type: 'button', class: 'knopf flach', style: 'min-height:44px;padding:0 8px', onclick: () => { f.mehr = !f.mehr; neu(); } }, f.mehr ? 'Nur eine Person' : 'Mehrere Personen')),
+      zahler,
+      vorschau,
       el('div', { class: 'reihe' },
-        el('button', { type: 'button', class: 'knopf', onclick: () => { S.kostenForm = null; zeichne({ scroll: true, karte: false }); } }, 'Abbrechen'),
+        el('button', { type: 'button', class: 'knopf', onclick: () => { S.kostenForm = null; neu(); } }, 'Abbrechen'),
         el('button', { type: 'button', class: 'knopf haupt', onclick: speichern }, 'Speichern')),
-      f.id ? el('button', { type: 'button', class: 'knopf flach warn', onclick: () => { const id = f.id; kostenLoeschen(id, true); S.kostenForm = null; zeichne({ scroll: true, karte: false }); toast('Ausgabe gelöscht.', { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, false); zeichne({ scroll: true, karte: false }); } }); } }, 'Ausgabe löschen') : null);
+      f.id ? el('button', { type: 'button', class: 'knopf flach warn', onclick: () => { const id = f.id; kostenLoeschen(id, true); S.kostenForm = null; neu(); toast('Ausgabe gelöscht.', { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, false); neu(); } }); } }, 'Ausgabe löschen') : null);
+    aktualisiere();
+    return kopf;
+  }
+  function personOhneApp() {
+    const feld = el('input', { type: 'text', maxlength: '30', placeholder: 'Name, z. B. Oma Rita', 'aria-label': 'Name der Person ohne App', autocomplete: 'off' });
+    const los = () => {
+      const n = feld.value.trim(); if (!n) { feld.focus(); return; }
+      const id = neueId();
+      G.leute[id] = { name: n, t: Date.now(), s: {}, a: {}, m: {}, ohne: 1 };
+      speichereG(); S.personNeu = false; F.warteZeichnen = false; haptik(12);
+      zeichne({ scroll: true, karte: false }); toast(`${n} ist dabei. Alle sehen die Person in den Kosten.`);
+    };
+    feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') los(); });
+    setTimeout(() => feld.focus(), 60);
+    return el('div', { class: 'karte-box', style: 'display:grid;gap:8px;margin-top:10px' }, el('strong', {}, 'Person ohne App'),
+      el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: los }, 'Hinzufügen')),
+      el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.personNeu = false; zeichne({ scroll: true, karte: false }); } }, 'Abbrechen'));
   }
   function kostenTeil() {
     const alle = personenListe();
@@ -1688,13 +1858,22 @@
     const liste = Object.entries(G.kosten).filter(([, x]) => !x.x).sort((a, b) => b[1].t - a[1].t);
     const summe = liste.filter(([, x]) => !x.a).reduce((a, [, x]) => a + x.b, 0);
     const mein = G.ich ? s2[G.ich.id] || 0 : 0;
-    const neu = () => { S.kostenForm = { v: G.ich.id, f: alle.slice(), b: 0, z: '' }; zeichne({ scroll: true, karte: false }); setTimeout(() => { const b = $('#k-betrag'); if (b) b.focus(); }, 60); };
+    const fotos = speicher.get('kzFotos', []);
+    const neu = () => { S.kostenForm = leerForm(); zeichne({ scroll: true, karte: false }); setTimeout(() => { const b = $('.k-form .geld'); if (b) b.focus(); }, 60); };
+    const zeileText = (x) => {
+      if (x.a) return `Ausgleich · ${uhrzeit(x.t)}`;
+      const zahl = x.za && Object.keys(x.za).length > 1 ? Object.entries(x.za).map(([id, c]) => `${personName(id)} ${euro(c)}`).join(', ') : `${personName(x.v)} hat bezahlt`;
+      const art = { betrag: 'feste Beträge', anteile: 'nach Anteilen', posten: 'nach Posten' }[x.art];
+      const fuer = x.f.length === alle.length ? 'für alle' : `für ${x.f.map(personName).join(', ')}`;
+      return [zahl, art || fuer, uhrzeit(x.t)].join(' · ');
+    };
     return el('section', { class: 'abschnitt', style: 'margin-top:8px' },
       el('div', { class: 'kosten-stand ' + (mein > 0 ? 'plus' : mein < 0 ? 'minus' : '') },
         el('small', {}, 'Dein Stand'),
         el('strong', {}, mein > 0 ? `Du bekommst ${euro(mein)}` : mein < 0 ? `Du schuldest ${euro(mein)}` : 'Ausgeglichen'),
         el('small', {}, `Ausgaben der Gruppe: ${euro(summe)}`)),
       S.kostenForm ? kostenForm() : el('button', { type: 'button', class: 'knopf haupt breit', style: 'margin-top:10px', onclick: neu }, '+ Ausgabe eintragen'),
+      S.personNeu ? personOhneApp() : null,
       wege.length ? el('div', { class: 'abschnitt' }, el('h3', {}, 'So gleicht ihr aus'),
         el('ul', { class: 'liste' }, wege.map((w) => el('li', { class: 'eintrag kosten-weg' },
           el('span', { class: 'text' }, el('span', { class: 'titel' }, `${personName(w.von)} → ${personName(w.an)}`), el('span', { class: 'unter' }, euro(w.b))),
@@ -1702,15 +1881,18 @@
             const id = kostenSpeichern({ v: w.von, b: w.b, z: 'Ausgleich', f: [w.an], a: 1 }); haptik(12); zeichne({ scroll: true, karte: false });
             toast(`Eingetragen: ${personName(w.von)} hat ${personName(w.an)} ${euro(w.b)} gegeben.`, { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, true); zeichne({ scroll: true, karte: false }); } });
           } }, 'Bezahlt')))),
-        el('p', { class: 'leise klein', style: 'margin:6px 0 0' }, `${wege.length} ${wege.length === 1 ? 'Überweisung reicht' : 'Überweisungen reichen'}, damit alle quitt sind.`)) : null,
+        el('p', { class: 'leise klein', style: 'margin:6px 0 0' }, `${wege.length} ${wege.length === 1 ? 'Überweisung reicht' : 'Überweisungen reichen'}, damit alle quitt sind. Teilzahlung: Ausgabe mit „Beträge“ eintragen.`)) : null,
+      el('div', { class: 'abschnitt' }, el('h3', {}, 'Wer ist dabei'),
+        el('div', { class: 'chips' }, alle.map((id) => el('span', { class: 'chip ruhig' }, personName(id), G.leute[id] && G.leute[id].ohne ? el('small', {}, ' ohne App') : null, el('b', { class: (s2[id] || 0) >= 0 ? 'plus' : 'minus' }, ` ${(s2[id] || 0) >= 0 ? '+' : '−'}${euro(s2[id] || 0)}`))),
+          S.personNeu ? null : el('button', { type: 'button', class: 'chip', onclick: () => { S.personNeu = true; zeichne({ scroll: true, karte: false }); } }, '+ Person ohne App'))),
       el('div', { class: 'abschnitt' }, el('h3', {}, `Ausgaben (${liste.length})`),
         liste.length ? el('ul', { class: 'liste' }, liste.map(([id, x]) => el('li', { class: 'eintrag' },
-          el('button', { type: 'button', class: 'auf', onclick: () => { S.kostenForm = { id, v: x.v, b: x.b, z: x.z, f: x.f.slice() }; zeichne({ scroll: true, karte: false }); } },
+          el('button', { type: 'button', class: 'auf', onclick: () => { S.kostenForm = formAus(id, x); fotoLaden(id).then((d) => { if (d && S.kostenForm && S.kostenForm.id === id) { S.kostenForm.foto = d; zeichne({ scroll: true, karte: false }); } }); zeichne({ scroll: true, karte: false }); } },
             el('span', { class: 'text' },
-              el('span', { class: 'titel' }, x.a ? `${personName(x.v)} → ${personName(x.f[0])}` : x.z || 'Ausgabe'),
-              el('span', { class: 'unter' }, x.a ? `Ausgleich · ${uhrzeit(x.t)}` : `${personName(x.v)} hat bezahlt · für ${x.f.length === alle.length ? 'alle' : x.f.map(personName).join(', ')} · ${uhrzeit(x.t)}`)),
+              el('span', { class: 'titel' }, x.a ? `${personName(x.v)} → ${personName(x.f[0])}` : x.z || 'Ausgabe', fotos.includes(id) ? el('span', { class: 'abzeichen', style: 'margin-left:6px;font-size:12px' }, 'Bon') : null),
+              el('span', { class: 'unter' }, zeileText(x))),
             el('span', { class: 'betrag' }, euro(x.b)))))) : el('p', { class: 'leise klein', style: 'margin:0' }, 'Noch keine Ausgaben. Wer bezahlt, trägt es hier ein. Alle sehen es sofort.')),
-      el('p', { class: 'leise klein', style: 'margin:14px 0 0' }, 'Alles in Euro. Läuft verschlüsselt über euren Gruppenkanal, wie Nachrichten und Stimmen.'));
+      el('p', { class: 'leise klein', style: 'margin:14px 0 0' }, 'Alles in Euro, auf den Cent genau. Läuft verschlüsselt über euren Gruppenkanal, wie Nachrichten und Stimmen. Fotos bleiben auf dem Handy.'));
   }
 
   // ---------- Gruppe: Ansicht ----------

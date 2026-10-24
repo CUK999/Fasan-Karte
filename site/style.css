@@ -626,3 +626,42 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .wiki-text { display: block; margin-top: 4px; font-size: var(--fs-k); color: var(--text); }
 .wiki-text.kurz { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .naehe { transition: opacity 200ms; transform: none; } }
+/* Kosten 2 */
+.k-form input.geld, .k-form input[type="text"] { min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); min-width: 0; }
+.k-form .feld input.geld { flex: 0 0 9.5em; font-weight: 700; font-size: var(--fs-l); font-variant-numeric: tabular-nums; }
+.k-form > .feld:first-of-type input.geld { flex: 1; font-size: calc(var(--fs-t) + 2px); }
+.k-zeilen { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.k-zeilen li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.k-zeilen li > span:first-child { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.k-zeilen input.geld { width: 8.5em; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.stepper { display: inline-flex; align-items: center; gap: 8px; }
+.stepper b { min-width: 2ch; text-align: center; font-size: var(--fs-l); }
+.stepper .haken { font-size: 24px; font-weight: 700; }
+.k-posten { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; counter-reset: posten; }
+.k-posten li { display: grid; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.k-posten .feld input[type="text"] { flex: 1; }
+.k-foto { width: 64px; height: 64px; padding: 0; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--line); background: var(--surface); flex: none; }
+.k-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.k-vorschau { display: grid; gap: 6px; padding: 12px 14px; border-radius: var(--r); background: var(--surface); }
+.k-vorschau ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.k-vorschau li { display: flex; justify-content: space-between; font-variant-numeric: tabular-nums; }
+.k-fehler { margin: 0; color: var(--danger); font-weight: 600; }
+.k-ok { margin: 0; color: var(--ok); font-weight: 600; }
+.chip.ruhig { cursor: default; gap: 4px; }
+.chip.ruhig small { color: var(--muted); font-weight: 500; }
+.chip.ruhig b.plus { color: var(--ok); } .chip.ruhig b.minus { color: var(--danger); }
+.foto-voll { position: fixed; inset: 0; z-index: 5000; background: #000; overflow: auto; display: grid; place-items: center; }
+.foto-voll img { max-width: 100%; max-height: 100dvh; object-fit: contain; }
+.foto-voll.gross { place-items: start; }
+.foto-voll.gross img { max-width: none; max-height: none; width: 250%; }
+.foto-zu { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.foto-hilfe { position: fixed; left: 16px; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); margin: 0; color: #fff; opacity: .8; }
+/* In Kästen und Formularen umbrechen die Chips statt seitlich zu laufen; die Ansicht scrollt nie seitwärts */
+.ansicht { overflow-x: hidden; }
+.karte-box .chips, .k-form .chips { margin-left: 0; margin-right: 0; padding-left: 0; padding-right: 0; flex-wrap: wrap; overflow: visible; }
+.ansicht { overflow-x: clip; }
+.k-posten { grid-template-columns: minmax(0, 1fr); }
+.k-posten li, .k-posten .feld { min-width: 0; }
+.k-posten .feld input.geld { flex: 0 0 6.5em; width: 6.5em; }
+.k-posten .feld input[type="text"]:not(.geld) { flex: 1 1 0; width: 0; min-width: 0; }
+.k-zeilen li { min-width: 0; }

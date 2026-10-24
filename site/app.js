@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.7';
+  const VERSION = '1.8';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -168,7 +168,7 @@
     tab: speicher.get('tab', 'plan'), plan: speicher.get('plan', 'A'), tag: speicher.get('tag', 'sa'),
     gruppen: new Set(speicher.get('gruppen', [])), extra: new Set(speicher.get('extra', [])),
     sort: speicher.get('sort', 'naehe'), suche: '', ort: null, hoehe: 'klein',
-    me: null, meAlt: null, follow: false, watchId: null, fehlerZeit: 0,
+    me: null, meAlt: null, follow: false, watchId: null, fehlerZeit: 0, gTeil: speicher.get('gTeil', 'unterwegs'),
   };
   const heute = new Date();
   const iso = `${heute.getFullYear()}-${String(heute.getMonth() + 1).padStart(2, '0')}-${String(heute.getDate()).padStart(2, '0')}`;
@@ -1425,6 +1425,110 @@
         el('span', {}, el('strong', {}, o.name), el('small', {}, [TYP_NAME[o.typ] || o.kategorie, S.me && hatPos(o) ? `${strecke(meter(S.me, o))} entfernt` : null].filter(Boolean).join(' · ')))));
   }
 
+  // ---------- Kosten teilen (Prinzip wie Splid/Splitwise; Recherche docs/recherche/2026-10-24-kosten-und-fuehrung.md) ----------
+  // Jede Ausgabe: wer bezahlt hat (v), Betrag in Cent (b), wofür (z), für wen (f, gleich geteilt). Rest-Cents tragen die ersten
+  // Personen nach Kennung, damit alle Handys dasselbe rechnen. Ausgleich: wenige Überweisungen, größte Schuld an größtes Guthaben.
+  const euro = (c) => `${(Math.abs(c) / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')} €`;
+  const personName = (id) => (G.ich && id === G.ich.id ? meinName() : (G.leute[id] && G.leute[id].name) || 'Jemand');
+  const personenListe = () => Object.keys(G.leute).sort((a, b) => personName(a).localeCompare(personName(b), 'de'));
+  function salden() {
+    const s2 = {};
+    for (const id of Object.keys(G.leute)) s2[id] = 0;
+    for (const x of Object.values(G.kosten)) {
+      if (x.x) continue;
+      const f = [...new Set(x.f)].sort();
+      if (!f.length) continue;
+      const teil = Math.floor(x.b / f.length), rest = x.b - teil * f.length;
+      s2[x.v] = (s2[x.v] || 0) + x.b;
+      f.forEach((p2, i) => { s2[p2] = (s2[p2] || 0) - teil - (i < rest ? 1 : 0); });
+    }
+    return s2;
+  }
+  function ausgleichWege(s2) {
+    const plus = Object.entries(s2).filter(([, v]) => v > 0).map(([id, v]) => [id, v]);
+    const minus = Object.entries(s2).filter(([, v]) => v < 0).map(([id, v]) => [id, -v]);
+    const wege = [];
+    while (plus.length && minus.length) {
+      plus.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)); minus.sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+      const b = Math.min(plus[0][1], minus[0][1]);
+      wege.push({ von: minus[0][0], an: plus[0][0], b });
+      plus[0][1] -= b; minus[0][1] -= b;
+      if (!plus[0][1]) plus.shift();
+      if (!minus[0][1]) minus.shift();
+    }
+    return wege;
+  }
+  function kostenSpeichern(e) {
+    const id = e.id || neueId();
+    const alt = G.kosten[id];
+    G.kosten[id] = { v: e.v, b: e.b, z: String(e.z || '').slice(0, 60), f: [...new Set(e.f)], t: alt ? alt.t : Date.now(), m: Date.now(), x: 0, a: e.a ? 1 : 0 };
+    speichereG();
+    return id;
+  }
+  function kostenLoeschen(id, weg) { const x = G.kosten[id]; if (!x) return; x.x = weg ? 1 : 0; x.m = Date.now(); speichereG(); }
+  const betragLesen = (t) => { const v = parseFloat(String(t || '').replace(/\s|€/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')); return Number.isFinite(v) && v > 0 ? Math.round(v * 100) : 0; };
+  function kostenForm() {
+    const f = S.kostenForm;
+    const alle = personenListe();
+    const betrag = el('input', { id: 'k-betrag', type: 'text', inputmode: 'decimal', placeholder: '0,00', value: f.b ? (f.b / 100).toFixed(2).replace('.', ',') : '', 'aria-label': 'Betrag in Euro', autocomplete: 'off' });
+    const zweck = el('input', { id: 'k-zweck', type: 'text', maxlength: '60', placeholder: 'Wofür? z. B. Abendessen', value: f.z || '', autocomplete: 'off' });
+    const merke = () => { f.b = betragLesen(betrag.value); f.z = zweck.value; };
+    const zahler = el('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'Bezahlt von' }, alle.map((id) => el('button', { type: 'button', class: 'chip', role: 'radio', 'aria-checked': String(f.v === id), 'aria-pressed': String(f.v === id), onclick: () => { merke(); f.v = id; haptik(); zeichne({ scroll: true, karte: false }); } }, personName(id))));
+    const fuer = el('div', { class: 'chips', role: 'group', 'aria-label': 'Für wen' }, alle.map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(f.f.includes(id)), onclick: () => { merke(); f.f = f.f.includes(id) ? f.f.filter((x) => x !== id) : f.f.concat(id); haptik(); zeichne({ scroll: true, karte: false }); } }, personName(id))));
+    const speichern = () => {
+      merke();
+      if (!f.b) { toast('Bitte einen Betrag eingeben, z. B. 12,50.'); betrag.focus(); return; }
+      if (!f.f.length) { toast('Für wen? Mindestens eine Person wählen.'); return; }
+      kostenSpeichern({ id: f.id, v: f.v, b: f.b, z: f.z, f: f.f });
+      S.kostenForm = null; F.warteZeichnen = false; haptik(12);
+      zeichne({ scroll: true, karte: false });
+      toast(`${euro(f.b)} gespeichert${f.f.length > 1 ? `, je ${euro(Math.floor(f.b / f.f.length))}` : ''}.`);
+    };
+    const proKopf = f.b && f.f.length ? `Je Person ${euro(Math.floor(f.b / f.f.length))}` : '';
+    betrag.addEventListener('input', () => { const z = $('#k-kopf'); const b = betragLesen(betrag.value); if (z) z.textContent = b && f.f.length ? `Je Person ${euro(Math.floor(b / f.f.length))}` : ''; });
+    return el('section', { class: 'karte-box', style: 'display:grid;gap:10px;margin-top:10px' },
+      el('strong', {}, f.id ? 'Ausgabe ändern' : 'Neue Ausgabe'),
+      el('div', { class: 'feld' }, betrag, el('span', { class: 'euro-zeichen', 'aria-hidden': 'true' }, '€')), zweck,
+      el('span', { class: 'klein leise' }, 'Bezahlt von'), zahler,
+      el('div', { style: 'display:flex;justify-content:space-between;align-items:center' }, el('span', { class: 'klein leise' }, 'Für wen (gleich geteilt)'),
+        el('button', { type: 'button', class: 'knopf flach', style: 'min-height:44px;padding:0 8px', onclick: () => { merke(); f.f = f.f.length === alle.length ? [] : alle.slice(); zeichne({ scroll: true, karte: false }); } }, f.f.length === alle.length ? 'Keine' : 'Alle')),
+      fuer, el('span', { id: 'k-kopf', class: 'klein' }, proKopf),
+      el('div', { class: 'reihe' },
+        el('button', { type: 'button', class: 'knopf', onclick: () => { S.kostenForm = null; zeichne({ scroll: true, karte: false }); } }, 'Abbrechen'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: speichern }, 'Speichern')),
+      f.id ? el('button', { type: 'button', class: 'knopf flach warn', onclick: () => { const id = f.id; kostenLoeschen(id, true); S.kostenForm = null; zeichne({ scroll: true, karte: false }); toast('Ausgabe gelöscht.', { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, false); zeichne({ scroll: true, karte: false }); } }); } }, 'Ausgabe löschen') : null);
+  }
+  function kostenTeil() {
+    const alle = personenListe();
+    const s2 = salden(), wege = ausgleichWege(s2);
+    const liste = Object.entries(G.kosten).filter(([, x]) => !x.x).sort((a, b) => b[1].t - a[1].t);
+    const summe = liste.filter(([, x]) => !x.a).reduce((a, [, x]) => a + x.b, 0);
+    const mein = G.ich ? s2[G.ich.id] || 0 : 0;
+    const neu = () => { S.kostenForm = { v: G.ich.id, f: alle.slice(), b: 0, z: '' }; zeichne({ scroll: true, karte: false }); setTimeout(() => { const b = $('#k-betrag'); if (b) b.focus(); }, 60); };
+    return el('section', { class: 'abschnitt', style: 'margin-top:8px' },
+      el('div', { class: 'kosten-stand ' + (mein > 0 ? 'plus' : mein < 0 ? 'minus' : '') },
+        el('small', {}, 'Dein Stand'),
+        el('strong', {}, mein > 0 ? `Du bekommst ${euro(mein)}` : mein < 0 ? `Du schuldest ${euro(mein)}` : 'Ausgeglichen'),
+        el('small', {}, `Ausgaben der Gruppe: ${euro(summe)}`)),
+      S.kostenForm ? kostenForm() : el('button', { type: 'button', class: 'knopf haupt breit', style: 'margin-top:10px', onclick: neu }, '+ Ausgabe eintragen'),
+      wege.length ? el('div', { class: 'abschnitt' }, el('h3', {}, 'So gleicht ihr aus'),
+        el('ul', { class: 'liste' }, wege.map((w) => el('li', { class: 'eintrag kosten-weg' },
+          el('span', { class: 'text' }, el('span', { class: 'titel' }, `${personName(w.von)} → ${personName(w.an)}`), el('span', { class: 'unter' }, euro(w.b))),
+          el('button', { type: 'button', class: 'knopf', style: 'min-height:48px;padding:0 12px', onclick: () => {
+            const id = kostenSpeichern({ v: w.von, b: w.b, z: 'Ausgleich', f: [w.an], a: 1 }); haptik(12); zeichne({ scroll: true, karte: false });
+            toast(`Eingetragen: ${personName(w.von)} hat ${personName(w.an)} ${euro(w.b)} gegeben.`, { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, true); zeichne({ scroll: true, karte: false }); } });
+          } }, 'Bezahlt')))),
+        el('p', { class: 'leise klein', style: 'margin:6px 0 0' }, `${wege.length} ${wege.length === 1 ? 'Überweisung reicht' : 'Überweisungen reichen'}, damit alle quitt sind.`)) : null,
+      el('div', { class: 'abschnitt' }, el('h3', {}, `Ausgaben (${liste.length})`),
+        liste.length ? el('ul', { class: 'liste' }, liste.map(([id, x]) => el('li', { class: 'eintrag' },
+          el('button', { type: 'button', class: 'auf', onclick: () => { S.kostenForm = { id, v: x.v, b: x.b, z: x.z, f: x.f.slice() }; zeichne({ scroll: true, karte: false }); } },
+            el('span', { class: 'text' },
+              el('span', { class: 'titel' }, x.a ? `${personName(x.v)} → ${personName(x.f[0])}` : x.z || 'Ausgabe'),
+              el('span', { class: 'unter' }, x.a ? `Ausgleich · ${uhrzeit(x.t)}` : `${personName(x.v)} hat bezahlt · für ${x.f.length === alle.length ? 'alle' : x.f.map(personName).join(', ')} · ${uhrzeit(x.t)}`)),
+            el('span', { class: 'betrag' }, euro(x.b)))))) : el('p', { class: 'leise klein', style: 'margin:0' }, 'Noch keine Ausgaben. Wer bezahlt, trägt es hier ein. Alle sehen es sofort.')),
+      el('p', { class: 'leise klein', style: 'margin:14px 0 0' }, 'Alles in Euro. Läuft verschlüsselt über euren Gruppenkanal, wie Nachrichten und Stimmen.'));
+  }
+
   // ---------- Gruppe: Ansicht ----------
   const initialen = (n) => (String(n || '?').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2) || '?').toUpperCase();
   const zeitHer = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} Tagen`; };
@@ -1480,9 +1584,12 @@
         S.treffForm = { zeit: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, q: '' }; zeichne({ scroll: true });
       } }, ic('orte'), 'Treffpunkt festlegen'));
     if (document.visibilityState === 'visible') { speicher.set('gelesen', Date.now()); leisteZahl(); }
+    const teil = S.gTeil || 'unterwegs';
+    const reiter = el('div', { class: 'segmente', role: 'tablist', 'aria-label': 'Gruppe', style: 'margin:4px 0 6px' },
+      [['unterwegs', 'Unterwegs'], ['abstimmen', 'Abstimmen'], ['kosten', 'Kosten']].map(([id, n]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(teil === id), 'aria-pressed': String(teil === id), onclick: () => { S.gTeil = id; speicher.set('gTeil', id); S.kostenForm = null; haptik(); zeichne({ karte: false }); } }, n)));
     // Ohne bekannte Mitreisende zuerst der Abgleich per QR/Link: darüber kommt auch der Gruppenschlüssel
-    if (!leute.length) setze(box, pinKarte(), abgleich, liveTeil(), nachrichtenTeil(), treffTeil, umfrageTeil, rang, strittigTeil);
-    else setze(box, pinKarte(), liveTeil(), nachrichtenTeil(), treffTeil, umfrageTeil, rang, strittigTeil, abgleich);
+    if (!leute.length) setze(box, pinKarte(), abgleich, reiter, teil === 'kosten' ? kostenTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : [liveTeil(), nachrichtenTeil(), treffTeil]);
+    else setze(box, pinKarte(), reiter, teil === 'kosten' ? kostenTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : [liveTeil(), nachrichtenTeil(), treffTeil, abgleich]);
   }
 
   function formUmfrage() {

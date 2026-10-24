@@ -4,6 +4,7 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Kosten teilen unter „Gruppe → Kosten“: Ausgabe mit Zahler, Betrag in Cent, Zweck, für wen (gleich geteilt); Rest-Cents nach Kennung; Ausgleich mit wenigen Überweisungen (größte Schuld an größtes Guthaben); „Bezahlt“ trägt eine Ausgleichs-Buchung ein; Löschen mit Rückgängig. Gruppe in drei Reiter: Unterwegs, Abstimmen, Kosten | Wunsch: Prinzip Splid/Splitwise in der App |
 | 2026-10-24 | „In der Nähe“ unter Orte: Supermärkte, Toiletten, Apotheken, Geldautomaten, Trinkwasser aus OSM (Overpass, höchstens täglich im Bauprozess). „Günstige“ zeigt nur große Ketten; Stufen nur mit Beleg (Einkaufstests 2026, DECO online 2026), Kleinformate ohne Preisangabe | Wunsch: günstig einkaufen statt Kiosk. Recherche `docs/recherche/2026-10-24-supermaerkte.md` |
 | 2026-10-24 | Blatt mit vier Rasten (mini, klein, mitte, groß), folgt dem Finger, rastet mit Schwung und Feder ein; Karte ziehen macht unter „Orte“ das Blatt mini. Einführung: vier Seiten, „Weiter“ immer sichtbar, Standort erst im Zusammenhang | Rückmeldung: Karte verdeckt, Einführung unklar auf manchen Handys |
 | 2026-10-24 | Orte teilen und Markierungen (Merken, Erledigt, Bewertung, Notiz) laufen über den Live-Abgleich statt über WhatsApp-Text; „Ausgeblendet“ bleibt privat, Teilen abschaltbar. Nur der Beitritt (QR-Code oder Link mit Schlüssel) bleibt außerhalb | Wunsch: nichts mehr über fremde Apps. Den Schlüssel muss ein Handy einmal ohne Server bekommen |

@@ -1,6 +1,6 @@
 /* Offline zuerst: App-Hülle und Daten liegen im Gerät, Bilder nach dem ersten Ansehen.
    Kartenkacheln regelt der Browser-Cache (OSM-Regeln: kein Vorab-Herunterladen). */
-const KERN = 'fk-kern-v7';
+const KERN = 'fk-kern-v8';
 const BILDER = 'fk-bilder-v1';
 const DATEIEN = ['./', 'index.html', 'style.css', 'app.js', 'oeffnungszeiten.js', 'orte.json', 'plaene.json',
   'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'vendor/qrcode/qrcode.js', 'vendor/nostr/nostr.bundle.js', 'funk.js', 'wetter.json', 'umgebung.json', 'fasan-aufbruch.svg', 'manifest.webmanifest', 'icon-180.png'];

@@ -581,3 +581,14 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .abzeichen.preis.p3 { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
 .abzeichen.preis.p4 { background: var(--raised); color: var(--muted); }
 .marker.g-nah svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+/* Kosten */
+.kosten-stand { display: grid; gap: 2px; padding: 14px 16px; border-radius: var(--r); background: var(--raised); }
+.kosten-stand strong { font-size: var(--fs-t); }
+.kosten-stand small { color: var(--muted); }
+.kosten-stand.plus strong { color: var(--ok); }
+.kosten-stand.minus strong { color: var(--danger); }
+.eintrag .betrag { margin-left: auto; padding-left: 10px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kosten-weg { align-items: center; gap: 10px; }
+.euro-zeichen { align-self: center; font-weight: 700; font-size: var(--fs-l); padding: 0 6px; }
+#k-betrag { font-size: calc(var(--fs-t) + 2px); font-weight: 700; font-variant-numeric: tabular-nums; }
+#k-zweck { min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); }

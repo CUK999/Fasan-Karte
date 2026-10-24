@@ -47,6 +47,18 @@ jobs:
             rm -rf qr qrcode-generator-*.tgz
           fi
 
+      - name: Nostr-Bibliothek einbinden (nostr-tools, Unlicense; einmalig ins Repo)
+        run: |
+          if [ ! -f site/vendor/nostr/package.json ]; then
+            npm pack nostr-tools@2 --silent
+            mkdir -p nt && tar -xzf nostr-tools-*.tgz -C nt
+            mkdir -p site/vendor/nostr
+            cp nt/package/package.json nt/package/LICENSE* site/vendor/nostr/ 2>/dev/null || true
+            cp nt/package/lib/nostr.bundle.js site/vendor/nostr/ 2>/dev/null || true
+            (cd nt/package && find . -maxdepth 3 -type f | sort) > site/vendor/nostr/DATEIEN.txt
+            rm -rf nt nostr-tools-*.tgz
+          fi
+
       - name: Ergebnisse im Repo sichern
         run: |
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor

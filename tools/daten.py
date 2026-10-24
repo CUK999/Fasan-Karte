@@ -246,7 +246,7 @@ def main():
         manuell = (float(lat), float(lon)) if lat and lon else None
 
         pos, quelle, a, n = koordinaten(name, adresse, manuell, alt)
-        eintrag = {"a_n_geholt": True, "a": a, "n": n}
+        eintrag = {"a_n_geholt": True, "a": a, "n": n, "datum": alt.get("datum") or time.strftime("%Y-%m-%d", time.gmtime())}
 
         # POI-Infos: Namenstreffer, wenn er nah an der gewählten Position liegt
         tags = {}
@@ -310,6 +310,7 @@ def main():
             "id": slug(name), "name": name, "adresse": adresse, "ort": stadt(adresse),
             "kategorie": z["Kategorie"].strip(), "notiz": (z.get("Notiz") or "").strip(),
             "typ": (z.get("Typ") or "").strip(),
+            "stand": eintrag["datum"],
             "lat": pos[0] if pos else None, "lon": pos[1] if pos else None,
             "quelle": "pruefen" if hinweise and quelle != "manuell" else quelle,
             "infos": osm_infos(tags),

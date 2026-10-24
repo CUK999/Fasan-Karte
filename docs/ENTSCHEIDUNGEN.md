@@ -4,6 +4,9 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Navigation in der App: Fußweg von Valhalla (FOSSGIS e.V., wie openstreetmap.org), deutsche Ansagen, Display bleibt an; Start und Ziel gehen an FOSSGIS. Später Routing auf dem Gerät | Nutzerwunsch: nicht in fremde Apps springen; Browser ortet nur bei offener App |
+| 2026-10-24 | Gruppenplan aus Stimmen: nur Orte mit mehr Ja als Nein, Tage nach Nähe zum Gebiet aus Plan A und Öffnungstagen, Reihenfolge nach kurzem Weg, Essen eingeplant, weniger Stopps im Profil „Einfach“ | Nutzerwunsch; Ablehnung wiegt schwer (Least-Misery-Gedanke) |
+| 2026-10-24 | Jeder Ort zeigt Symbol nach Typ (Restaurant, Museum, Metro …) und Bild; Angaben tragen ihr Datum (Tipps: Stand 23.10.2026, OSM/Wikipedia: Abrufdatum) | Nutzerwunsch: sofort erkennbar, nichts ohne Stand |
 | 2026-10-24 | Gruppen-Abgleich ohne Server: Paket (Stimmen, Umfragen, Namen) komprimiert im Link-Teil hinter „#“, verteilt per QR-Code (Handy-Kamera) oder WhatsApp; jedes Paket trägt alles Bekannte, Zusammenführen je Person nach Zeitstempel | Live-P2P im Browser braucht Vermittler und scheitert oft im Mobilfunk; „#“-Teil erreicht den Server nicht |
 | 2026-10-24 | Später automatischer Abgleich über eigenen Nostr-Relay auf dem VPS, Ende-zu-Ende-verschlüsselt, Kopplung per QR | Fasan: P2P oder offene Netze; wartet auf stabilen VPS |
 | 2026-10-24 | Web-App auf GitHub Pages (öffentlich), ohne Installation, ohne Server; Unterkunft nie im Repo | Muss in Stunden auf Android und iPhone laufen; VPS bleibt unangetastet |

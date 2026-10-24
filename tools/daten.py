@@ -315,6 +315,11 @@ def main():
             "quelle": "pruefen" if hinweise and quelle != "manuell" else quelle,
             "infos": osm_infos(tags),
         }
+        # Foto-Tipp und Besuchsdauer mit Quelle (Recherchen in docs/recherche/2026-10-24-*.md)
+        for feld, schluessel in (("Foto", "foto"), ("Dauer", "dauer"), ("DauerQuelle", "dauerQuelle")):
+            wert = (z.get(feld) or "").strip()
+            if wert:
+                o[schluessel] = wert
         zeiten = (z.get("Zeiten") or "").strip()  # eigene Angabe schlägt OSM; "-" blendet OSM-Zeiten aus
         if zeiten == "-":
             o["infos"].pop("oeffnungszeiten", None)

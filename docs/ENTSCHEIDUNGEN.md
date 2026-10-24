@@ -4,6 +4,9 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Foto-Ebene: 17 Foto-Spots (Kategorie „Foto“) erscheinen nur mit dem Filter „Foto“; 15 bekannte Orte haben zusätzlich einen Foto-Tipp. Jede Angabe mit Quelle und Datum | Wunsch: Fotografie getrennt, damit die Karte für alle übersichtlich bleibt. Recherche `docs/recherche/2026-10-24-fotospots.md` |
+| 2026-10-24 | Zeitbedarf je Ort nur mit Quelle (Spalten `Dauer`, `DauerQuelle`); ohne Quelle keine Zahl. Der Gruppenplan nimmt den Mittelwert, sonst einen Schätzwert je Typ | Wunsch: Zeit je Spot; Regel „nichts erfinden“. Recherche `docs/recherche/2026-10-24-besuchsdauer.md` |
+| 2026-10-24 | Panorâmico de Monsanto entfernt (auch aus Plan B, Montag) | Gesperrt seit Juli 2023 (idealista, 18.01.2024), „permanently closed“ (wetravelportugal, Stand 23.06.2026) |
 | 2026-10-24 | Live-Abgleich über Nostr: Stimmen, Umfragen, Treffpunkt, Nachrichten, Angepinntes und geteilter Standort gehen verschlüsselt (AES-256-GCM, Schlüssel nur im Gruppen-Link/QR) als flüchtige Ereignisse (Art 20777) über vier öffentliche Relays. Jedes offene Handy reicht den Stand weiter. Kein Senden bei geschlossener App | Wunsch: Live-Standort ohne Traccar und Abgleich ohne Link. Relaistest in CI: manche Relays halten flüchtige Ereignisse kurz vor (strfry: 300 s), deshalb schützt die Verschlüsselung, nicht die Speicherregel |
 | 2026-10-24 | Keine Benachrichtigungen bei geschlossener App | Web-Push braucht einen Absender-Server (MDN Push API); später über den eigenen VPS, dann nur ein leeres Signal über Google/Apple |
 | 2026-10-24 | Wetter holt nur der Bauprozess (IPMA Tage, Open-Meteo Stunden, alle 2 Std.), die Handys laden wetter.json von GitHub Pages | Kein zusätzlicher Dienst sieht die Handys; Stand und „veraltet“ sichtbar |

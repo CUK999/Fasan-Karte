@@ -37,6 +37,7 @@
     gruppe: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14c2.4.2 4 1.9 4.5 4.5"/>',
     qr: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h3v3h-3zM17.5 17.5h3v3h-3zM14 20.5h.01M20.5 14h.01"/>',
     hoch: '<path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.2 2.6L12.6 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/>',
+    foto: '<path d="M3.5 8.5h3.5l1.8-2.5h6.4l1.8 2.5h3.5V19h-17z"/><circle cx="12" cy="13" r="3.5"/>',
     pin: '<path d="M9 3.5h6l-1 5.5 3.5 3.5h-11L10 9zM12 12.5V21"/>',
     runter: '<path d="M7 13V4H4v9zM7 13l4 7c1.5 0 2.5-1 2.2-2.6l-.6-3.4H19a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 17.8 4H7"/>',
   };
@@ -66,9 +67,10 @@
     treff: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
     haus: '<path d="M3 11 12 4l9 7M5.5 9.5V20h13V9.5M10 20v-5h4v5"/>',
     shop: '<path d="M5 8h14l-1 13H6zM9 8V6.5a3 3 0 0 1 6 0V8M9 11.5v.01M15 11.5v.01"/>',
+    foto: '<path d="M3.5 8.5h3.5l1.8-2.5h6.4l1.8 2.5h3.5V19h-17z"/><circle cx="12" cy="13" r="3.5"/>',
   };
   const TYP_NAME = { restaurant: 'Restaurant', cafe: 'Café', bar: 'Bar', fado: 'Fado', museum: 'Museum', kirche: 'Kirche', aussicht: 'Aussicht', park: 'Park', markt: 'Markt',
-    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste', shop: 'Shoppen', haus: 'Unterkunft' };
+    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste', shop: 'Shoppen', haus: 'Unterkunft', foto: 'Foto-Spot' };
   const GRUPPEN = [
     { id: 'sehen', label: 'Sehen', kats: ['Sehenswürdigkeit', 'Museum', 'Markt', 'Event'] },
     { id: 'aussicht', label: 'Aussicht', kats: ['Aussichtspunkt'] },
@@ -77,6 +79,7 @@
     { id: 'abends', label: 'Abends', kats: ['Bar', 'Fado', 'Getränk'] },
     { id: 'verkehr', label: 'Verkehr', kats: ['Verkehr'] },
     { id: 'shoppen', label: 'Shoppen', kats: ['Shoppen'] },
+    { id: 'foto', label: 'Foto', kats: ['Foto'] }, // eigene Ebene: nur sichtbar, wenn „Foto“ gewählt ist
   ];
   const THEMES = [
     ['system', 'System', 'Folgt Hell und Dunkel deines Handys.'],
@@ -520,7 +523,9 @@
       if (m.aus && !S.extra.has('aus')) return false;
       if (q && !falte(`${o.name} ${o.kategorie} ${o.notiz} ${o.adresse} ${m.notiz || ''}`).includes(q)) return false;
       if (q) return true; // Suche schlägt Filter
-      if (S.gruppen.size && !S.gruppen.has(gruppeVon(o.kategorie))) return false;
+      const gr = gruppeVon(o.kategorie);
+      if (gr === 'foto' && !S.gruppen.has('foto')) return false; // Foto-Spots nur auf Wunsch
+      if (S.gruppen.size && !S.gruppen.has(gr) && !(S.gruppen.has('foto') && o.foto)) return false;
       if (S.extra.has('tipp') && !istTipp(o)) return false;
       if (S.extra.has('fav') && !m.fav) return false;
       if (S.extra.has('offen')) { const st = status(o); if (!st || !st.offen) return false; }
@@ -686,6 +691,7 @@
     const unter = [o.kategorie];
     if (o.ort && o.ort !== 'Lisboa') unter.push(o.ort);
     if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(`${strecke(d)} · ${gehzeit(d)} Min.`); }
+    if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
     const gs = gruppenStimmen(o.id);
     if (gs.ja.length || gs.nein.length) unter.push(`👍 ${gs.ja.length}${gs.nein.length ? ` 👎 ${gs.nein.length}` : ''}`);
     const offen = st ? el('span', { class: 'status ' + (st.offen ? 'offen' : 'zu') }, st.offen ? `offen bis ${st.bis}` : st.naechste ? `zu, öffnet ${st.naechste}` : 'geschlossen') : null;
@@ -981,6 +987,8 @@
   // Mittag- und Abendessen eingeplant. Weniger Stopps im Profil „Einfach“.
   const ESSEN = ['Essen für alle', 'Vegan portugiesisch', 'Vegetarisch'];
   const DAUER = { shop: 75, museum: 90, kirche: 35, aussicht: 20, park: 25, markt: 60, cafe: 30, bar: 45, platz: 20, friedhof: 40, buch: 60, denkmal: 20, turm: 30, weg: 40, kueste: 30, aufzug: 10, tram: 30, faehre: 30 };
+  // Belegte Dauer (Spalte „Dauer“, Recherche docs/recherche/2026-10-24-besuchsdauer.md) als Mittelwert, sonst Schätzwert je Typ
+  const dauerMin = (o) => { const m = /^(\d+)(?:–(\d+))?$/.exec(o.dauer || ''); return m ? Math.round((+m[1] + +(m[2] || m[1])) / 2) : DAUER[o.typ] || 40; };
   const TAG_IDX = { sa: 6, so: 0, mo: 1 };
   function erlaubteTage(o) {
     const n = o.notiz || '', tage = new Set(['sa', 'so', 'mo']);
@@ -1074,7 +1082,7 @@
         uhr += strecke_m > 2500 ? 35 : gehzeit(strecke_m);
         if (i === 3 && E.profil !== 'standard') steps.push({ hinweis: 'Kurze Pause: hinsetzen, etwas trinken' });
         steps.push({ ort: x.o.name, zeit: fmt(uhr), text: `👍 ${x.ja.join(', ')}${x.nein.length ? ` · 👎 ${x.nein.join(', ')}` : ''}` });
-        uhr += DAUER[x.o.typ] || 40; pos = x.o;
+        uhr += dauerMin(x.o); pos = x.o;
       });
       if (weg.length && !mittag) {
         const e = essenWahl(false, pos);
@@ -1409,7 +1417,8 @@
       el('div', { class: 'ort-unter' },
         el('span', { class: 'marker g-' + g, style: 'width:28px;height:28px' }, ic(g)), o.kategorie,
         o.ort && o.ort !== 'Lisboa' ? el('span', {}, '· ' + o.ort) : null,
-        d != null ? el('span', {}, `· ${strecke(d)}, etwa ${gehzeit(d)} Min. zu Fuß`) : null),
+        d != null ? el('span', {}, `· ${strecke(d)}, etwa ${gehzeit(d)} Min. zu Fuß`) : null,
+        o.dauer ? el('span', {}, `· vor Ort ${o.dauer} Min.`) : null),
       el('div', { class: 'reihe', style: 'margin-top:8px' },
         istTipp(o) ? el('span', { class: 'abzeichen tipp' }, ic('stern'), 'Geheimtipp') : null,
         plaene.map((p) => el('span', { class: 'abzeichen' }, p)),
@@ -1426,8 +1435,11 @@
         }),
         aktion('nur-voll', 'teilen', 'Teilen', null, () => teile(o))),
       stimmBlock(o),
-      o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
-        el('p', { class: 'quelle', style: 'margin-top:4px' }, `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
+      o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, o.kategorie === 'Foto' ? 'Foto-Tipp' : 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
+        el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut /.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
+      o.foto ? el('section', { class: 'abschnitt' }, el('h3', {}, el('span', { class: 'marker g-foto', style: 'width:28px;height:28px;display:inline-grid;vertical-align:middle;margin-right:8px' }, symbol({ typ: 'foto' })), 'Foto-Tipp'), el('p', { style: 'margin:0' }, o.foto)) : null,
+      o.dauer ? el('section', { class: 'abschnitt' }, el('h3', {}, 'Zeitbedarf'), el('p', { style: 'margin:0' }, el('strong', {}, `Etwa ${o.dauer} Minuten`)),
+        el('p', { class: 'quelle', style: 'margin-top:4px' }, `Quelle: ${o.dauerQuelle || 'nicht angegeben'}.`)) : null,
       o.infos && o.infos.oeffnungszeiten ? el('section', { class: 'abschnitt' }, el('h3', {}, 'Öffnungszeiten'),
         st ? el('p', { style: 'margin:0' }, el('span', { class: 'status ' + (st.offen ? 'offen' : 'zu') }, st.offen ? `Jetzt geöffnet, bis ${st.bis} Uhr` : 'Jetzt geschlossen'), !st.offen && st.naechste ? `. Öffnet ${st.naechste} Uhr.` : '') : null,
         wochen ? el('ul', { class: 'zeiten' }, wochen.map((w) => el('li', { class: w.heute ? 'heute' : '' }, el('b', {}, w.tag), w.text)))
@@ -1726,13 +1738,13 @@
     const legende = [['restaurant', 'g-essen', 'Restaurant'], ['restaurant', 'g-veggie', 'Vegetarisch'], ['cafe', 'g-essen', 'Café'], ['bar', 'g-abends', 'Bar'],
       ['fado', 'g-abends', 'Fado'], ['museum', 'g-sehen', 'Museum'], ['kirche', 'g-sehen', 'Kirche'], ['aussicht', 'g-aussicht', 'Aussicht'],
       ['park', 'g-sehen', 'Park'], ['markt', 'g-sehen', 'Markt'], ['metro', 'g-verkehr', 'Metro'], ['tram', 'g-verkehr', 'Tram'],
-      ['aufzug', 'g-verkehr', 'Aufzug'], ['faehre', 'g-verkehr', 'Fähre'], ['shop', 'g-shoppen', 'Shoppen'], ['treff', 'treff', 'Treffpunkt']];
+      ['aufzug', 'g-verkehr', 'Aufzug'], ['faehre', 'g-verkehr', 'Fähre'], ['shop', 'g-shoppen', 'Shoppen'], ['foto', 'g-foto', 'Foto-Spot (Filter „Foto“)'], ['treff', 'treff', 'Treffpunkt']];
     const seiten = [
       { titel: 'Willkommen in Lissabon', text: 'Diese Karte zeigt eure Tagespläne und alle Orte. Sie führt euch zu Fuß hin. Ohne Konto, ohne Werbung.', bild: () => fasan('einf-fasan') },
       { titel: 'Unten ist alles', text: 'Fünf Bereiche, immer im Daumenbereich:', bild: () => el('ul', { class: 'einf-liste' }, leiste.map(([i, n, t]) => el('li', {}, el('span', { class: 'einf-icon' }, ic(i)), el('span', {}, el('strong', {}, n), el('small', {}, t))))) },
       { titel: 'Tippen, losgehen', text: 'Beim nächsten Stopp auf „Hinführen“ tippen. Die Karte zeigt den Weg, sagt jede Abbiegung an und lässt das Display an. Am Ziel hakst du den Stopp ab.',
         bild: () => el('div', { class: 'einf-navi' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${PFEIL.rechts}</svg>` }), el('span', {}, el('strong', {}, 'In 120 m'), el('small', {}, 'Rechts abbiegen auf Rua da Rosa'))) },
-      { titel: 'Die Symbole', text: 'Das Symbol zeigt, was ein Ort ist. Die Farbe zeigt die Art: Rot Essen, Grün vegetarisch, Blau Sehen, Orange Aussicht, Lila Abends, Ocker Verkehr, Pink Shoppen.',
+      { titel: 'Die Symbole', text: 'Das Symbol zeigt, was ein Ort ist. Die Farbe zeigt die Art: Rot Essen, Grün vegetarisch, Blau Sehen, Orange Aussicht, Lila Abends, Ocker Verkehr, Pink Shoppen, Indigo Foto-Spots (erscheinen nur mit dem Filter „Foto“).',
         bild: () => el('div', { class: 'einf-legende' }, legende.map(([typ, g, n]) => el('span', {}, el('span', { class: `marker ${g}` }, symbol({ typ, kategorie: '' })), n))) },
       { titel: 'Gemeinsam entscheiden', text: 'Bei jedem Ort „Will hin“ oder „Lieber nicht“. Unter „Gruppe“ zeigst du deinen QR-Code; die anderen scannen ihn mit der Kamera. Aus euren Stimmen entsteht der Gruppenplan.',
         bild: () => el('div', { class: 'segmente stimme', style: 'width:100%' }, el('button', { type: 'button', class: 'ja', 'aria-pressed': 'true', tabindex: '-1' }, ic('hoch'), 'Will hin'), el('button', { type: 'button', class: 'nein', tabindex: '-1' }, ic('runter'), 'Lieber nicht')) },

@@ -1701,9 +1701,9 @@
   "notiz": "Über 340 Geschäfte. Laut Visit Lisboa heute 8–24 Uhr (abgerufen 24.10.2026)",
   "typ": "shop",
   "stand": "2026-10-24",
-  "lat": 38.752689,
+  "lat": 38.75269,
   "lon": -9.18469,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "webseite": "https://www.slbenfica.pt/pt-pt/instituicao/instalacoes/estadio"
   },
@@ -1813,9 +1813,9 @@
   "notiz": "Concept-Store in einem Palast mit portugiesischen Marken. Laut Le Petit Journal täglich 12–20 Uhr (Seite ohne Datum, abgerufen 24.10.2026)",
   "typ": "shop",
   "stand": "2026-10-24",
-  "lat": 38.716912,
-  "lon": -9.148382,
-  "quelle": "pruefen",
+  "lat": 38.71691,
+  "lon": -9.14838,
+  "quelle": "manuell",
   "infos": {},
   "wiki": {
    "text": "Der Palacete Ribeiro da Cunha ist ein Stadtpalast im Zentrum der portugiesischen Hauptstadt Lissabon.",

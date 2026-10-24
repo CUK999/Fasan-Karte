@@ -1,0 +1,15 @@
+UNERWARTET Error: WebSocket was closed before the connection was established
+UNERWARTET Error: WebSocket was closed before the connection was established
+UNERWARTET Error: WebSocket was closed before the connection was established
+UNERWARTET Error: WebSocket was closed before the connection was established
+RELAISTEST 2026-10-24T09:29:52.625Z
+RELAIS {"url":"wss://relay.damus.io","verbunden":false,"senden2000":"FEHLER connection failure: connection failed","empfangen2000":"NEIN","senden24000":"","empfangen24000":"NEIN","gespeichert":"nein","dauer":"23890 ms"}
+RELAIS {"url":"wss://nos.lol","verbunden":true,"senden2000":"","empfangen2000":"896 ms","senden24000":"","empfangen24000":"604 ms","gespeichert":"JA (2)","dauer":"9410 ms"}
+RELAIS {"url":"wss://relay.primal.net","verbunden":true,"senden2000":"","empfangen2000":"683 ms","senden24000":"","empfangen24000":"500 ms","gespeichert":"JA (2)","dauer":"9046 ms"}
+RELAIS {"url":"wss://relay.nostr.band","verbunden":false,"senden2000":"FEHLER connection failure: connection timed out","empfangen2000":"NEIN","senden24000":"FEHLER connection failure: connection timed out","empfangen24000":"NEIN","gespeichert":"nein","dauer":"29579 ms"}
+RELAIS {"url":"wss://nostr.mom","verbunden":true,"senden2000":"","empfangen2000":"607 ms","senden24000":"","empfangen24000":"524 ms","gespeichert":"JA (2)","dauer":"9027 ms"}
+RELAIS {"url":"wss://relay.snort.social","verbunden":true,"senden2000":"ephemeral: will not be stored","empfangen2000":"495 ms","senden24000":"ephemeral: will not be stored","empfangen24000":"331 ms","gespeichert":"nein","dauer":"8507 ms"}
+RELAIS {"url":"wss://offchain.pub","verbunden":true,"senden2000":"","empfangen2000":"304 ms","senden24000":"FEHLER Error: Policy violated and pubkey is not in our web of trust.","empfangen24000":"NEIN","gespeichert":"JA (1)","dauer":"16050 ms"}
+RELAIS {"url":"wss://nostr.oxtr.dev","verbunden":true,"senden2000":"","empfangen2000":"790 ms","senden24000":"","empfangen24000":"477 ms","gespeichert":"JA (2)","dauer":"9099 ms"}
+RELAIS {"url":"wss://relay.nostr.bg","verbunden":false,"senden2000":"FEHLER connection failure: connection failed","empfangen2000":"NEIN","senden24000":"FEHLER connection failure: connection failed","empfangen24000":"NEIN","gespeichert":"nein","dauer":"24445 ms"}
+RELAIS {"url":"wss://nostr-pub.wellorder.net","verbunden":true,"senden2000":"","empfangen2000":"518 ms","senden24000":"","empfangen24000":"135 ms","gespeichert":"nein","dauer":"8581 ms"}

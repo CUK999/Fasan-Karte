@@ -1,533 +1,1363 @@
 [
  {
+  "id": "jardim-do-principe-real",
   "name": "Jardim do Príncipe Real",
   "adresse": "Praça do Príncipe Real, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Riesenzeder (Geheimtipp)",
   "lat": 38.716284,
   "lon": -9.148616,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Der Jardim do Príncipe Real ist eine Parkanlage im Zentrum der portugiesischen Hauptstadt Lissabon. Er wurde in der Mitte der Praça do Príncipe Real in der Stadtgemeinde Mercês angelegt und umfasst etwa 1,1 ha.\nZum alten Baumbestand zählt eine Mexikanische Zypresse mit einem Baumkronendurchmesser von 23 Metern. Unter dem Platz befindet sich der Reservatório da Patriarcal.",
+   "url": "https://de.wikipedia.org/wiki/Jardim_do_Pr%C3%ADncipe_Real",
+   "lang": "de",
+   "titel": "Jardim do Príncipe Real"
+  },
+  "bild": {
+   "src": "bilder/jardim-do-principe-real.jpg",
+   "autor": "Nicola",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Patriarcal_Reservoir_01.jpg",
+   "breite": 720,
+   "hoehe": 481
+  }
  },
  {
+  "id": "igreja-de-sao-roque",
   "name": "Igreja de São Roque",
   "adresse": "Largo Trindade Coelho, 1200-470 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Vergoldete Kapelle, Kirche gratis (Geheimtipp)",
   "lat": 38.71362,
   "lon": -9.143427,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Die Igreja de São Roque ist eine Jesuitenkirche im Lissaboner Stadtteil Bairro Alto, die zu den prunkvollsten Kirchen der Iberischen Halbinsel gehört. Da sie beim verheerenden Erdbeben von 1755 nicht zerstört wurde sowie aufgrund ihrer einzigartigen Kapelle São João Baptista zählt sie zu den prächtigsten Kirchen der Welt. Namenspatron der Kirche ist der Hl. Rochus von Montpellier.",
+   "url": "https://de.wikipedia.org/wiki/Igreja_de_S%C3%A3o_Roque_%28Lissabon%29",
+   "lang": "de",
+   "titel": "Igreja de São Roque (Lissabon)"
+  },
+  "bild": {
+   "src": "bilder/igreja-de-sao-roque.jpg",
+   "autor": "Mister No",
+   "lizenz": "CC BY 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Igreja_de_Sao_Roque_-_panoramio.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "miradouro-de-sao-pedro-de-alcantara",
   "name": "Miradouro de São Pedro de Alcântara",
   "adresse": "Rua de São Pedro de Alcântara, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Klassiker",
   "lat": 38.715458,
   "lon": -9.144037,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "telefon": "+351 213 912 600"
+  },
+  "wiki": {
+   "text": "O Jardim de São Pedro de Alcântara é um jardim situado em Lisboa, na freguesia da Misericórdia. Foi construído em 1864, em dois socalcos.\nO projeto original remonta ao século XVIII, de autoria do 2.º arquiteto do palácio Convento de Mafra João Pedro Ludovice, filho de João Frederico Ludovice, arquiteto de Mafra, onde El-Rei D. João V manda construir uma muralha com 20 metros de altura nos terrenos de São Pedro de Alcântara com vista a criar uma Mãe de Água — um depósito monumental que prolongaria o Aqueduto das Águas Livres até à Graça. No entanto, o Terramoto de 1755 impõe outras prioridades e os terrenos passaram a servir de vazadouro de animais mortos que eram atirados da muralha abaixo.",
+   "url": "https://pt.wikipedia.org/wiki/Jardim_de_S%C3%A3o_Pedro_de_Alc%C3%A2ntara",
+   "lang": "pt",
+   "titel": "Jardim de São Pedro de Alcântara"
+  },
+  "bild": {
+   "src": "bilder/miradouro-de-sao-pedro-de-alcantara.jpg",
+   "autor": "CorreiaPM",
+   "lizenz": "Public domain",
+   "lizenz_url": "",
+   "quelle": "https://commons.wikimedia.org/wiki/File:JardimSPedroAlcantara.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "tram-24e-start-praca-luis-de-camoes",
   "name": "Tram 24E Start Praça Luís de Camões",
   "adresse": "Praça Luís de Camões, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Verkehr",
   "notiz": "Historische Tram ohne Schlange",
   "lat": 38.710568,
   "lon": -9.143427,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {},
+  "wiki": {
+   "text": "Die Praça Luís de Camões ist ein zentraler Platz in der Innenstadt der portugiesischen Hauptstadt Lissabon. Er liegt in der Stadtgemeinde Encarnação und ist Bindeglied zwischen den Stadtvierteln Bairro Alto und Chiado.\nIn der Mitte des Platzes steht eine Statue, die den portugiesischen Nationaldichter Luís de Camões darstellt. Seit dem 12.",
+   "url": "https://de.wikipedia.org/wiki/Pra%C3%A7a_Lu%C3%ADs_de_Cam%C3%B5es",
+   "lang": "de",
+   "titel": "Praça Luís de Camões"
+  },
+  "bild": {
+   "src": "bilder/tram-24e-start-praca-luis-de-camoes.jpg",
+   "autor": "Luca Galuzzi (Lucag)",
+   "lizenz": "CC BY-SA 2.5",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.5",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisbon_10064_Lisboa_Pra%C3%A7a_Lu%C3%ADs_de_Cam%C3%B5es_2006_Luca_Galuzzi.jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "pavilhao-chines",
   "name": "Pavilhão Chinês",
   "adresse": "Rua Dom Pedro V 89, 1250-093 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Bar",
   "notiz": "Bar voller Sammlerstücke (Geheimtipp)",
   "lat": 38.715713,
   "lon": -9.146769,
-  "quelle": "pruefen"
+  "quelle": "pruefen",
+  "infos": {}
  },
  {
+  "id": "a-tasca-do-chico",
   "name": "A Tasca do Chico",
   "adresse": "Rua do Diário de Notícias 39, 1200-141 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Fado",
   "notiz": "Fado vadio Mo und Mi ab 21 Uhr, kein Eintritt",
   "lat": 38.711631,
   "lon": -9.144132,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Su-Th 19:00-02:00; Fr-Sa 19:00-04:00",
+   "webseite": "https://www.tascadochico.com",
+   "telefon": "+351 961 339696",
+   "kueche": "portuguese"
+  }
  },
  {
+  "id": "funicular-da-graca-talstation",
   "name": "Funicular da Graça (Talstation)",
   "adresse": "Rua dos Lagares, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Verkehr",
   "notiz": "Neue Standseilbahn, täglich 7–21 Uhr (Geheimtipp)",
   "lat": 38.716814,
   "lon": -9.13254,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=1045"
+  }
  },
  {
+  "id": "miradouro-da-graca",
   "name": "Miradouro da Graça",
   "adresse": "Largo da Graça, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Klassiker",
   "lat": 38.716375,
   "lon": -9.131567,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=4186",
+   "telefon": "+351 21 391 2600",
+   "rollstuhl": "yes"
+  },
+  "wiki": {
+   "text": "O Miradouro Sophia de Mello Breyner Andresen, antigo Miradouro da Graça, encontra-se na freguesia de São Vicente, no antigo adro da Igreja do Convento da Graça de Lisboa.\nNo largo da Graça, junto à igreja, existe uma esplanada no Miradouro da Graça onde se pode desfrutar de uma das mais belas vistas da cidade. Esta vista só é suplantada pela do Miradouro da Senhora do Monte, que fica a uma escassa centena de metros. O panorama de telhados e prédios é menos espetacular do que a vista do castelo, mas é um local popular.",
+   "url": "https://pt.wikipedia.org/wiki/Miradouro_Sophia_de_Mello_Breyner_Andresen",
+   "lang": "pt",
+   "titel": "Miradouro Sophia de Mello Breyner Andresen"
+  },
+  "bild": {
+   "src": "bilder/miradouro-da-graca.jpg",
+   "autor": "Filipe Rocha,user:sacavem (pt) http://pt.wikipedia.org/wiki/Usu%C3%A1rio:Sacavem",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Miradouro_da_Gra%C3%A7a.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "miradouro-da-senhora-do-monte",
   "name": "Miradouro da Senhora do Monte",
   "adresse": "Miradouro da Senhora do Monte, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Schönster Blick, steiler Aufstieg",
   "lat": 38.719078,
   "lon": -9.132911,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Miradouro da Senhora do Monte encontra-se na freguesia de São Vicente, em Lisboa.\nO miradouro desenvolve-se em frente da Capela de Nossa Senhora do Monte. A partir dele pode observar-se, para sul, o mar da Palha, o Castelo de São Jorge, parte da Baixa de Lisboa e o estuário do rio Tejo, para poente, do Bairro Alto até ao Parque Florestal de Monsanto e, para norte, o vale da Avenida Almirante Reis.",
+   "url": "https://pt.wikipedia.org/wiki/Miradouro_da_Senhora_do_Monte",
+   "lang": "pt",
+   "titel": "Miradouro da Senhora do Monte"
+  },
+  "bild": {
+   "src": "bilder/miradouro-da-senhora-do-monte.jpg",
+   "autor": "Filipe Rocha,user:sacavem (pt) http://pt.wikipedia.org/wiki/Usu%C3%A1rio:Sacavem",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Miradouro_Nossa_Senhora_do_Monte_II.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "feira-da-ladra",
   "name": "Feira da Ladra",
   "adresse": "Campo de Santa Clara, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Markt",
   "notiz": "Flohmarkt nur Sa und Di",
   "lat": 38.715393,
   "lon": -9.125929,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Tu 09:00-18:00, Sa 09:00-18:00",
+   "webseite": "http://www.cm-lisboa.pt/equipamentos/equipamento/info/feira-da-ladra"
+  },
+  "wiki": {
+   "text": "Die Feira da Ladra ist ein Flohmarkt in Lissabon, der Hauptstadt Portugals. Der Trödelmarkt, der zeit- und abschnittsweise auch immer Kunstmarkt und Schallplattenbörse war, findet seit 1882 auf dem Campo de Santa Clara genannten Gelände hinter dem Panteão Nacional statt und geht bis auf das Jahr 1272 zurück. Dienstags und samstags jeweils ab 5 Uhr morgens findet der Flohmarkt statt und endet am Nachmittag.",
+   "url": "https://de.wikipedia.org/wiki/Feira_da_Ladra",
+   "lang": "de",
+   "titel": "Feira da Ladra"
+  },
+  "bild": {
+   "src": "bilder/feira-da-ladra.jpg",
+   "autor": "Carlos Luis M C da Cruz",
+   "lizenz": "Public domain",
+   "lizenz_url": "",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Feira_da_ladra.jpg",
+   "breite": 720,
+   "hoehe": 447
+  }
  },
  {
+  "id": "miradouro-das-portas-do-sol",
   "name": "Miradouro das Portas do Sol",
   "adresse": "Miradouro das Portas do Sol, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Klassiker",
   "lat": 38.711944,
   "lon": -9.130011,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "rollstuhl": "yes"
+  }
  },
  {
+  "id": "miradouro-de-santa-luzia",
   "name": "Miradouro de Santa Luzia",
   "adresse": "Miradouro de Santa Luzia, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Klassiker",
   "lat": 38.711738,
   "lon": -9.13013,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.visitlisboa.com/pt-pt/locais/miradouro-de-santa-luzia",
+   "telefon": "+351 213 912 600"
+  },
+  "wiki": {
+   "text": "O Miradouro de Santa Luzia tem uma ampla vista sobre Alfama e o rio Tejo. Os pontos característicos, da esquerda para a direita, são a cúpula de Santa Engrácia, a Igreja de Santo Estêvão e as duas torres brancas da Igreja de São Miguel. A muralha sul de Santa Luzia tem dois modernos painéis de azulejos, um da Praça do Comércio de antes do terramoto e outro com os cristãos a atacarem o castelo de São Jorge da autoria de António Quaresma e fabricados na Fábrica da Viúva Lamego.\nAqui se situa a Igreja de Santa Luzia e São Brás, cabeça da antiga comenda de S. Brás do termo de Lisboa e actual sede nacional da Assembleia dos Cavaleiros Portugueses da Ordem Soberana e Militar de Malta.",
+   "url": "https://pt.wikipedia.org/wiki/Miradouro_de_Santa_Luzia",
+   "lang": "pt",
+   "titel": "Miradouro de Santa Luzia"
+  },
+  "bild": {
+   "src": "bilder/miradouro-de-santa-luzia.jpg",
+   "autor": "unbekannt",
+   "lizenz": "Public domain",
+   "lizenz_url": "",
+   "quelle": "https://commons.wikimedia.org/wiki/File:MiradouroSantaLuzia.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "se-de-lisboa",
   "name": "Sé de Lisboa",
   "adresse": "Largo da Sé, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Kathedrale, Kirchenschiff gratis",
   "lat": 38.709818,
   "lon": -9.1328,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 09:30-19:00"
+  },
+  "wiki": {
+   "text": "Die Kathedrale von Lissabon ist die Hauptkirche der Stadt Lissabon und die Kathedrale des Patriarchats von Lissabon.",
+   "url": "https://de.wikipedia.org/wiki/Kathedrale_von_Lissabon",
+   "lang": "de",
+   "titel": "Kathedrale von Lissabon"
+  },
+  "bild": {
+   "src": "bilder/se-de-lisboa.jpg",
+   "autor": "Alvesgaspar",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisboa_May_2013-1.jpg",
+   "breite": 720,
+   "hoehe": 863
+  }
  },
  {
+  "id": "largo-do-intendente",
   "name": "Largo do Intendente",
   "adresse": "Largo do Intendente Pina Manique, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Kachelfassaden (Geheimtipp)",
   "lat": 38.720828,
   "lon": -9.134879,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=553"
+  },
+  "wiki": {
+   "text": "Intendente ist ein U-Bahnhof der Linha Verde der Metro Lissabon, des U-Bahn-Netzes der portugiesischen Hauptstadt. Der Bahnhof befindet sich unter der Kreuzung Avenida Almirante Reis / Rua Andrade in der Stadtgemeinde Arroios. Die Nachbarstationen des Bahnhofes sind Martim Moniz und Anjos. Der Bahnhof ging am 28.",
+   "url": "https://de.wikipedia.org/wiki/U-Bahnhof_Intendente",
+   "lang": "de",
+   "titel": "U-Bahnhof Intendente"
+  },
+  "bild": {
+   "src": "bilder/largo-do-intendente.jpg",
+   "autor": "Koshelyev",
+   "lizenz": "Public domain",
+   "lizenz_url": "",
+   "quelle": "https://commons.wikimedia.org/wiki/File:MetroIntendenteLx1.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "praca-do-comercio",
   "name": "Praça do Comércio",
   "adresse": "Praça do Comércio, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Klassiker",
   "lat": 38.707715,
   "lon": -9.136524,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Die Praça do Comércio [ˈpɾasɐ du kuˈmɛɾsiu] gehört neben dem Rossio und der Praça da Figueira zu den drei wichtigsten Plätzen innerhalb der Baixa Pombalina, des aufgrund des Erdbebens von 1755 neu gebauten innerstädtischen Bereichs der portugiesischen Hauptstadt Lissabon. Nahe am Hauptstadtfluss Tejo gelegen, ist der Platz noch immer unter seinem alten Namen, Terreiro do Paço, [tɨ'ʁeiɾu du 'pasu], zu Deutsch etwa Palastgelände, bekannt, da sich bis zum verheerenden Erdbeben von 1755 das Paço da Ribeira, das königliche Uferschloss, dort befand. Nach dem Erdbeben erhielt das Gelände eine völlig neue Form im Rahmen der durch Sebastião José de Carvalho e Melo, den Marquês de Pombal, veranlassten städtischen Umgestaltung. Am südöstlichen Ende des Platzes befindet sich der Tejo-Fährenterminal Terreiro do Paço sowie der U-Bahnhof Terreiro do Paço.",
+   "url": "https://de.wikipedia.org/wiki/Pra%C3%A7a_do_Com%C3%A9rcio",
+   "lang": "de",
+   "titel": "Praça do Comércio"
+  },
+  "bild": {
+   "src": "bilder/praca-do-comercio.jpg",
+   "autor": "Diego Delso",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Plaza_del_Comercio,_Lisboa,_Portugal,_2012-05-12,_DD_01-03_PAN.jpg",
+   "breite": 720,
+   "hoehe": 121
+  }
  },
  {
+  "id": "museu-do-dinheiro",
   "name": "Museu do Dinheiro",
   "adresse": "Museu do Dinheiro, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Museum",
   "notiz": "Gratis, Mi–Sa 10–18 Uhr (Geheimtipp)",
   "lat": 38.708623,
   "lon": -9.138785,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "We-Sa 10:00-18:00; Jan 01,May 01,Dec 24-25 off",
+   "webseite": "https://www.museudodinheiro.pt",
+   "telefon": "+351 213 213 240",
+   "rollstuhl": "yes"
+  },
+  "bild": {
+   "src": "bilder/museu-do-dinheiro.jpg",
+   "autor": "Joseolgon",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Museu_do_Dinheiro_(2).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "elevador-do-castelo",
   "name": "Elevador do Castelo",
   "adresse": "Rua dos Fanqueiros 176, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Verkehr",
   "notiz": "Zwei Gratis-Aufzüge, zweiter im Pingo Doce am Chão do Loureiro",
-  "lat": 38.711382,
-  "lon": -9.136043,
-  "quelle": "name"
+  "lat": 38.711349,
+  "lon": -9.136031,
+  "quelle": "name",
+  "infos": {
+   "rollstuhl": "yes"
+  },
+  "wiki": {
+   "text": "O Elevador do Castelo é um conjunto de dois elevadores públicos de acesso gratuito em Lisboa, Portugal, que ligam a baixa da cidade ao Castelo de São Jorge. O primeiro liga a Rua dos Fanqueiros à Rua da Madalena e tem uma saída para o Largo Adelino Amaro da Costa. O segundo elevador encontra-se no Mercado do Chão do Loureiro. Ao contrário de várias infraestruturas semelhantes, eregidas em Lisboa no final do século XIX — das quais subsiste o mítico Elevador de Santa Justa, o Elevador do Castelo é uma obra do século XXI: foi inaugurado no dia 31 de Agosto de 2013, oito meses depois do previsto.",
+   "url": "https://pt.wikipedia.org/wiki/Elevador_do_Castelo",
+   "lang": "pt",
+   "titel": "Elevador do Castelo"
+  },
+  "bild": {
+   "src": "bilder/elevador-do-castelo.jpg",
+   "autor": "Joseolgon",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Elevador_do_Castelo.JPG",
+   "breite": 720,
+   "hoehe": 1084
+  }
  },
  {
+  "id": "casa-do-alentejo",
   "name": "Casa do Alentejo",
   "adresse": "Rua das Portas de Santo Antão 58, 1150-268 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Maurischer Innenhof, Anschauen gratis; Taberna statt Restaurant",
   "lat": 38.715923,
   "lon": -9.139854,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "telefon": "+351 213 405 140",
+   "kueche": "regional"
+  },
+  "wiki": {
+   "text": "O Palácio Alverca é um palácio localizado na freguesia de Santa Justa, em Lisboa, Portugal.\nÉ um edifício classificado como Monumento de Interesse Público pelo IGESPAR.\nTeve a sua construção no fim do século XVII. De referir que o palácio pertenceu à família Paes de Amaral. A designação Palácio São Luís advém do facto de se encontrar diante da igreja com essa invocação.\nNo edifício chegou a funcionar um liceu e um armazém para mobiliário.",
+   "url": "https://pt.wikipedia.org/wiki/Pal%C3%A1cio_Alverca",
+   "lang": "pt",
+   "titel": "Palácio Alverca"
+  },
+  "bild": {
+   "src": "bilder/casa-do-alentejo.jpg",
+   "autor": "Sergio Calleja (Life is a trip) from Barcelona, Spain",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Casa_do_Alentejo.jpg",
+   "breite": 720,
+   "hoehe": 960
+  }
  },
  {
+  "id": "a-ginjinha",
   "name": "A Ginjinha",
   "adresse": "Largo de São Domingos, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Getränk",
   "notiz": "Erster Ginjinha-Ausschank seit 1840, nur Stehtresen",
   "lat": 38.714696,
   "lon": -9.139064,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 09:00-10:00",
+   "webseite": "https://ginjinhaespinheira.com/",
+   "rollstuhl": "yes"
+  },
+  "wiki": {
+   "text": "A Ginjinha ist ein Stehausschank im Zentrum der portugiesischen Hauptstadt Lissabon.",
+   "url": "https://de.wikipedia.org/wiki/A_Ginjinha",
+   "lang": "de",
+   "titel": "A Ginjinha"
+  },
+  "bild": {
+   "src": "bilder/a-ginjinha.jpg",
+   "autor": "Shadowgate",
+   "lizenz": "CC BY 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Ginjinha_store.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "museu-nacional-de-arte-contemporanea-do-chiado",
   "name": "Museu Nacional de Arte Contemporânea do Chiado",
   "adresse": "Rua Serpa Pinto 4, 1200-444 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Museum",
   "notiz": "Sa 18 Uhr Gratis-Konzert",
   "lat": 38.708836,
   "lon": -9.141183,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "oeffnungszeiten": "Tu-Su 10:00-18:00; Jan 01,May 01,Jun 13,Dec 25 off; easter off",
+   "webseite": "https://www.museuartecontemporanea.pt",
+   "telefon": "+351 213 432 148"
+  },
+  "wiki": {
+   "text": "O Museu Nacional de Arte Contemporânea, fundado a 26 de Maio de 1911, situa-se no bairro do Chiado, em pleno centro histórico da cidade de Lisboa. A instituição está instalada numa parte do desactivado Convento de São Francisco da Cidade, o qual também alberga, na restante área do conjunto conventual, a Faculdade de Belas-Artes da Universidade de Lisboa, a Academia Nacional de Belas-Artes e o Museu da Polícia, inaugurado em Julho de 2023, na antiga sede do Comando Metropolitano de Lisboa.\nO ex-Convento de São Francisco da Cidade encontra-se classificado como Imóvel de Interesse Público desde 1993.\nO MNAC é a primeira instituição museológica do país - e uma das primeiras da Europa - especificamente consagrada à criação artística dos séculos XIX e XX.\nO seu edifício foi profundamente remodelado em 1994, sob projecto do arquitecto francês Jean-Michel Willmotte.",
+   "url": "https://pt.wikipedia.org/wiki/Museu_Nacional_de_Arte_Contempor%C3%A2nea_do_Chiado",
+   "lang": "pt",
+   "titel": "Museu Nacional de Arte Contemporânea do Chiado"
+  },
+  "bild": {
+   "src": "bilder/museu-nacional-de-arte-contemporanea-do-chiado.jpg",
+   "autor": "Sergio Calleja (Life is a trip) from Barcelona, Spain",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisbonne_Mus%C3%A9e_du_Chiado.jpg",
+   "breite": 720,
+   "hoehe": 960
+  }
  },
  {
+  "id": "reservatorio-da-mae-d-agua",
   "name": "Reservatório da Mãe d'Água",
   "adresse": "Praça das Amoreiras 10, 1250-020 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Museum",
   "notiz": "Wasserhalle von 1746, ca. 4 €, Mo zu (Geheimtipp)",
   "lat": 38.722295,
   "lon": -9.156053,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2800"
+  },
+  "wiki": {
+   "text": "O Reservatório da Mãe d'Água das Amoreiras, mais conhecido por apenas Mãe d'Água das Amoreiras, é o depósito que recolhe as águas provenientes do aqueduto das Águas Livres, no distrito de Lisboa. Foi projectado em 1745 e construído no Jardim das Amoreiras, ficando concluido em 1834.\nO Reservatório da Mãe d'Água das Amoreiras constitui atualmente um dos quatro núcleos do Museu da Água da EPAL em Lisboa.",
+   "url": "https://pt.wikipedia.org/wiki/Reservat%C3%B3rio_da_M%C3%A3e_d%27%C3%81gua_das_Amoreiras",
+   "lang": "pt",
+   "titel": "Reservatório da Mãe d'Água das Amoreiras"
+  },
+  "bild": {
+   "src": "bilder/reservatorio-da-mae-d-agua.jpg",
+   "autor": "unbekannt",
+   "lizenz": "CC BY-SA 2.5",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.5",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Museu_da_%C3%81gua.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "jardim-das-amoreiras",
   "name": "Jardim das Amoreiras",
   "adresse": "Jardim das Amoreiras, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Aquädukt-Bögen",
   "lat": 38.722086,
   "lon": -9.15624,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Amoreiras é uma zona urbana de Lisboa, em Portugal. Situa-se na área ocidental da cidade, em torno da Praça das Amoreiras, do Jardim das Amoreiras, do Reservatório da Mãe d'Água das Amoreiras e do Complexo das Amoreiras. Embora não corresponda a uma divisão administrativa autónoma, o topónimo identifica uma área histórica da cidade associada ao eixo do Rato, à antiga Real Fábrica das Sedas, ao Aqueduto das Águas Livres e, desde o final do século XX, a uma centralidade comercial, habitacional e de serviços marcada pelo centro comercial e pelas torres das Amoreiras.",
+   "url": "https://pt.wikipedia.org/wiki/Amoreiras",
+   "lang": "pt",
+   "titel": "Amoreiras"
+  }
  },
  {
+  "id": "mercado-de-campo-de-ourique",
   "name": "Mercado de Campo de Ourique",
   "adresse": "Mercado de Campo de Ourique, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Markt",
   "notiz": "Markthalle für Einheimische",
   "lat": 38.716214,
   "lon": -9.16678,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Su,We 10:00-00:00;Mo,Tu 10:00-23:00;Th-Sa 10:00-01:00",
+   "webseite": "https://mercadodecampodeourique.pt/",
+   "rollstuhl": "yes",
+   "kueche": "international"
+  },
+  "wiki": {
+   "text": "O Mercado de Campo de Ourique é um mercado alimentar de bairro localizado em Lisboa, Portugal.\nO mercado foi inicialmente aberto em 1934. Foi remodelado em 1991 e, mais recentemente, em 2013 por António Maria Braga. O mercado inclui bancas de comida gourmet.",
+   "url": "https://pt.wikipedia.org/wiki/Mercado_de_Campo_de_Ourique",
+   "lang": "pt",
+   "titel": "Mercado de Campo de Ourique"
+  },
+  "bild": {
+   "src": "bilder/mercado-de-campo-de-ourique.jpg",
+   "autor": "GualdimG",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Mercado_de_Campo_de_Ourique_01.jpg",
+   "breite": 720,
+   "hoehe": 400
+  }
  },
  {
+  "id": "cemiterio-dos-prazeres",
   "name": "Cemitério dos Prazeres",
   "adresse": "Cemitério dos Prazeres, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Gräberstadt, Endstation Tram 28 (Geheimtipp)",
   "lat": 38.713366,
   "lon": -9.171422,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Oct-Apr 09:00-17:00; May-Sep 09:00-18:00",
+   "telefon": "+351 213 961 511"
+  },
+  "wiki": {
+   "text": "Der Cemitério dos Prazeres ist ein städtischer Friedhof in der portugiesischen Hauptstadt Lissabon. Er befindet sich in der westlichen Gemeinde von Estrela. Seinem Haupteingang gegenüber liegt die Endstelle Prazeres der Linie 28 der Straßenbahn Lissabon.",
+   "url": "https://de.wikipedia.org/wiki/Cemit%C3%A9rio_dos_Prazeres",
+   "lang": "de",
+   "titel": "Cemitério dos Prazeres"
+  },
+  "bild": {
+   "src": "bilder/cemiterio-dos-prazeres.jpg",
+   "autor": "Susanne Nilsson",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Cemit%C3%A9rio_dos_Prazeres_(35106864925).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "miradouro-de-santa-catarina",
   "name": "Miradouro de Santa Catarina",
   "adresse": "Miradouro de Santa Catarina, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Sonnenuntergang",
   "lat": 38.70945,
   "lon": -9.147724,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Santa Catarina ist ein Stadtteil und eine ehemalige portugiesische Gemeinde im 1. Bairro der Hauptstadt Lissabon. 2013 ging im Zuge einer Verwaltungsreform aus den Gemeinden São Paulo, Encarnação, Santa Catarina und Mercês die neue Stadtgemeinde Misericórdia hervor.\nDer hügelige Ort ist umgeben von den Stadtteilen São Paulo, Lapa, Mercês und Encarnação.",
+   "url": "https://de.wikipedia.org/wiki/Santa_Catarina_%28Lissabon%29",
+   "lang": "de",
+   "titel": "Santa Catarina (Lissabon)"
+  },
+  "bild": {
+   "src": "bilder/miradouro-de-santa-catarina.jpg",
+   "autor": "Sacavem1 / Filipe Rocha",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Miradouro_de_Santa_Catarina.jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "mosteiro-dos-jeronimos",
   "name": "Mosteiro dos Jerónimos",
   "adresse": "Praça do Império, 1400-206 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Kirche gratis, Kreuzgang ca. 18 €, Mo zu",
-  "lat": 38.697753,
-  "lon": -9.205591,
-  "quelle": "name"
+  "lat": 38.697758,
+  "lon": -9.206624,
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Das Hieronymitenkloster ist ein Sakralbau im Stadtteil Belém der portugiesischen Hauptstadt Lissabon. Die dazugehörige Kirche Santa Maria de Belém ist Maria geweiht. Das Hieronymitenkloster ist eines der bedeutendsten Bauwerke der Manuelinik, einer portugiesischen Variante der Spätgotik, die auch einige Elemente der Renaissance enthält. Unter anderem beherbergt es die Sarkophage von Fernando Pessoa, Vasco da Gama und Luís de Camões und portugiesischer Könige.",
+   "url": "https://de.wikipedia.org/wiki/Mosteiro_dos_Jer%C3%B3nimos",
+   "lang": "de",
+   "titel": "Mosteiro dos Jerónimos"
+  },
+  "bild": {
+   "src": "bilder/mosteiro-dos-jeronimos.jpg",
+   "autor": "Holger Uwe Schmitt",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:1502_legte_K%C3%B6nig_Manuel_I._den_Grundstein_f%C3%BCr_das_Hieronymus_Kloster_in_Lissabon._06.jpg",
+   "breite": 720,
+   "hoehe": 433
+  }
  },
  {
+  "id": "pasteis-de-belem",
   "name": "Pastéis de Belém",
   "adresse": "Pastéis de Belém, Rua de Belém, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Café",
   "notiz": "Klassiker",
   "lat": 38.69748,
   "lon": -9.20332,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 08:00-21:00",
+   "webseite": "https://pasteisdebelem.pt",
+   "telefon": "+351 21 363 7423",
+   "rollstuhl": "yes",
+   "kueche": "regional"
+  },
+  "bild": {
+   "src": "bilder/pasteis-de-belem.jpg",
+   "autor": "User: (WT-shared) Shoestring at  wts wikivoyage",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Pasteis_de_Belem,_Lisbon,_Portugal.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "padrao-dos-descobrimentos",
   "name": "Padrão dos Descobrimentos",
   "adresse": "Padrão dos Descobrimentos, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Windrose im Boden",
   "lat": 38.693605,
   "lon": -9.2057,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "http://www.cm-lisboa.pt/equipamentos/equipamento/info/padrao-dos-descobrimentos",
+   "telefon": "+351 213 031 950",
+   "rollstuhl": "no"
+  },
+  "wiki": {
+   "text": "Das Padrão dos Descobrimentos steht im Stadtteil Belém in Lissabon am Ufer des Flusses Tejo. Es wurde 1960 zum 500. Todestag von Heinrich dem Seefahrer durch das Salazar-Regime errichtet. Das Denkmal hat eine Höhe von 56 Metern.",
+   "url": "https://de.wikipedia.org/wiki/Padr%C3%A3o_dos_Descobrimentos",
+   "lang": "de",
+   "titel": "Padrão dos Descobrimentos"
+  },
+  "bild": {
+   "src": "bilder/padrao-dos-descobrimentos.jpg",
+   "autor": "Jean-Christophe BENOIST",
+   "lizenz": "CC BY 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Lisbonne_-_Padr%C3%A3o_dos_Descobrimentos_-_Closeup.jpg",
+   "breite": 720,
+   "hoehe": 1080
+  }
  },
  {
+  "id": "torre-de-belem",
   "name": "Torre de Belém",
   "adresse": "Torre de Belém, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Von außen gratis, innen 8 €, ab 65 4 €, Mo zu",
   "lat": 38.691586,
   "lon": -9.215929,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Oct-Apr: Tu-Su 10:00-17:30; May-Sep: Tu-Su 10:00-18:30",
+   "rollstuhl": "no"
+  },
+  "wiki": {
+   "text": "Der Torre de Belém im Stadtteil Belém an der Tejomündung ist eines der bekanntesten Wahrzeichen Lissabons. Neben dem nahegelegenen Mosteiro dos Jerónimos gehört der Turm zu den wenigen herausragenden Bauwerken des manuelinischen Stils, die das Erdbeben von Lissabon im Jahr 1755 überstanden haben. Die oberste, 35 Meter hohe, freiliegende Etage des Turms ist heute eine Aussichtsplattform.",
+   "url": "https://de.wikipedia.org/wiki/Torre_de_Bel%C3%A9m",
+   "lang": "de",
+   "titel": "Torre de Belém"
+  },
+  "bild": {
+   "src": "bilder/torre-de-belem.jpg",
+   "autor": "Rehman Abubakr",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Belem_Tower_-_April_2019_(2).jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "central-tejo",
   "name": "Central Tejo",
   "adresse": "Central Tejo, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Museum",
   "notiz": "Altes Kraftwerk, ca. 5 € (Geheimtipp)",
   "lat": 38.695934,
   "lon": -9.193624,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 12:00-20:00; Tu off; Jan 01,May 01,Dec 25",
+   "webseite": "www.maat.pt",
+   "telefon": "+351 210 028 130",
+   "rollstuhl": "yes"
+  },
+  "wiki": {
+   "text": "Das Museum für Kunst, Architektur und Technologie ist ein Museum in Lissabon und wurde im November 2016 eröffnet. Das Gebäude der britischen Architektin Amanda Levete wurde am 9. März 2017 fertiggestellt und liegt direkt am Ufer des Flusses Tejo, unmittelbar neben dem Industriedenkmal und Elektrizitätsmuseum Central Tejo im Stadtteil Belém.",
+   "url": "https://de.wikipedia.org/wiki/Museu_de_Arte%2C_Arquitetura_e_Tecnologia",
+   "lang": "de",
+   "titel": "Museu de Arte, Arquitetura e Tecnologia"
+  },
+  "bild": {
+   "src": "bilder/central-tejo.jpg",
+   "autor": "Susanne Nilsson",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:The_MAAT_(34943440096).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "museu-calouste-gulbenkian",
   "name": "Museu Calouste Gulbenkian",
   "adresse": "Museu Calouste Gulbenkian, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Museum",
   "notiz": "So ab 14 Uhr gratis, Di zu, Park täglich gratis",
   "lat": 38.737823,
   "lon": -9.153515,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "We-Mo 10:00-18:00",
+   "webseite": "https://gulbenkian.pt/museu/",
+   "telefon": "+351 217 823 461",
+   "rollstuhl": "limited"
+  },
+  "wiki": {
+   "text": "Das Museu Calouste Gulbenkian ist ein Museum in Lissabon, Portugal.\nDas Gebäude entstand von 1964 bis 1969 nach Plänen eines Architektenteams aus Ruy Jervis d’Athouguia, Pedro Cid und Alberto Pessoa. 1984 wurde es um das Centro de Arte Moderna als Museum für Moderne Kunst erweitert.\nDie Dauerausstellung bildet das vielseitige Kunstinteresse des Stifters Calouste Gulbenkian ab und umfasst ein breites Spektrum an Kunstobjekten aus allen Epochen.",
+   "url": "https://de.wikipedia.org/wiki/Museu_Calouste_Gulbenkian",
+   "lang": "de",
+   "titel": "Museu Calouste Gulbenkian"
+  },
+  "bild": {
+   "src": "bilder/museu-calouste-gulbenkian.jpg",
+   "autor": "Fundação Calouste Gulbenkian",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Museu_Calouste_Gulbenkian_(Main_Entrance).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "panoramico-de-monsanto",
   "name": "Panorâmico de Monsanto",
   "adresse": "Panorâmico de Monsanto, Alto da Serafina, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Verlassenes Restaurant, 360-Grad-Blick, gratis (Geheimtipp)",
   "lat": 38.728633,
   "lon": -9.184572,
-  "quelle": "pruefen"
+  "quelle": "pruefen",
+  "infos": {
+   "webseite": "https://informacoeseservicos.lisboa.pt/contactos/diretorio-da-cidade/miradouro-panoramico-de-monsanto"
+  },
+  "wiki": {
+   "text": "O Restaurante Panorâmico de Monsanto é um edifício localizado nos Montes Claros, em Monsanto, Lisboa, construído no Estado Novo. O edifício é da autoria do arquitecto Chaves Costa.\nTrata-se de um edifício circular, com um raio de 16 metros, cinco pisos e uma vista panorâmica de 270 graus.\nApós décadas de abandono, foi convertido num Miradouro municipal.",
+   "url": "https://pt.wikipedia.org/wiki/Restaurante_Panor%C3%A2mico_de_Monsanto",
+   "lang": "pt",
+   "titel": "Restaurante Panorâmico de Monsanto"
+  },
+  "bild": {
+   "src": "bilder/panoramico-de-monsanto.jpg",
+   "autor": "Hipersyl",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Panor%C3%A2mico_Monsanto.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "miradouro-de-santo-amaro",
   "name": "Miradouro de Santo Amaro",
   "adresse": "Miradouro de Santo Amaro, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Aussichtspunkt",
   "notiz": "Kachelkapelle, Brückenblick (Geheimtipp)",
   "lat": 38.702078,
   "lon": -9.182421,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "http://www.cm-lisboa.pt/equipamentos/equipamento/info/miradouro-de-santo-amaro"
+  }
  },
  {
+  "id": "lx-factory",
   "name": "LX Factory",
   "adresse": "Rua Rodrigues de Faria 103, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Buchhandlung Ler Devagar",
   "lat": 38.7026,
   "lon": -9.178662,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.lxfactory.com/",
+   "telefon": "+351 21 314 3399"
+  },
+  "wiki": {
+   "text": "A LXFactory é um espaço comercial e artístico da cidade de Lisboa. Ubicado no bairro de Alcântara, uma antiga zona industrial da capital portuguesa, a estrutura foi reformada em 2008 e hoje representa a inovação, criatividade e o empreendedorismo, com inspiração industrial.",
+   "url": "https://pt.wikipedia.org/wiki/LXFactory",
+   "lang": "pt",
+   "titel": "LXFactory"
+  },
+  "bild": {
+   "src": "bilder/lx-factory.jpg",
+   "autor": "Bex Walton from London, England",
+   "lizenz": "CC BY 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:LX_Factory_(22379332901).jpg",
+   "breite": 720,
+   "hoehe": 720
+  }
  },
  {
+  "id": "feira-do-relogio",
   "name": "Feira do Relógio",
   "adresse": "Avenida Santo Condestável, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Markt",
   "notiz": "Nur So 9–14 Uhr, Metro Bela Vista (Geheimtipp)",
   "lat": 38.74994,
   "lon": -9.116839,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 09:00-19:00; Sa 09:00-13:00",
+   "webseite": "https://www.mapadocidadao.pt/Entidades/Detail/218/1997",
+   "telefon": "+351707241107",
+   "rollstuhl": "yes"
+  }
  },
  {
+  "id": "mercado-de-arroios-flifa",
   "name": "Mercado de Arroios (FLIFA)",
   "adresse": "Mercado de Arroios, Rua Ângela Pinto, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Event",
   "notiz": "Buchmesse Sa und So 11–19 Uhr",
   "lat": 38.735242,
   "lon": -9.132663,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 07:00-14:00"
+  },
+  "bild": {
+   "src": "bilder/mercado-de-arroios-flifa.jpg",
+   "autor": "LittleT889",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Mercado_de_Arroios.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "praca-de-sao-paulo-arte-na-praca",
   "name": "Praça de São Paulo (Arte na Praça)",
   "adresse": "Praça de São Paulo, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Event",
   "notiz": "Kunstmarkt So 10–18 Uhr",
   "lat": 38.70761,
   "lon": -9.144889,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2359"
+  }
  },
  {
+  "id": "fahre-cais-do-sodre",
   "name": "Fähre Cais do Sodré",
   "adresse": "Terminal Fluvial do Cais do Sodré, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Verkehr",
   "notiz": "Fähre nach Cacilhas, ca. 1,50 €",
   "lat": 38.705003,
   "lon": -9.145529,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {
+   "rollstuhl": "yes"
+  },
+  "wiki": {
+   "text": "O Terminal Fluvial do Cais do Sodré é um dos três pontos de ligação da Transtejo e Soflusa à Margem Sul do rio Tejo, permitindo o acesso às embarcações que fazem o trajeto entre o Cais do Sodré e Cacilhas, Montijo e Seixal: ~C~ Cais do Sodré ⇄ Cacilhas\n~M~ Cais do Sodré ⇄ Montijo\n~S~ Cais do Sodré ⇄ Seixal\nO terminal está situado na Rua da Cintura do Porto de Lisboa, na zona do Cais do Sodré, entre o Cais do Gás e o Jardim Roque Gameiro. Faz interface com a Estação Ferroviária do Cais do Sodré, que serve a Linha de Cascais, e com a estação Cais do Sodré, que serve a Linha Verde do Metropolitano de Lisboa, para além de ligar a inúmeras carreiras da Carris e linhas da Carris Metropolitana nas paragens circundantes e de contar com uma praça de táxis.",
+   "url": "https://pt.wikipedia.org/wiki/Terminal_Fluvial_do_Cais_do_Sodr%C3%A9",
+   "lang": "pt",
+   "titel": "Terminal Fluvial do Cais do Sodré"
+  },
+  "bild": {
+   "src": "bilder/fahre-cais-do-sodre.jpg",
+   "autor": "Manuelvbotelho",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Terminal_Fluvial_Cais_do_Sodre_6.jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
  },
  {
+  "id": "rua-do-ginjal",
   "name": "Rua do Ginjal",
   "adresse": "Rua do Ginjal, Almada",
+  "ort": "Almada",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Uferweg mit Streetart (Geheimtipp)",
-  "lat": 38.687953,
-  "lon": -9.148069,
-  "quelle": "name"
+  "lat": 38.685138,
+  "lon": -9.157423,
+  "quelle": "pruefen",
+  "infos": {}
  },
  {
+  "id": "jardim-do-rio-und-elevador-da-boca-do-vento",
   "name": "Jardim do Rio und Elevador da Boca do Vento",
   "adresse": "Elevador da Boca do Vento, Almada",
+  "ort": "Almada",
   "kategorie": "Aussichtspunkt",
   "notiz": "Gratis-Aufzug, Sonnenuntergang (Geheimtipp)",
   "lat": 38.684581,
   "lon": -9.158791,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {}
  },
  {
+  "id": "cristo-rei",
   "name": "Cristo Rei",
   "adresse": "Santuário de Cristo Rei, Almada",
+  "ort": "Almada",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Terrasse gratis, Lift kostet extra",
   "lat": 38.678549,
   "lon": -9.171337,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Der Cristo Rei ist eine Christus-Statue in Almada südlich von Lissabon, Portugal.",
+   "url": "https://de.wikipedia.org/wiki/Cristo_Rei_%28Almada%29",
+   "lang": "de",
+   "titel": "Cristo Rei (Almada)"
+  },
+  "bild": {
+   "src": "bilder/cristo-rei.jpg",
+   "autor": "Deensel",
+   "lizenz": "CC BY 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Cristo_Rei_(36211699613)_(cropped).jpg",
+   "breite": 720,
+   "hoehe": 1004
+  }
  },
  {
+  "id": "boca-do-inferno",
   "name": "Boca do Inferno",
   "adresse": "Boca do Inferno, Cascais",
+  "ort": "Cascais",
   "kategorie": "Sehenswürdigkeit",
   "notiz": "Felsküste",
   "lat": 38.691117,
   "lon": -9.430821,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {},
+  "wiki": {
+   "text": "Boca do Inferno ist eine Schlucht in den Küstenklippen nahe der portugiesischen Stadt Cascais.\nDas Wasser des Atlantiks hat Zugang zum tiefen Grund der Schlucht. Bei Flut werden die Wellen in die senkrechten „Felsschlote“ gepresst und weit nach oben an Land geschleudert.\nDer britische Okkultist und Dichter Aleister Crowley täuschte hier im September 1930 seine Selbsttötung vor.",
+   "url": "https://de.wikipedia.org/wiki/Boca_do_Inferno",
+   "lang": "de",
+   "titel": "Boca do Inferno"
+  },
+  "bild": {
+   "src": "bilder/boca-do-inferno.jpg",
+   "autor": "Beatriznog10",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:A_dram%C3%A1tica_%27Boca_do_Inferno%27.JPG",
+   "breite": 720,
+   "hoehe": 479
+  }
  },
  {
+  "id": "faz-frio",
   "name": "Faz Frio",
   "adresse": "Rua Dom Pedro V 96, 1250-094 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Täglich; vegetarisch: Peixinhos da horta, Caldo verde ohne Chouriço",
   "lat": 38.716008,
   "lon": -9.146973,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.fazfrio.pt/"
+  }
  },
  {
+  "id": "tascardoso",
   "name": "Tascardoso",
   "adresse": "Rua de O Século 242, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Di–So, Mo zu; vegetarisch: Peixinhos da horta",
   "lat": 38.715985,
   "lon": -9.147719,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 12:00-15:00, 19:00-23:00",
+   "telefon": "+351 21 342 7578",
+   "kueche": "portuguese",
+   "vegetarisch": "no"
+  }
  },
  {
+  "id": "o-frade",
   "name": "O Frade",
   "adresse": "Calçada da Ajuda 14, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Täglich 12:30–16 und 18–23 Uhr; vegetarisch: Pilzreis; reservieren",
   "lat": 38.707853,
   "lon": -9.19908,
-  "quelle": "pruefen"
+  "quelle": "pruefen",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2617"
+  }
  },
  {
+  "id": "coelho-da-rocha",
   "name": "Coelho da Rocha",
   "adresse": "Rua Coelho da Rocha 104, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Mo–Sa; vegetarisch: Peixinhos; teuer",
-  "lat": 38.716214,
-  "lon": -9.16678,
-  "quelle": "pruefen"
+  "lat": 38.716518,
+  "lon": -9.16478,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=293"
+  }
  },
  {
+  "id": "estrela-da-bica",
   "name": "Estrela da Bica",
   "adresse": "Travessa do Cabral 33, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Nur abends, Di zu; über die Hälfte vegetarisch; reservieren",
   "lat": 38.709353,
   "lon": -9.146323,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.facebook.com/estreladabica",
+   "telefon": "+351 21 347 3310",
+   "kueche": "portuguese"
+  },
+  "wiki": {
+   "text": "Der Ascensor da Bica, auch Elevador da Bica genannt, ist eine von drei historischen Standseilbahnen in Lissabon. Er verläuft durch die namensgebende Rua da Bica de Duarte Belcio im öffentlichen Straßenraum und verbindet die Rua de São Paulo mit dem in der Oberstadt gelegenen Largo do Calhariz. Die Anlage wird vom Verkehrsunternehmen Carris betrieben, ist als Linie 53E in das städtische Verkehrsnetz integriert und überwindet auf einer Länge von 283 Metern einen Höhenunterschied von 45 Metern, die durchschnittliche Steigung beträgt 18,5 Prozent. Wegen des Streckenverlaufes im Straßenraum laufen die Wagen auf Rillenschienen.",
+   "url": "https://de.wikipedia.org/wiki/Ascensor_da_Bica",
+   "lang": "de",
+   "titel": "Ascensor da Bica"
+  },
+  "bild": {
+   "src": "bilder/estrela-da-bica.jpg",
+   "autor": "BKP",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Ascensor_da_Bica_01.JPG",
+   "breite": 720,
+   "hoehe": 540
+  }
  },
  {
+  "id": "santa-clara-dos-cogumelos",
   "name": "Santa Clara dos Cogumelos",
   "adresse": "Mercado de Santa Clara, Campo de Santa Clara, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Sa 13–15:30, sonst abends; Pilzküche",
   "lat": 38.71572,
   "lon": -9.125449,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Tu-Fr 19:30-23:00; Sa 13:00-15:30, 19:30-23:00; Su 19:30-23:00",
+   "webseite": "https://www.santaclaradoscogumelos.com/",
+   "telefon": "+351218870661;+351913043302",
+   "vegetarisch": "yes"
+  }
  },
  {
+  "id": "taberna-albricoque",
   "name": "Taberna Albricoque",
   "adresse": "Rua dos Caminhos de Ferro 98, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Sa 12–15 und 19–23, So und Mo zu; Algarve-Küche",
   "lat": 38.71392,
   "lon": -9.123567,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "rollstuhl": "limited",
+   "kueche": "mediterranean",
+   "vegetarisch": "no"
+  }
  },
  {
+  "id": "solar-dos-nunes",
   "name": "Solar dos Nunes",
   "adresse": "Rua dos Lusíadas 68, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Essen für alle",
   "notiz": "Mo–Sa; vegetarisch: Açorda; teuer",
   "lat": 38.705466,
   "lon": -9.180478,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 12:00-15:00, 19:00-01:00",
+   "webseite": "https://www.solardosnunes.net/",
+   "telefon": "+351 21 364 7359",
+   "kueche": "portuguese"
+  }
  },
  {
+  "id": "kong",
   "name": "Kong",
   "adresse": "Rua do Corpo Santo 2, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegan portugiesisch",
   "notiz": "Täglich 12–23 Uhr",
   "lat": 38.707433,
   "lon": -9.142337,
-  "quelle": "pruefen"
+  "quelle": "pruefen",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 12:00-23:00",
+   "webseite": "https://www.kongvegan.com/",
+   "telefon": "+351213460076",
+   "rollstuhl": "no",
+   "vegan": "only"
+  }
  },
  {
+  "id": "a-minha-avo",
   "name": "A Minha Avó",
   "adresse": "Avenida António Augusto de Aguiar 74B, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegan portugiesisch",
   "notiz": "Di–So mittags und abends, Mo nur abends",
   "lat": 38.731203,
   "lon": -9.151031,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo 19:00-23:00; Tu-Su 12:00-15:00,19:00-23:00",
+   "rollstuhl": "no",
+   "kueche": "portuguese",
+   "vegan": "only"
+  }
  },
  {
+  "id": "ao-26-vegan-food-project",
   "name": "Ao 26 Vegan Food Project",
   "adresse": "Rua da Horta Seca 5, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegan portugiesisch",
   "notiz": "Täglich",
   "lat": 38.710156,
   "lon": -9.143978,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {}
  },
  {
+  "id": "granos-espaco-vegetariano",
   "name": "Granos Espaço Vegetariano",
   "adresse": "Rua Saraiva de Carvalho 358, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegetarisch",
   "notiz": "Mo–Fr 7:30–18, Sa 9–16, So zu",
   "lat": 38.714546,
   "lon": -9.168521,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Fr 07:30-18:00; Sa 09:00-18:00",
+   "webseite": "https://granos-espacovegetariano.com/",
+   "vegetarisch": "yes",
+   "vegan": "yes"
+  }
  },
  {
+  "id": "gal-cafe",
   "name": "Gal Café",
   "adresse": "Rua do Forno do Tijolo 54A, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegetarisch",
   "notiz": "Täglich 9–16, So bis 15 Uhr",
   "lat": 38.725958,
   "lon": -9.134087,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 09:00-17:00; Su 09:00-15:00",
+   "webseite": "https://galcafe.net/",
+   "telefon": "+351 939 956 349",
+   "kueche": "breakfast;cake;coffee_shop;international;local;pancake;sandwich;european",
+   "vegan": "yes"
+  }
  },
  {
+  "id": "the-food-temple",
   "name": "The Food Temple",
   "adresse": "Beco do Jasmim 18, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegetarisch",
   "notiz": "Abends ab 18:30, Mo zu",
   "lat": 38.715862,
   "lon": -9.134275,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "We-Su 19:30-24:00",
+   "webseite": "https://www.thefoodtemple.com/",
+   "telefon": "+351 218874397",
+   "vegetarisch": "only",
+   "vegan": "yes"
+  }
  },
  {
+  "id": "jardim-das-cerejas",
   "name": "Jardim das Cerejas",
   "adresse": "Calçada do Sacramento 36, Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Vegetarisch",
   "notiz": "Veganes Buffet",
   "lat": 38.71139,
   "lon": -9.140243,
-  "quelle": "name"
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Sa 12:00-15:30,19:00-23:00",
+   "telefon": "+351 213 469 308",
+   "rollstuhl": "no",
+   "vegan": "only"
+  }
  },
  {
+  "id": "house-of-wonders",
   "name": "House of Wonders",
   "adresse": "Rua da Misericórdia 53, Cascais",
+  "ort": "Cascais",
   "kategorie": "Vegetarisch",
   "notiz": "Täglich 10–23 Uhr",
-  "lat": 38.698502,
-  "lon": -9.419359,
-  "quelle": "pruefen"
+  "lat": 38.698456,
+  "lon": -9.419306,
+  "quelle": "pruefen",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 08:00-23:00",
+   "telefon": "+351 911 702 428",
+   "vegetarisch": "yes",
+   "vegan": "yes"
+  }
  },
  {
+  "id": "padaria-sao-roque",
   "name": "Padaria São Roque",
   "adresse": "Rua Dom Pedro V 57, 1250-092 Lisboa",
+  "ort": "Lisboa",
   "kategorie": "Café",
   "notiz": "Bäckerei mit Kathedralen-Deko; war Ende 2025 von Schließung bedroht",
   "lat": 38.715578,
   "lon": -9.146115,
-  "quelle": "adresse"
+  "quelle": "adresse",
+  "infos": {},
+  "bild": {
+   "src": "bilder/padaria-sao-roque.jpg",
+   "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Padaria_Patriarcal_-_Lisboa_-_Portugal_%F0%9F%87%B5%F0%9F%87%B9_(54682085388).jpg",
+   "breite": 720,
+   "hoehe": 960
+  }
  }
 ]

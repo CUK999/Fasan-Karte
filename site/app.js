@@ -991,13 +991,14 @@
   const dauerMin = (o) => { const m = /^(\d+)(?:–(\d+))?$/.exec(o.dauer || ''); return m ? Math.round((+m[1] + +(m[2] || m[1])) / 2) : DAUER[o.typ] || 40; };
   const TAG_IDX = { sa: 6, so: 0, mo: 1 };
   function erlaubteTage(o) {
-    const n = o.notiz || '', tage = new Set(['sa', 'so', 'mo']);
+    const n = `${o.notiz || ''} ${o.dauerQuelle || ''}`, tage = new Set(['sa', 'so', 'mo']);
     if (/nur Sa\b/i.test(n)) return new Set(['sa']);
     if (/nur So\b/i.test(n) || /Kunstmarkt So\b/.test(n)) return new Set(['so']);
     if (o.typ === 'fado' && /Mo und Mi/.test(n)) return new Set(['mo']);
     if (/Sa und So\b/.test(n)) tage.delete('mo');
     if (/Mo zu|So und Mo zu/.test(n)) tage.delete('mo');
-    if (/So zu|So und Mo zu/.test(n)) tage.delete('so');
+    if (/So zu|So und Mo zu|So geschlossen/.test(n)) tage.delete('so');
+    if (/Mo geschlossen/.test(n)) tage.delete('mo');
     if (/Mo–Sa/.test(n)) tage.delete('so');
     if (/Mi–Sa/.test(n)) { tage.delete('so'); tage.delete('mo'); }
     const w = o.infos && o.infos.oeffnungszeiten && window.Oeffnung.lies(o.infos.oeffnungszeiten);

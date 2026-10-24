@@ -4989,6 +4989,824 @@
      "hoehe": 479
     }
    }
+  },
+  "Estrela do Bairro|Rua do Diário de Notícias 66, 1200-145 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711967,
+    "lon": -9.144113,
+    "anzeige": "Rua do Diário de Notícias, Oberstadt, Misericórdia, Lissabon, 1200-145, Portugal",
+    "osm": "way/23658844",
+    "art": "highway:pedestrian",
+    "name": "Rua do Diário de Notícias",
+    "tags": {
+     "lit": "yes",
+     "width": "5",
+     "oneway": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=528",
+     "maxspeed": "30",
+     "sidewalk": "no",
+     "start_date": "1885-12-31",
+     "description": "Toponímia: Imprensa. Início: Travessa dos Fiéis de Deus. Fim: Travessa da Cara."
+    }
+   },
+   "n": {
+    "lat": 38.81973,
+    "lon": -9.125061,
+    "anzeige": "Estrela, Rua Alves Redol, Bairro Martins do Vale, Catujal, Camarate, Unhos e Apelação, Loures, Lissabon, 2680-383, Portugal",
+    "osm": "node/10046479131",
+    "art": "amenity:cafe",
+    "name": "Estrela",
+    "tags": {
+     "brand:short": "Camelo",
+     "opening_hours": "closed"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q652613",
+     "bild": "Bairro Alto Lisboa 2.JPG",
+     "koord": [
+      38.713746,
+      -9.145193
+     ],
+     "titel": {
+      "de": "Bairro Alto",
+      "en": "Bairro Alto",
+      "pt": "Bairro Alto"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Bairro Alto",
+     "text": "Der Bairro Alto ['bajʀu aɫtu] ist ein Stadtteil der portugiesischen Hauptstadt Lissabon, der sich oberhalb des Geschäftsviertels Baixa befindet. Das südliche Ende befindet sich am Praça Luís de Camões. Westlich wird es durch die Rua do Século undöstlich durch die Rua da Misericórdia / Rua Dom Pedro V begrenzt. Das Viertel liegt in der ehemaligen Gemeinde von Santa Catarina, seit den Zusammenlegungen Lissabonner Stadtgemeinden vor der Gemeindereform 2013 erfolgt die politische Verwaltung des Bairro Alto durch die Junta de Freguesia von Misericórdia.",
+     "url": "https://de.wikipedia.org/wiki/Bairro_Alto",
+     "seitenbild": "Bairro_Alto_Lisboa_3.JPG"
+    },
+    "bild": {
+     "thumb": "https://upload.wikimedia.org/wikipedia/commons/4/45/Bairro_Alto_Lisboa_2.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "autor": "unbekannt",
+     "lizenz": "CC BY-SA 2.5",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.5",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Bairro_Alto_Lisboa_2.JPG",
+     "breite": 720,
+     "hoehe": 959
+    }
+   }
+  },
+  "Volta dos Sabores|Rua da Barroca 106, 1200-043 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711896,
+    "lon": -9.144542,
+    "anzeige": "Rua da Barroca, Oberstadt, Misericórdia, Lissabon, 1200-048, Portugal",
+    "osm": "way/23658882",
+    "art": "highway:pedestrian",
+    "name": "Rua da Barroca",
+    "tags": {
+     "oneway": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=176",
+     "maxspeed": "30",
+     "description": "Toponímia: Outros, Georreferência. Início: Rua das Salgadeiras. Fim: Travessa da Queimada."
+    }
+   },
+   "n": {
+    "lat": 38.712446,
+    "lon": -9.14454,
+    "anzeige": "Volta dos Sabores, Travessa do Poço da Cidade, Oberstadt, Misericórdia, Lissabon, 1200-334, Portugal",
+    "osm": "node/4231508456",
+    "art": "amenity:restaurant",
+    "name": "Volta dos Sabores",
+    "tags": {}
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Tabernário do Bairro|Rua Afonso Domingues 2A, 1170-004 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.719563,
+    "lon": -9.122674,
+    "anzeige": "Tabernário do Bairro, 2A, Rua Afonso Domingues, Santa Engrácia, Graça, São Vicente, Lissabon, 1170-381, Portugal",
+    "osm": "node/9979946995",
+    "art": "amenity:restaurant",
+    "name": "Tabernário do Bairro",
+    "tags": {
+     "cuisine": "portuguese",
+     "reservation": "yes",
+     "opening_hours": "Mo,We,Sa 19:00-22:00; Tu,Th,Fr 12:00-15:00,19:00-22:00",
+     "contact:mobile": "+351 931 718 197",
+     "diet:vegetarian": "yes",
+     "outdoor_seating": "yes",
+     "contact:facebook": "https://www.facebook.com/tabernariodobairro/"
+    }
+   },
+   "n": {
+    "lat": 38.719563,
+    "lon": -9.122674,
+    "anzeige": "Tabernário do Bairro, 2A, Rua Afonso Domingues, Santa Engrácia, Graça, São Vicente, Lissabon, 1170-381, Portugal",
+    "osm": "node/9979946995",
+    "art": "amenity:restaurant",
+    "name": "Tabernário do Bairro",
+    "tags": {
+     "cuisine": "portuguese",
+     "reservation": "yes",
+     "opening_hours": "Mo,We,Sa 19:00-22:00; Tu,Th,Fr 12:00-15:00,19:00-22:00",
+     "contact:mobile": "+351 931 718 197",
+     "diet:vegetarian": "yes",
+     "outdoor_seating": "yes",
+     "contact:facebook": "https://www.facebook.com/tabernariodobairro/"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Taberna Sal Grosso|Calçada do Forte 22, 1100-256 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.713695,
+    "lon": -9.124436,
+    "anzeige": "Taberna Sal Grosso, 22, Calçada do Forte, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-256, Portugal",
+    "osm": "node/5908678785",
+    "art": "amenity:restaurant",
+    "name": "Taberna Sal Grosso",
+    "tags": {}
+   },
+   "n": {
+    "lat": 38.713695,
+    "lon": -9.124436,
+    "anzeige": "Taberna Sal Grosso, 22, Calçada do Forte, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-256, Portugal",
+    "osm": "node/5908678785",
+    "art": "amenity:restaurant",
+    "name": "Taberna Sal Grosso",
+    "tags": {}
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Frade dos Mares|Avenida Dom Carlos I 55A, 1200-647 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.70846,
+    "lon": -9.15321,
+    "anzeige": "Frade dos Mares, 55-A, Avenida Dom Carlos I, Santos-o-Velho, Prazeres, Estrela, Lissabon, 1200-647, Portugal",
+    "osm": "node/3157293043",
+    "art": "amenity:restaurant",
+    "name": "Frade dos Mares",
+    "tags": {
+     "email": "geral@fradedosmares.com",
+     "phone": "+351 213 909 418",
+     "cuisine": "regional",
+     "website": "http://www.fradedosmares.com"
+    }
+   },
+   "n": {
+    "lat": 38.70846,
+    "lon": -9.15321,
+    "anzeige": "Frade dos Mares, 55-A, Avenida Dom Carlos I, Santos-o-Velho, Prazeres, Estrela, Lissabon, 1200-647, Portugal",
+    "osm": "node/3157293043",
+    "art": "amenity:restaurant",
+    "name": "Frade dos Mares",
+    "tags": {
+     "email": "geral@fradedosmares.com",
+     "phone": "+351 213 909 418",
+     "cuisine": "regional",
+     "website": "http://www.fradedosmares.com"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Time Out Market Lisboa|Mercado da Ribeira, Avenida 24 de Julho, 1200-479 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.706994,
+    "lon": -9.145693,
+    "anzeige": "Mercado da Ribeira, 49, Avenida 24 de Julho, São Paulo, Misericórdia, Lissabon, 1200-479, Portugal",
+    "osm": "way/39729235",
+    "art": "amenity:marketplace",
+    "name": "Mercado da Ribeira",
+    "tags": {
+     "layer": "0",
+     "building": "yes",
+     "wikidata": "Q1517035",
+     "wikipedia": "pt:Mercado da Ribeira",
+     "check_date": "2024-05-05",
+     "wheelchair": "yes",
+     "opening_hours": "Mo-We 10:00-00:00; Th-Sa 10:00-02:00; Su 10:00-24:00",
+     "wikimedia_commons": "Category:Mercado da Ribeira (Lisbon)"
+    }
+   },
+   "n": {
+    "lat": 38.707093,
+    "lon": -9.145897,
+    "anzeige": "Time Out Market Lisboa, 49, Praça Dom Luís I, São Paulo, Misericórdia, Lissabon, 1200-479, Portugal",
+    "osm": "way/1286260412",
+    "art": "amenity:food_court",
+    "name": "Time Out Market Lisboa",
+    "tags": {
+     "level": "0",
+     "phone": "+351 210 607 403",
+     "branch": "Lisboa",
+     "smoking": "no",
+     "toilets": "yes",
+     "website": "https://www.timeoutmarket.com/lisboa/",
+     "wikidata": "Q28226115",
+     "wikipedia": "pt:Time Out Market Lisboa",
+     "check_date": "2026-09-30",
+     "wheelchair": "yes",
+     "description": "The Lisbon market has around 36 restaurants and kiosks.",
+     "opening_hours": "Mo-Su 10:00-00:00",
+     "changing_table": "yes",
+     "indoor_seating": "yes",
+     "toilets:access": "permissive",
+     "diet:vegetarian": "yes",
+     "internet_access": "wlan",
+     "outdoor_seating": "no",
+     "internet_access:fee": "yes",
+     "wheelchair:turning_circle": "yes",
+     "check_date:diet:vegetarian": "2026-09-30"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q28226115",
+     "bild": "Mercado da Ribeira, Time Out Market, Lisbon - 49677105008.jpg",
+     "koord": [
+      38.706944444444446,
+      -9.145555555555555
+     ],
+     "titel": {
+      "en": "Time Out Market Lisboa",
+      "pt": "Time Out Market Lisboa"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Time Out Market Lisboa",
+     "text": "Time Out Market Lisboa é um food hall localizado no Mercado da Ribeira no Cais do Sodré, em Lisboa, Portugal. O conceito passa por juntar debaixo do mesmo tecto os melhores chefs, restaurantes e projectos gastronómicos da capital portuguesa, com base nas recomendações dos críticos e colaboradores da revista Time Out.",
+     "url": "https://pt.wikipedia.org/wiki/Time_Out_Market_Lisboa",
+     "seitenbild": "Mercado_da_Ribeira,_Time_Out_Market,_Lisbon_-_49677105008.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/24/Mercado_da_Ribeira%2C_Time_Out_Market%2C_Lisbon_-_49677105008.jpg/960px-Mercado_da_Ribeira%2C_Time_Out_Market%2C_Lisbon_-_49677105008.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Sonse",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Mercado_da_Ribeira,_Time_Out_Market,_Lisbon_-_49677105008.jpg",
+     "breite": 720,
+     "hoehe": 960
+    }
+   }
+  },
+  "LEGO Certified Store Chiado|Rua do Carmo 2, 1200-094 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711001,
+    "lon": -9.139386,
+    "anzeige": "Armazéns do Chiado, 2, Rua do Carmo, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-093, Portugal",
+    "osm": "way/96321698",
+    "art": "shop:mall",
+    "name": "Armazéns do Chiado",
+    "tags": {
+     "height": "24",
+     "website": "https://www.armazensdochiado.com/",
+     "building": "retail",
+     "wikidata": "Q54666542",
+     "wikipedia": "pt:Grandes Armazéns do Chiado",
+     "opening_hours": "Mo-Su 10:00-23:00",
+     "wikimedia_commons": "Category:Armazéns do Chiado"
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q54666542",
+     "bild": "Armazéns do Chiado at dusk and with Christmas decorations, Lisbon, Portugal julesvernex2.jpg",
+     "koord": [
+      38.710994720459,
+      -9.13945388793945
+     ],
+     "titel": {
+      "pt": "Armazéns do Chiado"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Armazéns do Chiado",
+     "text": "Os Armazéns do Chiado, também referidos como Palácio Barcelinhos ou Grandes Armazéns do Chiado, são um edifício de comércio localizado na confluência da Rua do Carmo com a Rua Nova do Almada e a Rua Garrett, dando, na fachada oeste, para a Rua do Crucifixo, na freguesia de Santa Maria Maior, Lisboa.\nO edifíco atual, é resultado da reabilitação dos Grandes Armazéns do Chiado, destruídos pelo Incêndio do Chiado de 1988. Atualmente o centro comercial conta com cerca de 50 lojas e restaurantes, numa área bruta locável de 13.976 m².\nOs Armazéns do Chiado encontram-se incluídos na classificação da Lisboa Pombalina.",
+     "url": "https://pt.wikipedia.org/wiki/Armaz%C3%A9ns_do_Chiado",
+     "seitenbild": "Logo_Centro_Armazéns_do_Chiado.png"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations%2C_Lisbon%2C_Portugal_julesvernex2.jpg/960px-Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations%2C_Lisbon%2C_Portugal_julesvernex2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Jules Verne Times Two",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations,_Lisbon,_Portugal_julesvernex2.jpg",
+     "breite": 720,
+     "hoehe": 719
+    }
+   }
+  },
+  "Rua de Campo de Ourique|Rua de Campo de Ourique, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.721219,
+    "lon": -9.166968,
+    "anzeige": "Rua de Campo de Ourique, Santo Condestável, Santa Isabel, Campo de Ourique, Lissabon, 1350-270, Portugal",
+    "osm": "way/23686396",
+    "art": "highway:residential",
+    "name": "Rua de Campo de Ourique",
+    "tags": {
+     "oneway": "yes",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=843",
+     "start_date": "1859-09-01",
+     "description": "Toponímia: Sítios. Início: Rua Silva Carvalho. Fim: Rua Maria Pia."
+    }
+   },
+   "n": {
+    "lat": 38.721219,
+    "lon": -9.166968,
+    "anzeige": "Rua de Campo de Ourique, Santo Condestável, Santa Isabel, Campo de Ourique, Lissabon, 1350-270, Portugal",
+    "osm": "way/23686396",
+    "art": "highway:residential",
+    "name": "Rua de Campo de Ourique",
+    "tags": {
+     "oneway": "yes",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=843",
+     "start_date": "1859-09-01",
+     "description": "Toponímia: Sítios. Início: Rua Silva Carvalho. Fim: Rua Maria Pia."
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Bairro Alto|Bairro Alto, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.713392,
+    "lon": -9.145552,
+    "anzeige": "Oberstadt, Misericórdia, Lissabon, Portugal",
+    "osm": "way/945072679",
+    "art": "place:suburb",
+    "name": "Oberstadt",
+    "tags": {
+     "wikidata": "Q652613",
+     "wikipedia": "pt:Bairro Alto",
+     "wikimedia_commons": "Category:Bairro Alto (Lisbon)"
+    }
+   },
+   "n": {
+    "lat": 38.713392,
+    "lon": -9.145552,
+    "anzeige": "Oberstadt, Misericórdia, Lissabon, Portugal",
+    "osm": "way/945072679",
+    "art": "place:suburb",
+    "name": "Oberstadt",
+    "tags": {
+     "wikidata": "Q652613",
+     "wikipedia": "pt:Bairro Alto",
+     "wikimedia_commons": "Category:Bairro Alto (Lisbon)"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q652613",
+     "bild": "Bairro Alto Lisboa 2.JPG",
+     "koord": [
+      38.713746,
+      -9.145193
+     ],
+     "titel": {
+      "de": "Bairro Alto",
+      "en": "Bairro Alto",
+      "pt": "Bairro Alto"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Bairro Alto",
+     "text": "Der Bairro Alto ['bajʀu aɫtu] ist ein Stadtteil der portugiesischen Hauptstadt Lissabon, der sich oberhalb des Geschäftsviertels Baixa befindet. Das südliche Ende befindet sich am Praça Luís de Camões. Westlich wird es durch die Rua do Século undöstlich durch die Rua da Misericórdia / Rua Dom Pedro V begrenzt. Das Viertel liegt in der ehemaligen Gemeinde von Santa Catarina, seit den Zusammenlegungen Lissabonner Stadtgemeinden vor der Gemeindereform 2013 erfolgt die politische Verwaltung des Bairro Alto durch die Junta de Freguesia von Misericórdia.",
+     "url": "https://de.wikipedia.org/wiki/Bairro_Alto",
+     "seitenbild": "Bairro_Alto_Lisboa_3.JPG"
+    },
+    "bild": {
+     "thumb": "https://upload.wikimedia.org/wikipedia/commons/4/45/Bairro_Alto_Lisboa_2.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+     "autor": "unbekannt",
+     "lizenz": "CC BY-SA 2.5",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.5",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Bairro_Alto_Lisboa_2.JPG",
+     "breite": 720,
+     "hoehe": 959
+    }
+   }
+  },
+  "Alfama|Alfama, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.71177,
+    "lon": -9.12838,
+    "anzeige": "Alfama, Santa Maria Maior, Madalena, Lissabon, 1100-095, Portugal",
+    "osm": "node/207597971",
+    "art": "place:neighbourhood",
+    "name": "Alfama",
+    "tags": {
+     "wikidata": "Q985517",
+     "wikipedia": "pt:Alfama",
+     "wikimedia_commons": "Category:Alfama (Lisbon)"
+    }
+   },
+   "n": {
+    "lat": 38.71177,
+    "lon": -9.12838,
+    "anzeige": "Alfama, Santa Maria Maior, Madalena, Lissabon, 1100-095, Portugal",
+    "osm": "node/207597971",
+    "art": "place:neighbourhood",
+    "name": "Alfama",
+    "tags": {
+     "wikidata": "Q985517",
+     "wikipedia": "pt:Alfama",
+     "wikimedia_commons": "Category:Alfama (Lisbon)"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q985517",
+     "bild": "Alfama-CCBY.jpg",
+     "koord": [
+      38.710662,
+      -9.132385
+     ],
+     "titel": {
+      "pt": "Alfama",
+      "en": "Alfama",
+      "de": "Alfama"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Alfama",
+     "text": "Alfama ist ein Stadtteil und eine ehemalige Freguesia in der portugiesischen Hauptstadt Lissabon zwischen dem Castelo de São Jorge und dem Tejoufer. Alfama, das in den heutigen Freguesias Santa Maria Maior und São Vicente liegt, ist besonders für seine zahlreichen Sehenswürdigkeiten wie das Panteão Nacional und das Castelo de São Jorge sowie für seine zahlreichen Restaurants und Fadolokale bekannt. Der Name „Alfama“ stammt vermutlich vom arabischen Al-hamma, was in etwa „Quellen“ oder „Bäder“ bedeutet.",
+     "url": "https://de.wikipedia.org/wiki/Alfama",
+     "seitenbild": "Lisbon_alfalma.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b6/Alfama-CCBY.jpg/960px-Alfama-CCBY.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Miguel Vieira [2]",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Alfama-CCBY.jpg",
+     "breite": 720,
+     "hoehe": 322
+    }
+   }
+  },
+  "Mosteiro de São Vicente de Fora|Largo de São Vicente, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.730236,
+    "lon": -9.407677,
+    "anzeige": "Largo de São Vicente, Quinta de São Martinho, Alcabideche, Cascais, Lissabon, 2645-559, Portugal",
+    "osm": "way/53082981",
+    "art": "highway:residential",
+    "name": "Largo de São Vicente",
+    "tags": {
+     "oneway": "yes"
+    }
+   },
+   "n": {
+    "lat": 38.714729,
+    "lon": -9.127489,
+    "anzeige": "Igreja de São Vicente de Fora, Largo de São Vicente, São Vicente de Fora, Graça, São Vicente, Lissabon, 1100-572, Portugal",
+    "osm": "relation/3310877",
+    "art": "amenity:place_of_worship",
+    "name": "Igreja de São Vicente de Fora",
+    "tags": {
+     "height": "24",
+     "tourism": "attraction",
+     "building": "cathedral",
+     "historic": "monastery",
+     "religion": "christian",
+     "wikidata": "Q1776168",
+     "wikipedia": "pt:Igreja de São Vicente de Fora",
+     "description": "O actual edifício maneirista, de carácter monumental, harmonioso e simétrico, que substituiu o primitivo complexo arquitectónico românico do séc. XII, foi mandado erguer por Filipe II em 1582. A construção, terminada em 1629, foi dirigida por Fil",
+     "roof:levels": "0",
+     "denomination": "roman_catholic",
+     "building:colour": "white",
+     "building:levels": "4",
+     "building:levels:underground": "0"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Museu Nacional do Azulejo|Rua da Madre de Deus 4, 1900-312 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.724724,
+    "lon": -9.113914,
+    "anzeige": "Museu Nacional do Azulejo, 4, Rua da Madre de Deus, São João, Penha de França, Lissabon, 1900-455, Portugal",
+    "osm": "way/1451054092",
+    "art": "tourism:museum",
+    "name": "Museu Nacional do Azulejo",
+    "tags": {
+     "fee": "yes",
+     "email": "geral.mnaz@museusemonumentos.pt",
+     "museum": "art",
+     "website": "https://museunacionaldoazulejo.gov.pt/",
+     "historic": "monastery",
+     "wikidata": "Q2313815",
+     "wikipedia": "pt:Museu Nacional do Azulejo",
+     "wheelchair": "yes",
+     "description": "Mosteiro fundado em 1509 pela Rainha D. Leonor, sofreu várias campanhas de obras, nomeadamente após o terramoto de 1755, pelo que o edifício traduz uma súmula de estilos: mudéjar (tecto da capela de D. Leonor); manuelino (piso térreo do claustrinho e",
+     "contact:phone": "+351 218 100 340",
+     "opening_hours": "closed"
+    }
+   },
+   "n": {
+    "lat": 38.724724,
+    "lon": -9.113914,
+    "anzeige": "Museu Nacional do Azulejo, 4, Rua da Madre de Deus, São João, Penha de França, Lissabon, 1900-455, Portugal",
+    "osm": "way/1451054092",
+    "art": "tourism:museum",
+    "name": "Museu Nacional do Azulejo",
+    "tags": {
+     "fee": "yes",
+     "email": "geral.mnaz@museusemonumentos.pt",
+     "museum": "art",
+     "website": "https://museunacionaldoazulejo.gov.pt/",
+     "historic": "monastery",
+     "wikidata": "Q2313815",
+     "wikipedia": "pt:Museu Nacional do Azulejo",
+     "wheelchair": "yes",
+     "description": "Mosteiro fundado em 1509 pela Rainha D. Leonor, sofreu várias campanhas de obras, nomeadamente após o terramoto de 1755, pelo que o edifício traduz uma súmula de estilos: mudéjar (tecto da capela de D. Leonor); manuelino (piso térreo do claustrinho e",
+     "contact:phone": "+351 218 100 340",
+     "opening_hours": "closed"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q2313815",
+     "bild": "Convento da Madre de Deus - Lisboa - Portugal (46913633574).jpg",
+     "koord": [
+      38.7244,
+      -9.11389
+     ],
+     "titel": {
+      "pt": "Museu Nacional do Azulejo",
+      "de": "Museu Nacional do Azulejo",
+      "en": "National Museum of the Azulejo"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Museu Nacional do Azulejo",
+     "text": "Museu Nacional do Azulejo ist ein Lissabonner Museum für die Azulejos, die für Portugal typischen Keramikfliesen.",
+     "url": "https://de.wikipedia.org/wiki/Museu_Nacional_do_Azulejo",
+     "seitenbild": "Madre_Deus_December_2012-4a.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d5/Convento_da_Madre_de_Deus_-_Lisboa_-_Portugal_%2846913633574%29.jpg/960px-Convento_da_Madre_de_Deus_-_Lisboa_-_Portugal_%2846913633574%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Convento_da_Madre_de_Deus_-_Lisboa_-_Portugal_(46913633574).jpg",
+     "breite": 720,
+     "hoehe": 539
+    }
+   }
+  },
+  "Elevador de Santa Justa|Rua de Santa Justa, 1150-060 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.712455,
+    "lon": -9.137983,
+    "anzeige": "Rua de Santa Justa, São Cristóvão e São Lourenço, Baixa, Madalena, Lissabon, 1100-170, Portugal",
+    "osm": "way/5011574",
+    "art": "highway:pedestrian",
+    "name": "Rua de Santa Justa",
+    "tags": {
+     "lit": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=956",
+     "start_date": "1892-11-12",
+     "description": "Toponímia: Igrejas e Ermidas, Hagiotopónimo. Início: Rua da Madalena. Fim: Rua do Carmo.",
+     "name:etymology:wikidata": "Q24254812"
+    }
+   },
+   "n": {
+    "lat": 38.712117,
+    "lon": -9.139375,
+    "anzeige": "Elevador de Santa Justa, Rua de Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal",
+    "osm": "way/115238861",
+    "art": "tourism:attraction",
+    "name": "Elevador de Santa Justa",
+    "tags": {
+     "layer": "1",
+     "height": "45",
+     "ref:pc": "70141",
+     "ref:ipa": "3146",
+     "building": "elevator",
+     "heritage": "2",
+     "historic": "building",
+     "operator": "Carris",
+     "wikidata": "Q168001",
+     "wikipedia": "pt:Elevador de Santa Justa",
+     "start_date": "1902",
+     "wheelchair": "yes",
+     "heritage:website": "https://imovel.patrimoniocultural.gov.pt/detalhes.php?code=70141",
+     "operator:website": "https://www.carris.pt/",
+     "protection_title": "Monumento Nacional",
+     "heritage:operator": "pc",
+     "operator:wikidata": "Q1045108",
+     "wikimedia_commons": "Category:Elevador de Santa Justa",
+     "operator:wikipedia": "pt:Companhia Carris de Ferro de Lisboa",
+     "pc:inscription_date": "2002-02-19",
+     "heritage:website:sipa": "http://monumentos.pt/Site/APP_PagesUser/SIPA.aspx?id=3146",
+     "short_protection_title": "MN"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q168001",
+     "bild": "Elevador de Santa Justa, Lisboa, Portugal, 2022-07-24, DD 07.jpg",
+     "koord": [
+      38.71194,
+      -9.13917
+     ],
+     "titel": {
+      "de": "Elevador de Santa Justa",
+      "en": "Santa Justa Lift",
+      "pt": "Elevador de Santa Justa"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Elevador de Santa Justa",
+     "text": "Der Elevador de Santa Justa, auch Elevador do Carmo genannt, ist ein öffentlicher Personenaufzug, der im Stadtzentrum der portugiesischen Hauptstadt Lissabon den Stadtteil Baixa mit dem höhergelegenen Stadtteil Chiado verbindet. Fertiggestellt wurde die markante Konstruktion aus Gusseisen nach Plänen des Ingenieurs Raoul Mesnier de Ponsard im Jahr 1902. Ursprünglich wurden die Kabinen von einer Dampfmaschine bewegt, die 1907 durch Elektromotoren ersetzt wurde. Die unter Denkmalschutz stehende Anlage wird vom kommunalen Verkehrsunternehmen Carris betrieben und ist als Linie 54E in das städtische Verkehrsnetz integriert.",
+     "url": "https://de.wikipedia.org/wiki/Elevador_de_Santa_Justa",
+     "seitenbild": "Lisbon_(Lisboa)_historic_elevator_Santa_Justa_Luca_Galuzzi_2006.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5f/Elevador_de_Santa_Justa%2C_Lisboa%2C_Portugal%2C_2022-07-24%2C_DD_07.jpg/960px-Elevador_de_Santa_Justa%2C_Lisboa%2C_Portugal%2C_2022-07-24%2C_DD_07.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Diego Delso",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Elevador_de_Santa_Justa,_Lisboa,_Portugal,_2022-07-24,_DD_07.jpg",
+     "breite": 720,
+     "hoehe": 2529
+    }
+   }
+  },
+  "Tram 28E Start Martim Moniz|Praça Martim Moniz, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.715997,
+    "lon": -9.136346,
+    "anzeige": "Praça Martim Moniz, Mouraria, Santa Maria Maior, Madalena, Lissabon, 1100-341, Portugal",
+    "osm": "relation/9218832",
+    "art": "place:square",
+    "name": "Praça Martim Moniz",
+    "tags": {
+     "lit": "yes",
+     "highway": "pedestrian",
+     "surface": "paving_stones",
+     "wikidata": "Q20716902",
+     "wikipedia": "en:Praça Martim Moniz",
+     "name:etymology:wikidata": "Q3028496"
+    }
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q20716902",
+     "bild": "Largo Martim Moniz, Lisboa 03.jpg",
+     "koord": [
+      38.715472222222225,
+      -9.136583333333332
+     ],
+     "titel": {
+      "en": "Praça Martim Moniz",
+      "pt": "Praça Martim Moniz"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praça Martim Moniz",
+     "text": "Praça Martim Moniz é uma praça em Lisboa, Portugal, que leva o nome de Martim Moniz, constituindo-se como uma das mais emblemáticas praças da capital portuguesa.\nExistem paragens do Metro de Lisboa \"Martim Moniz\" e do elétrico de Lisboa na praça.\nEm fevereiro de 2024, a Câmara Municipal de Lisboa apresentou o novo projeto de requalificação da praça.",
+     "url": "https://pt.wikipedia.org/wiki/Pra%C3%A7a_Martim_Moniz",
+     "seitenbild": "Praça_de_Martim_Moniz_-_panoramio.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Largo_Martim_Moniz%2C_Lisboa_03.jpg/960px-Largo_Martim_Moniz%2C_Lisboa_03.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "GualdimG",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Largo_Martim_Moniz,_Lisboa_03.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Praia de Carcavelos|Praia de Carcavelos, Cascais": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.679223,
+    "lon": -9.335236,
+    "anzeige": "Praia de Carcavelos, Carcavelos e Parede, Cascais, Lissabon, 2775-604, Portugal",
+    "osm": "way/157464438",
+    "art": "natural:beach",
+    "name": "Praia de Carcavelos",
+    "tags": {
+     "sport": "surfing",
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q10352764",
+     "wikimedia_commons": "Category:Praia de Carcavelos"
+    }
+   },
+   "n": {
+    "lat": 38.679223,
+    "lon": -9.335236,
+    "anzeige": "Praia de Carcavelos, Carcavelos e Parede, Cascais, Lissabon, 2775-604, Portugal",
+    "osm": "way/157464438",
+    "art": "natural:beach",
+    "name": "Praia de Carcavelos",
+    "tags": {
+     "sport": "surfing",
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q10352764",
+     "wikimedia_commons": "Category:Praia de Carcavelos"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q10352764",
+     "bild": "Praia de Carcavelos.jpg",
+     "koord": [
+      38.67838,
+      -9.33416
+     ],
+     "titel": {
+      "pt": "Praia de Carcavelos"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praia de Carcavelos",
+     "text": "A Praia de Carcavelos é primeira praia oceânica após a foz do rio Tejo, formando com outras a Costa do Estoril.\nA Praia de Carcavelos está situada na União das Freguesias de Carcavelos e Parede, entre a Parede e Santo Amaro de Oeiras. No inverno tem ondas de classe nacional onde já vários surfistas despontaram para o desporto. A praia forma uma onda tubular e rápida[carece de fontes]?.",
+     "url": "https://pt.wikipedia.org/wiki/Praia_de_Carcavelos",
+     "seitenbild": "Summer_in_October_(37404902536).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/Praia_de_Carcavelos.jpg/960px-Praia_de_Carcavelos.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "ceiling",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Praia_de_Carcavelos.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
   }
  }
 }

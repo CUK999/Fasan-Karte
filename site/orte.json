@@ -486,15 +486,6 @@
   "quelle": "name"
  },
  {
-  "name": "Vegan Nata",
-  "adresse": "Rua 4 de Infantaria 29D, 1350-169 Lisboa",
-  "kategorie": "Vegetarisch",
-  "notiz": "Veganer Pastel de nata, täglich 9–19 Uhr",
-  "lat": 38.819522,
-  "lon": -9.122706,
-  "quelle": "pruefen"
- },
- {
   "name": "Gal Café",
   "adresse": "Rua do Forno do Tijolo 54A, Lisboa",
   "kategorie": "Vegetarisch",

@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.3.1';
+  const VERSION = '1.3.2';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -753,6 +753,7 @@
       el('section', { class: 'abschnitt' }, el('h3', {}, `Gut zu wissen in Lissabon · Stand ${STAND_NOTIZEN}`),
         tipps('Fahren', ['Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten.', 'Einzelfahrt 1,90 €. 24-Stunden-Ticket 7,25 €, mit Fähre 10,35 €, mit Zug nach Cascais 11,40 €.', 'Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 €.', 'Gesperrt: Elevador de Santa Justa sowie die Standseilbahnen Glória, Bica und Lavra. Der Funicular da Graça fährt 7–21 Uhr.']),
         tipps('Zeiten', ['Nacht auf Sonntag: Uhren 1 Stunde zurück.', 'Montag zu: Jerónimos und staatliche Museen. Dienstag zu: Gulbenkian.', 'Gulbenkian sonntags ab 14 Uhr gratis.', 'Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend).']),
+        tipps('Notfall', ['Notruf 112: Polizei, Rettung, Feuerwehr (europaweite Notrufnummer).', 'Taschendiebe laut Auswärtigem Amt (abgerufen 24.10.2026) vor allem an Praça do Comércio, Rua Augusta, in der Alfama, am Castelo de São Jorge, in historischen Straßenbahnen, Bahnhöfen und der Metro.', 'Für Notfälle: einen Treffpunkt unter „Gruppe“ festlegen, dann findet jede und jeder dorthin zurück.']),
         tipps('Vor Ort', ['Couvert (Brot, Oliven, Häppchen) kostet extra. Ablehnen mit „Não, obrigado“. Oft ist Schinken dabei.', 'Trinkgeld 5–10 %. Bei Gruppen steht manchmal schon Service auf der Rechnung.', 'Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren.', 'Bargeld am Multibanco-Automaten holen.']),
         tipps('Diese Karte', ['Nummern zeigen die Reihenfolge des Tages. Die gepunktete Linie ist Luftlinie; den Fußweg zeigt die Navigation.', 'Gehzeiten sind geschätzt: 1,3 × Luftlinie bei 4 km/h.', 'Öffnungszeiten stammen aus OpenStreetMap und können veraltet sein.', 'Android: im Chrome-Menü „Zum Startbildschirm hinzufügen“. iPhone: die Karte in Safari nutzen, denn Gruppen-Links aus der Kamera öffnen sich in Safari, und ein Symbol auf dem Home-Bildschirm hätte einen eigenen, getrennten Speicher.'])),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Daten und Verbindungen'),
@@ -774,7 +775,7 @@
 
 
   // ---------- Gruppenplan: Tagesplan aus den Stimmen ----------
-  // Nur Orte mit mehr Zustimmung als Ablehnung (Ablehnung wiegt wie ein Veto gegen knappe Mehrheiten),
+  // Nur Orte mit Zustimmung und ohne „Lieber nicht“ (strittige Orte stehen unter „Gruppe“; Recherche docs/recherche/2026-10-24-gruppenreisen.md),
   // je Tag nach Nähe zum Tagesgebiet aus Plan A, Öffnungstage beachtet, Reihenfolge nach kurzem Fußweg,
   // Mittag- und Abendessen eingeplant. Weniger Stopps im Profil „Einfach“.
   const ESSEN = ['Essen für alle', 'Vegan portugiesisch', 'Vegetarisch'];
@@ -818,7 +819,7 @@
     const wertung = ORTE.filter((o) => hatPos(o) && !mk(o.id).aus && o.kategorie !== 'Verkehr' && o.ort === 'Lisboa').map((o) => {
       const { ja, nein } = gruppenStimmen(o.id);
       return { o, ja, nein, wert: ja.length - nein.length };
-    }).filter((x) => x.ja.length && x.wert > 0);
+    }).filter((x) => x.ja.length && !x.nein.length); // ein „Lieber nicht“ = strittig, nicht im Plan (Masthoff 2004: Average Without Misery)
     const plan = { sa: [], so: [], mo: [], uebrig: [] };
     const anker = {};
     for (const t of TAGE) {
@@ -973,6 +974,10 @@
       S.neueUmfrage ? formUmfrage() : el('button', { type: 'button', class: 'knopf breit nur-voll', onclick: () => { S.neueUmfrage = { frage: 'Wohin heute Abend?', o: [] }; zeichne({ scroll: true, karte: false }); } }, ic('plan'), 'Neue Umfrage'),
       umfragen.length ? umfragen.map(([id, u]) => karteUmfrage(id, u)) : (S.neueUmfrage ? null : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Umfrage. Wer eine startet, schickt danach den Link oder zeigt den QR-Code.')));
 
+    const strittig = liste.filter((x) => x.ja.length && x.nein.length);
+    const strittigTeil = strittig.length ? el('section', { class: 'abschnitt' }, el('h3', {}, `Strittig (${strittig.length})`),
+      el('p', { class: 'leise klein', style: 'margin:0 0 6px' }, 'Hier will jemand lieber nicht hin. Diese Orte plant der Gruppenplan nicht ein. Redet kurz darüber, vielleicht geht eine Teilgruppe hin und ihr trefft euch danach am Treffpunkt.'),
+      el('ul', { class: 'liste' }, strittig.map(({ o }) => eintragOrt(o)))) : null;
     const rang = el('section', { class: 'abschnitt' }, el('h3', {}, 'Was die Gruppe will'),
       liste.length ? el('ol', { class: 'liste' }, liste.map(({ o, ja, nein }, i) => {
         const li = eintragOrt(o, { nr: i + 1 });
@@ -988,7 +993,7 @@
         const d = new Date(Date.now() + 90 * 60000); d.setMinutes(d.getMinutes() < 30 ? 30 : 60, 0, 0);
         S.treffForm = { zeit: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, q: '' }; zeichne({ scroll: true });
       } }, ic('orte'), 'Treffpunkt festlegen'));
-    setze(box, abgleich, treffTeil, umfrageTeil, rang);
+    setze(box, abgleich, treffTeil, umfrageTeil, rang, strittigTeil);
   }
 
   function formUmfrage() {

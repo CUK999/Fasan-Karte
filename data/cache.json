@@ -3311,6 +3311,300 @@
      "hoehe": 960
     }
    }
+  },
+  "Metro Rato|Largo do Rato, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.720151,
+    "lon": -9.154892,
+    "anzeige": "Largo do Rato, Rato, Santo António, Madalena, Lissabon, 1250-186, Portugal",
+    "osm": "way/96894781",
+    "art": "place:square",
+    "name": "Largo do Rato",
+    "tags": {
+     "junction": "yes",
+     "wikidata": "Q10316383"
+    }
+   },
+   "n": null,
+   "wiki": {
+    "wd": {
+     "qid": "Q10316383",
+     "bild": "Metro de Lisboa Estação Rato (8215586454).jpg",
+     "koord": [
+      38.72,
+      -9.15527778
+     ],
+     "titel": {
+      "pt": "Largo do Rato"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Largo do Rato",
+     "text": "O Largo do Rato é um arruamento das freguesias de Campo de Ourique e Santo António, em Lisboa.\nO topónimo Rato corresponde à alcunha de Luís Gomes de Sá e Menezes, personagem do século XVII, segundo padroeiro do convento das Trinitárias de Campolide e que deu o nome ao convento, ao sítio e por fim ao arruamento. Esta artéria do sítio do Rato, conhecida por Rua Direita do Rato, passou mais tarde a denominar-se simplesmente Rua do Rato. Em 1910 passou a denominar-se Praça do Brasil, regressando em 1948 ao topónimo Largo do Rato.",
+     "url": "https://pt.wikipedia.org/wiki/Largo_do_Rato",
+     "seitenbild": null
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d8/Metro_de_Lisboa_Esta%C3%A7%C3%A3o_Rato_%288215586454%29.jpg/960px-Metro_de_Lisboa_Esta%C3%A7%C3%A3o_Rato_%288215586454%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "IngolfBLN",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Metro_de_Lisboa_Esta%C3%A7%C3%A3o_Rato_(8215586454).jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Metro Martim Moniz|Praça Martim Moniz, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.715997,
+    "lon": -9.136346,
+    "anzeige": "Praça Martim Moniz, Mouraria, Santa Maria Maior, Madalena, Lissabon, 1100-341, Portugal",
+    "osm": "relation/9218832",
+    "art": "place:square",
+    "name": "Praça Martim Moniz",
+    "tags": {
+     "lit": "yes",
+     "highway": "pedestrian",
+     "surface": "paving_stones",
+     "wikidata": "Q20716902",
+     "wikipedia": "en:Praça Martim Moniz",
+     "name:etymology:wikidata": "Q3028496"
+    }
+   },
+   "n": null,
+   "wiki": {
+    "wd": {
+     "qid": "Q20716902",
+     "bild": "Largo Martim Moniz, Lisboa 03.jpg",
+     "koord": [
+      38.715472222222225,
+      -9.136583333333332
+     ],
+     "titel": {
+      "en": "Praça Martim Moniz",
+      "pt": "Praça Martim Moniz"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praça Martim Moniz",
+     "text": "Praça Martim Moniz é uma praça em Lisboa, Portugal, que leva o nome de Martim Moniz, constituindo-se como uma das mais emblemáticas praças da capital portuguesa.\nExistem paragens do Metro de Lisboa \"Martim Moniz\" e do elétrico de Lisboa na praça.\nEm fevereiro de 2024, a Câmara Municipal de Lisboa apresentou o novo projeto de requalificação da praça.",
+     "url": "https://pt.wikipedia.org/wiki/Pra%C3%A7a_Martim_Moniz",
+     "seitenbild": "Praça_de_Martim_Moniz_-_panoramio.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Largo_Martim_Moniz%2C_Lisboa_03.jpg/960px-Largo_Martim_Moniz%2C_Lisboa_03.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "GualdimG",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Largo_Martim_Moniz,_Lisboa_03.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Metro Restauradores|Praça dos Restauradores, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.715709,
+    "lon": -9.141653,
+    "anzeige": "Platz der Restauratore, Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1250-188, Portugal",
+    "osm": "way/1340657685",
+    "art": "place:square",
+    "name": "Platz der Restauratore",
+    "tags": {
+     "wikidata": "Q959567",
+     "wikipedia": "pt:Praça dos Restauradores",
+     "start_date": "1884-07-22",
+     "description": "Toponímia: Monarquia. Início: Confluência da Avenida da Liberdade, e a Rua 1º de Dezembro.",
+     "wikimedia_commons": "Category:Praça dos Restauradores"
+    }
+   },
+   "n": null,
+   "wiki": {
+    "wd": {
+     "qid": "Q959567",
+     "bild": "Lisboa - Praça dos Restauradores (53868860069).jpg",
+     "koord": [
+      38.715833,
+      -9.141667
+     ],
+     "titel": {
+      "de": "Praça dos Restauradores",
+      "pt": "Praça dos Restauradores",
+      "en": "Restauradores Square"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Praça dos Restauradores",
+     "text": "Die Praça dos Restauradores [ˈpɾasɐ duʃ ʁɯʃtauɾɐˈdoɾɯʃ] ist ein innerstädtischer Platz in der portugiesischen Hauptstadt Lissabon, zwischen Rossio und der Avenida da Liberdade.\nDer Platz dient zur Erinnerung an die Wiederherstellung der Unabhängigkeit im Jahr 1640 nach 60-jähriger Herrschaft durch die Spanier. Der Obelisk in der Mitte des Platzes, 1886 eingeweiht, trägt die Namen und Daten der ausgetragenen Schlachten während des portugiesischen Restaurationskrieges. António Tomás da Fonseca gestaltete das Denkmal, Simões de Almeida und Alberto Nunes wiederum erschufen die danebenstehenden Statuen, die „Unabhängigkeit“ und „Sieg“ darstellen sollen.",
+     "url": "https://de.wikipedia.org/wiki/Pra%C3%A7a_dos_Restauradores",
+     "seitenbild": "Lisboa_-_Praça_dos_Restauradores_(53868860069).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/4a/Lisboa_-_Pra%C3%A7a_dos_Restauradores_%2853868860069%29.jpg/960px-Lisboa_-_Pra%C3%A7a_dos_Restauradores_%2853868860069%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Jorge Franganillo",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Lisboa_-_Pra%C3%A7a_dos_Restauradores_(53868860069).jpg",
+     "breite": 720,
+     "hoehe": 432
+    }
+   }
+  },
+  "Metro Baixa-Chiado|Largo do Chiado, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.710508,
+    "lon": -9.14222,
+    "anzeige": "Largo do Chiado, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-310, Portugal",
+    "osm": "relation/12222357",
+    "art": "highway:pedestrian",
+    "name": "Largo do Chiado",
+    "tags": {
+     "wikidata": "Q10064",
+     "wikipedia": "pt:Largo do Chiado",
+     "start_date": "1925-05-19",
+     "description": "Toponímia: António Ribeiro Chiado - Poeta Século XVI. Início: Confluência da Rua Garrett, Rua Paiva de Andrade, Rua António Maria Cardoso, e Praça Luís de Camões, Rua Nova da Trindade .",
+     "name:etymology:wikidata": "Q2857761"
+    }
+   },
+   "n": {
+    "lat": 38.710632,
+    "lon": -9.13896,
+    "anzeige": "Sabores do Metro, Rua do Crucifixo, Chiado, Baixa, Madalena, Lissabon, 1100-184, Portugal",
+    "osm": "node/13674514505",
+    "art": "amenity:restaurant",
+    "name": "Sabores do Metro",
+    "tags": {
+     "cuisine": "pizza",
+     "check_date": "2026-07-17",
+     "self_service": "no",
+     "opening_hours": "Mo-Th 08:00-21:30; Fr-Su 08:00-23:50",
+     "diet:vegetarian": "only",
+     "check_date:opening_hours": "2026-07-17",
+     "check_date:diet:vegetarian": "2026-07-17"
+    }
+   },
+   "wiki": {
+    "wd": {
+     "qid": "Q2300323",
+     "bild": "Baixa Chiado metro station (14106958546).jpg",
+     "koord": [
+      38.71047,
+      -9.14017
+     ],
+     "titel": {
+      "pt": "Estação Baixa-Chiado",
+      "de": "U-Bahnhof Baixa-Chiado",
+      "en": "Baixa-Chiado Station"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "U-Bahnhof Baixa-Chiado",
+     "text": "Baixa-Chiado ist ein U-Bahnhof der Linha Azul und der Linha Verde der Metro Lissabon, des U-Bahn-Netzes der portugiesischen Hauptstadt. Der Bahnhof befindet sich unter dem Largo do Chiado beziehungsweise der Rua do Crucifixo in der Stadtgemeinde Santa Maria Maior, der Doppelname des Bahnhofes weist darauf hin, dass er auf der Grenze zwischen den beiden inoffiziellen Stadtteilen Chiado und Baixa liegt. Die Nachbarstationen des Bahnhofes sind Restauradores, Terreiro do Paço, Cais do Sodré und Rossio. Der Bahnhof ging am 25.",
+     "url": "https://de.wikipedia.org/wiki/U-Bahnhof_Baixa-Chiado",
+     "seitenbild": "Metro_Lisboa_Lisbon_Baixa-Chiado_platform.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Baixa_Chiado_metro_station_%2814106958546%29.jpg/960px-Baixa_Chiado_metro_station_%2814106958546%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Jorge Franganillo from Barcelona, Spain",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Baixa_Chiado_metro_station_(14106958546).jpg",
+     "breite": 720,
+     "hoehe": 480
+    }
+   }
+  },
+  "Bahnhof Cais do Sodré|Praça Duque da Terceira, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.705645,
+    "lon": -9.143128,
+    "anzeige": "Cais do Sodré, Misericórdia, Lissabon, 1249-289, Portugal",
+    "osm": "node/4297242718",
+    "art": "highway:bus_stop",
+    "name": "Cais do Sodré",
+    "tags": {
+     "bin": "yes",
+     "bus": "yes",
+     "lit": "yes",
+     "bench": "yes",
+     "network": "Carris;Carris Metropolitana",
+     "ref:TML": "060419",
+     "shelter": "yes",
+     "operator": "Carris",
+     "ref:CCFL": "3811",
+     "route_ref": "782;202",
+     "description": "782 Terminal 202 Terminal",
+     "tactile_paving": "no",
+     "network:wikidata": "Q1045108;Q111611112",
+     "public_transport": "platform",
+     "network:wikipedia": "pt:Companhia Carris de Ferro de Lisboa",
+     "operator:wikidata": "Q1045108",
+     "operator:wikipedia": "pt:Companhia Carris de Ferro de Lisboa"
+    }
+   },
+   "n": {
+    "lat": 38.706155,
+    "lon": -9.146827,
+    "anzeige": "Cais do Sodré, Avenida 24 de Julho, São Paulo, Misericórdia, Lissabon, 1200-109, Portugal",
+    "osm": "way/1007182770",
+    "art": "railway:station",
+    "name": "Cais do Sodré",
+    "tags": {
+     "layer": "-3",
+     "level": "-3",
+     "indoor": "area",
+     "subway": "yes",
+     "tunnel": "yes",
+     "station": "subway",
+     "website": "https://www.metrolisboa.pt/viajar/cais-do-sodre/",
+     "operator": "Metropolitano de Lisboa",
+     "wikidata": "Q14915993",
+     "wikipedia": "pt:Estação Cais do Sodré",
+     "wheelchair": "yes",
+     "public_transport": "station"
+    }
+   },
+   "wiki": {
+    "wd": {
+     "qid": "Q14915993",
+     "bild": "Lisbon, Portugal (51980283578).jpg",
+     "koord": [
+      38.70613,
+      -9.14508
+     ],
+     "titel": {
+      "pt": "Estação Cais do Sodré",
+      "de": "U-Bahnhof Cais do Sodré",
+      "en": "Cais do Sodré Station"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "U-Bahnhof Cais do Sodré",
+     "text": "Cais do Sodré ist ein U-Bahnhof der Linha Verde der Metro Lissabon, des U-Bahn-Netzes der portugiesischen Hauptstadt. Der Bahnhof befindet sich unterhalb des gleichnamigen Eisenbahn-Bahnhofs unter der Avenida 24 de Julho der Stadtgemeinde Misericórdia. In dem Bahnhof enden/beginnen die Züge der Linha Verde, der einzige Nachbarbahnhof ist Baixa-Chiado. Der Bahnhof ging am 18.",
+     "url": "https://de.wikipedia.org/wiki/U-Bahnhof_Cais_do_Sodr%C3%A9",
+     "seitenbild": "Metro_station_Lisboa_Lisbon_Cais_do_Sodre_sidewalk.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/Lisbon%2C_Portugal_%2851980283578%29.jpg/960px-Lisbon%2C_Portugal_%2851980283578%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Sharon Hahn Darlin",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Lisbon,_Portugal_(51980283578).jpg",
+     "breite": 720,
+     "hoehe": 468
+    }
+   }
   }
  }
 }

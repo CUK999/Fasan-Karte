@@ -1,6 +1,6 @@
 # Prüfbericht der Orte
 
-59 von 59 mit Koordinate, 31 mit Wikipedia-Text, 34 mit Bild.
+64 von 64 mit Koordinate, 36 mit Wikipedia-Text, 39 mit Bild.
 
 | Ort | Quelle | Position | Hinweise | OSM-Treffer |
 | --- | --- | --- | --- | --- |
@@ -63,3 +63,8 @@
 | Jardim das Cerejas | name | 38.71139, -9.14024 | ok | Jardim das Cerejas, 36, Calçada do Sacramento, Sacramento, Santa Maria Maior, Madalena, Lissabon, 1200-394, Po |
 | House of Wonders | manuell | 38.69846, -9.41931 | ok | House of Wonders, 53, Rua da Misercórdia, Cascais e Estoril, Cascais, Lissabon, 2750-436, Portugal |
 | Padaria São Roque | adresse | 38.71558, -9.14611 | ok | 57, Rua Dom Pedro V, Oberstadt, Misericórdia, Lissabon, 1250-092, Portugal |
+| Metro Rato | adresse | 38.72015, -9.15489 | ok | Largo do Rato, Rato, Santo António, Madalena, Lissabon, 1250-186, Portugal |
+| Metro Martim Moniz | adresse | 38.71600, -9.13635 | ok | Praça Martim Moniz, Mouraria, Santa Maria Maior, Madalena, Lissabon, 1100-341, Portugal |
+| Metro Restauradores | adresse | 38.71571, -9.14165 | ok | Platz der Restauratore, Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1250-188, Portugal |
+| Metro Baixa-Chiado | name | 38.71063, -9.13896 | ok | Sabores do Metro, Rua do Crucifixo, Chiado, Baixa, Madalena, Lissabon, 1100-184, Portugal |
+| Bahnhof Cais do Sodré | name | 38.70616, -9.14683 | ok | Cais do Sodré, Avenida 24 de Julho, São Paulo, Misericórdia, Lissabon, 1200-109, Portugal |

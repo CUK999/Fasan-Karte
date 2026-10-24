@@ -70,6 +70,26 @@ jobs:
             rm -rf nt nostr-tools-*.tgz
           fi
 
+      - name: Texterkennung einbinden (tesseract.js, Apache-2.0; einmalig ins Repo)
+        run: |
+          if [ ! -f site/vendor/tesseract/tesseract.min.js ]; then
+            mkdir -p site/vendor/tesseract/core site/vendor/tesseract/lang tz
+            cd tz
+            npm pack tesseract.js@5 tesseract.js-core@5 @tesseract.js-data/por@1 --silent
+            for f in *.tgz; do mkdir -p "${f%.tgz}"; tar -xzf "$f" -C "${f%.tgz}"; done
+            { ls *.tgz; find . -type f \( -name '*.wasm.js' -o -name '*.traineddata.gz' -o -name '*.min.js' -o -name 'LICENSE*' \) -printf '%s %p\n'; } > ../site/vendor/tesseract/DATEIEN.txt
+            T=$(ls -d tesseract.js-5* | head -1); C=$(ls -d tesseract.js-core-5* | head -1); L=$(ls -d tesseract.js-data-por-* | head -1)
+            cp $T/package/dist/tesseract.min.js $T/package/dist/worker.min.js ../site/vendor/tesseract/
+            cp $T/package/LICENSE* ../site/vendor/tesseract/ 2>/dev/null || true
+            cp $T/package/package.json ../site/vendor/tesseract/package-tesseract.json
+            cp $C/package/tesseract-core*.wasm.js ../site/vendor/tesseract/core/
+            cp $C/package/package.json ../site/vendor/tesseract/package-core.json
+            LG=$(find $L -path '*4.0.0_best_int*' -name 'por.traineddata.gz' | head -1); [ -z "$LG" ] && LG=$(find $L -name 'por.traineddata.gz' | head -1)
+            cp "$LG" ../site/vendor/tesseract/lang/por.traineddata.gz
+            echo "Sprachdaten: $LG" >> ../site/vendor/tesseract/DATEIEN.txt
+            cd .. && rm -rf tz
+          fi
+
       - name: Ergebnisse im Repo sichern
         run: |
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor

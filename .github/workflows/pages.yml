@@ -71,8 +71,8 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
             git commit -m "Daten aktualisiert"
-            git pull --rebase origin main
-            git push
+            # Zwei Läufe kurz nacheinander: Konflikt in den erzeugten Dateien heißt, ein neuerer Lauf erzeugt sie ohnehin neu
+            if git pull --rebase origin main; then git push; else git rebase --abort; echo "Daten-Commit übersprungen: neuerer Stand im Repo"; fi
           fi
 
       - name: Protokoll sichern (Branch ci-logs)

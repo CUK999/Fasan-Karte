@@ -206,6 +206,13 @@ def bild_info(datei):
 
 # ---------- Ablauf ----------
 
+def passt_plz(treffer, adresse):
+    m = re.search(r"\b(\d)\d{3}-\d{3}\b", adresse)
+    erwartet = m.group(1) if m else ("1" if stadt(adresse) == "Lisboa" else None)
+    t = re.search(r"\b(\d)\d{3}-\d{3}\b", (treffer or {}).get("anzeige") or "")
+    return erwartet is None or t is None or t.group(1) == erwartet
+
+
 def koordinaten(name, adresse, manuell, alt):
     """Gibt (pos, quelle, a, n) zurück; a/n sind die Nominatim-Treffer für Adresse und Name."""
     if alt and alt.get("a_n_geholt"):
@@ -218,6 +225,10 @@ def koordinaten(name, adresse, manuell, alt):
     if a and n:
         if abstand_m((a["lat"], a["lon"]), (n["lat"], n["lon"])) <= NAH_M:
             return (n["lat"], n["lon"]), "name", a, n
+        # Uneinig: Treffer mit falscher Postleitzahl-Gegend verwerfen (z. B. „Largo de São Vicente“ gibt es auch in Cascais).
+        # Lissabon-Stadt hat Postleitzahlen 1xxx-xxx; steht eine PLZ in der Adresse, zählt deren erste Ziffer.
+        if passt_plz(n, adresse) and not passt_plz(a, adresse):
+            return (n["lat"], n["lon"]), "pruefen", a, n
         return (a["lat"], a["lon"]), "pruefen", a, n
     if a:
         return (a["lat"], a["lon"]), "adresse", a, n

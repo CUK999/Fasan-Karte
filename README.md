@@ -1,27 +1,35 @@
-# Fasan-Karte
+# Fasan Karte
 
-Reisekarte für Gruppen, die im Handy-Browser läuft, ohne Installation. Erste Reise: Lissabon, 24.–26. Oktober 2026.
+Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohne Konto. Erste Reise: Lissabon, 24.–26. Oktober 2026.
 
-Die Karte zeigt die Tagespläne mit nummerierten Stopps, den eigenen Standort und alle Orte zum freien Erkunden. „Starten“ und „Route“ übergeben das Ziel an Google Maps oder Apple Karten, die dann zu Fuß navigieren.
+**Öffnen:** https://cuk999.github.io/Fasan-Karte/ – im Browser-Menü „Zum Startbildschirm“ hinzufügen, dann startet sie wie eine App.
+
+## Was sie kann
+
+- Tagespläne (Plan A, B, C) mit nummerierten Stopps, nächster Stopp mit „Starten“ (Apple Karten, Google Maps oder andere Karten-App)
+- Alle Orte mit Suche, Kategorien, Filtern (Geheimtipps, jetzt offen, nicht erledigt, gemerkt, ausgeblendet) und Sortierung nach Nähe
+- Ortsseite mit Foto, Wikipedia-Text, Öffnungszeiten, Webseite, Zugang, eigener Notiz und Bewertung
+- Merken, Erledigt, Ausblenden – mit Rückgängig; Austausch mit der Gruppe als Text
+- Profile Standard, Einfach, Gut lesbar; Themes System, Hell, Dunkel, Kontrast, Glas
+- Offline: App und Daten bleiben nach dem ersten Öffnen im Gerät
 
 ## Aufbau
 
 | Datei | Zweck |
-|---|---|
-| `data/orte.csv` | Alle Orte: Name, Adresse, Kategorie, Notiz, optional Lat/Lon |
-| `site/plaene.json` | Tagespläne, die auf Ortsnamen aus der CSV verweisen |
-| `site/orte.json` | Wird automatisch erzeugt: Orte mit Koordinaten |
-| `tools/geocode.py` | Holt Koordinaten bei OpenStreetMap Nominatim (1 Anfrage/s) |
-| `.github/workflows/pages.yml` | Bei jedem Push: Koordinaten holen, Leaflet einbinden, auf GitHub Pages veröffentlichen |
+| --- | --- |
+| `data/orte.csv` | Orte: Name, Adresse, Kategorie, Notiz; optional `Lat`/`Lon` (geprüfte Position) und `Zeiten` (eigene Öffnungszeiten, `-` blendet OSM aus) |
+| `site/plaene.json` | Tagespläne, verweisen auf Ortsnamen |
+| `tools/daten.py` | Prüft Positionen (OSM-Name, OSM-Adresse, Wikidata), holt Infos, Wikipedia-Text und freie Bilder |
+| `data/pruefbericht.md` | Ergebnis der Prüfung je Ort |
+| `.github/workflows/pages.yml` | Bei jedem Push: Daten aktualisieren, veröffentlichen |
+| `docs/ENTSCHEIDUNGEN.md` | Was beschlossen ist |
 
-## Ort hinzufügen oder korrigieren
+## Ort hinzufügen
 
-1. `data/orte.csv` auf GitHub bearbeiten und eine Zeile anhängen.
-2. Liegt ein Punkt falsch, die Spalten `Lat` und `Lon` von Hand füllen (zum Beispiel aus openstreetmap.org per Rechtsklick „Adresse anzeigen“).
-3. Speichern. Nach ein bis zwei Minuten ist die Karte aktuell.
+`data/orte.csv` auf GitHub bearbeiten, Zeile anhängen, speichern. Nach drei bis vier Minuten ist die Karte aktuell. Steht der Ort im Prüfbericht mit Hinweis, `Lat` und `Lon` von Hand eintragen.
 
 ## Datenschutz
 
-Die Seite ist öffentlich. Deshalb steht die Adresse der Unterkunft nicht im Repo; jeder trägt sie in der App unter „Tipps“ ein, gespeichert nur auf dem eigenen Handy. Der Standort wird nur im Browser verwendet und nirgendwohin gesendet. Kartenbilder kommen von OpenStreetMap.
+Keine Konten, keine Statistik. Markierungen, Notizen und Unterkunft bleiben im Gerät. Der Standort wird nur im Browser verwendet. Die Seite ist öffentlich, deshalb steht die Unterkunft nicht im Repo.
 
-Kartendaten © OpenStreetMap-Mitwirkende (ODbL). Karte mit [Leaflet](https://leafletjs.com).
+Kartendaten © OpenStreetMap-Mitwirkende (ODbL). Texte Wikipedia (CC BY-SA). Fotos Wikimedia Commons, Lizenz je Bild. Karte: Leaflet (BSD-2). Code: MPL-2.0.

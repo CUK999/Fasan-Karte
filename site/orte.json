@@ -118,7 +118,7 @@
   "notiz": "Bar voller Sammlerstücke (Geheimtipp)",
   "lat": 38.715713,
   "lon": -9.146769,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {}
  },
  {
@@ -465,7 +465,6 @@
   "lon": -9.139064,
   "quelle": "name",
   "infos": {
-   "oeffnungszeiten": "Mo-Su 09:00-10:00",
    "webseite": "https://ginjinhaespinheira.com/",
    "rollstuhl": "yes"
   },
@@ -840,7 +839,7 @@
   "notiz": "Verlassenes Restaurant, 360-Grad-Blick, gratis (Geheimtipp)",
   "lat": 38.728633,
   "lon": -9.184572,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "webseite": "https://informacoeseservicos.lisboa.pt/contactos/diretorio-da-cidade/miradouro-panoramico-de-monsanto"
   },
@@ -996,7 +995,7 @@
   "notiz": "Uferweg mit Streetart (Geheimtipp)",
   "lat": 38.685138,
   "lon": -9.157423,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {}
  },
  {
@@ -1105,7 +1104,7 @@
   "notiz": "Täglich 12:30–16 und 18–23 Uhr; vegetarisch: Pilzreis; reservieren",
   "lat": 38.707853,
   "lon": -9.19908,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2617"
   }
@@ -1214,7 +1213,7 @@
   "notiz": "Täglich 12–23 Uhr",
   "lat": 38.707433,
   "lon": -9.142337,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "oeffnungszeiten": "Mo-Sa 12:00-23:00",
    "webseite": "https://www.kongvegan.com/",
@@ -1331,7 +1330,7 @@
   "notiz": "Täglich 10–23 Uhr",
   "lat": 38.698456,
   "lon": -9.419306,
-  "quelle": "pruefen",
+  "quelle": "manuell",
   "infos": {
    "oeffnungszeiten": "Mo-Su 08:00-23:00",
    "telefon": "+351 911 702 428",

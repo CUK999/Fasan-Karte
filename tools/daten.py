@@ -313,6 +313,11 @@ def main():
             "quelle": "pruefen" if hinweise and quelle != "manuell" else quelle,
             "infos": osm_infos(tags),
         }
+        zeiten = (z.get("Zeiten") or "").strip()  # eigene Angabe schlägt OSM; "-" blendet OSM-Zeiten aus
+        if zeiten == "-":
+            o["infos"].pop("oeffnungszeiten", None)
+        elif zeiten:
+            o["infos"]["oeffnungszeiten"] = zeiten
         if wiki.get("text"):
             t = wiki["text"]
             o["wiki"] = {"text": t["text"], "url": t["url"], "lang": t["lang"], "titel": t["titel"]}

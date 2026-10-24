@@ -620,8 +620,19 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .naehe-zu { width: 48px; height: 48px; border: 0; background: none; border-radius: 50%; display: grid; place-items: center; color: var(--muted); }
 .naehe-zu svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; }
 .naehe-karte p { margin: 6px 0 4px; font-size: var(--fs); }
-.naehe-fuss { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.naehe-fuss .knopf { min-height: 48px; padding: 0 10px; color: var(--accent); }
+.naehe-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.naehe-fuss .knopf { min-height: var(--ziel); padding: 0 14px; }
+.naehe-fuss .knopf.flach { color: var(--accent); }
+/* Stadtführer auf der Karte: Ring blinkt viermal, dann atmet er ruhig. „Bewegung reduzieren“: steht still. */
+.naehe-ring { background: none; border: 0; }
+.naehe-ring .r { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%;
+  border: 3px solid var(--g-nah); background: color-mix(in srgb, var(--g-nah) 16%, transparent);
+  animation: naehe-blink 1.4s ease-out 0s 4, naehe-ruhig 2.4s ease-in-out 5.6s infinite alternate; }
+.naehe-ring.gesehen .r { animation: none; opacity: .7; }
+@keyframes naehe-blink { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--g-nah) 60%, transparent); } 75%, 100% { box-shadow: 0 0 0 20px color-mix(in srgb, var(--g-nah) 0%, transparent); } }
+@keyframes naehe-ruhig { to { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .naehe-ring .r { animation: none; } }
+.nur-vorlesen { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .marker.mini.g-nah svg, .naehe-kopf .marker svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
 .wiki-text { display: block; margin-top: 4px; font-size: var(--fs-k); color: var(--text); }
 .wiki-text.kurz { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--muted); }

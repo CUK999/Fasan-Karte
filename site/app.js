@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.2';
+  const VERSION = '2.3';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -1410,7 +1410,10 @@
         el('div', { style: 'height:8px' }),
         wahl([['an', 'Sprachansage an', 'sagt die Abbiegungen an'], ['aus', 'Sprachansage aus', null]], E.ansage ? 'an' : 'aus', (id) => { E.ansage = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Stadtführer beim Gehen'),
-        wahl([['an', 'Hinweise an', 'Kommt ihr an einem Ort vorbei, erscheint oben ein kurzer Text aus Wikipedia, mit Quelle und Stand'], ['aus', 'Hinweise aus', null]], E.fuehrer === false ? 'aus' : 'an', (id) => { E.fuehrer = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
+        wahl([['an', 'Hinweise an', 'Kommt ihr an einem Ort mit Wikipedia-Text vorbei, blinkt er auf der Karte. Antippen zeigt den Text mit Quelle und Stand.'], ['aus', 'Hinweise aus', null]], E.fuehrer === false ? 'aus' : 'an', (id) => { E.fuehrer = id === 'an'; speichereE(); if (!E.fuehrer) naeheEntfernen(); zeichne({ scroll: true }); }),
+        naeheAus().length ? el('div', { class: 'reihe', style: 'margin-top:8px;align-items:center' },
+          el('span', { class: 'leise klein', style: 'flex:1' }, naeheAus().length === 1 ? '1 Ort ausgeblendet' : `${naeheAus().length} Orte ausgeblendet`),
+          el('button', { type: 'button', class: 'knopf flach', onclick: () => { speicher.set('naeheAus', []); zeichne({ scroll: true }); toast('Alle Orte melden sich wieder.'); } }, 'Wieder zeigen')) : null),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Plan'), wahl([['A', 'Plan A', 'Empfehlung: Klassiker mit Geheimtipps'], ['B', 'Plan B', 'Geheimtipps'], ['C', 'Plan C', 'Wenig Steigung'], ['G', 'Gruppenplan', 'Aus euren Stimmen, passt sich bei jedem Abgleich an']], S.plan, (id) => { S.plan = id; speicher.set('plan', id); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Unterkunft'),
         el('p', { class: 'leise klein', style: 'margin:0 0 8px' }, 'Wenn du an der Unterkunft bist: einmal tippen. Der Ort bleibt nur auf diesem Handy. Danach führt dich „Zur Unterkunft“ jederzeit zurück.'),
@@ -1712,7 +1715,7 @@
     if (!teileOrt()) { E.teilenBis = Date.now() + 15 * 60000; speichereE(); if (S.watchId == null) starteGps(false); if (S.me) funkOrt(S.me, true); }
   }
   function woFrage(name) {
-    const box = $('#naehe');
+    const box = $('#naehe'); box.dataset.art = 'wo';
     const zu = () => { box.classList.remove('an'); setTimeout(() => { box.hidden = true; }, 250); };
     setze(box, el('div', { class: 'naehe-karte wo-karte', role: 'alertdialog', 'aria-label': `${name} fragt, wo ihr seid` },
       el('div', { class: 'naehe-kopf' }, el('span', { class: 'marker person mini' }, initialen(name)), el('strong', {}, `${name} fragt: Wo seid ihr?`)),
@@ -2758,41 +2761,86 @@
   }, { passive: true });
 
   // ---------- Stadtführer beim Gehen ----------
-  // Ein Hinweis, wenn ihr einem Ort mit belegtem Text nahe kommt. Radius 60 m, nur bei Genauigkeit ≤ 50 m, höchstens
-  // alle 3 Minuten, jeder Ort nur einmal am Tag, nicht während „Hinführen“. Diese Werte sind Setzungen: Die Recherche
+  // Dezent: Kommt ihr einem Ort mit belegtem Text nahe, blinkt nur dieser Ort auf der Karte (kein Text, keine Vibration).
+  // Antippen zeigt den Text mit Quelle. Jeder Ort lässt sich dauerhaft ausblenden, alle Hinweise unter „Mehr“.
+  // Radius 60 m, nur bei Genauigkeit ≤ 50 m, höchstens alle 3 Minuten, jeder Ort einmal am Tag, nicht während „Hinführen“.
+  // Der Ring verschwindet ab 150 m Abstand oder nach 10 Minuten. Alle Werte sind Setzungen: Die Recherche
   // (kosten-und-fuehrung.md) fand keine belegten Zahlen; Android-Geofences liegen bei 100–150 m.
-  const NAEHE = { radius: 60, genau: 50, pause: 180000 };
-  let naeheZuletzt = 0, naeheTimer = null;
+  const NAEHE = { radius: 60, genau: 50, pause: 180000, weg: 150, dauer: 600000 };
+  let naeheZuletzt = 0, naeheAktiv = null, naeheRing = null, naeheTimer = null;
+  // Für Screenreader: kurze Ansage statt sichtbarer Karte
+  const naeheAnsage = el('div', { class: 'nur-vorlesen', 'aria-live': 'polite' });
+  document.body.append(naeheAnsage);
+  function naeheAus() { return speicher.get('naeheAus', []); }
+  function naeheEntfernen() {
+    clearTimeout(naeheTimer);
+    if (naeheRing) { naeheRing.remove(); naeheRing = null; }
+    naeheAktiv = null;
+  }
+  function naeheKarteZu() {
+    const box = $('#naehe');
+    if (box.dataset.art !== 'fuehrer') return;
+    box.classList.remove('an'); setTimeout(() => { if (!box.classList.contains('an')) box.hidden = true; }, 250);
+  }
   function naeheHinweis(p) {
-    if (E.fuehrer === false || N.aktiv || !p || p.acc > NAEHE.genau || Date.now() - naeheZuletzt < NAEHE.pause) return;
+    if (naeheAktiv && p && meter(p, naeheAktiv) > NAEHE.weg) naeheEntfernen();
+    if (E.fuehrer === false || N.aktiv || !p || p.acc > NAEHE.genau || naeheAktiv || Date.now() - naeheZuletzt < NAEHE.pause) return;
     if (!SF) { ladeFuehrer(); return; }
     const heute = new Date().toDateString();
     const gezeigt = speicher.get('naeheGezeigt', {});
     if (gezeigt.tag !== heute) { gezeigt.tag = heute; gezeigt.ids = []; }
+    const aus = naeheAus();
     const kand = [];
-    for (const o of ORTE) if (o.wiki && hatPos(o)) { const d = meter(p, o); if (d < NAEHE.radius) kand.push({ id: o.id, d, titel: o.name, text: o.wiki.text.split('\n')[0], quelle: 'Wikipedia', ort: o }); }
-    for (const x of SF.artikel || []) { const d = meter(p, { lat: x[0], lon: x[1] }); if (d < NAEHE.radius) kand.push({ id: `w-${x[5]}`, d, titel: x[2], text: x[3], stand: x[4], pid: x[5] }); }
-    const k = kand.filter((x) => !gezeigt.ids.includes(x.id)).sort((a, b) => (a.ort ? -1 : 0) - (b.ort ? -1 : 0) || a.d - b.d)[0];
+    for (const o of ORTE) if (o.wiki && hatPos(o)) { const d = meter(p, o); if (d < NAEHE.radius) kand.push({ id: o.id, d, lat: o.lat, lon: o.lon, titel: o.name, text: o.wiki.text.split('\n')[0], ort: o }); }
+    for (const x of SF.artikel || []) { const d = meter(p, { lat: x[0], lon: x[1] }); if (d < NAEHE.radius) kand.push({ id: `w-${x[5]}`, d, lat: x[0], lon: x[1], titel: x[2], text: x[3], stand: x[4], pid: x[5] }); }
+    const k = kand.filter((x) => !gezeigt.ids.includes(x.id) && !aus.includes(x.id)).sort((a, b) => (a.ort ? -1 : 0) - (b.ort ? -1 : 0) || a.d - b.d)[0];
     if (!k) return;
     naeheZuletzt = Date.now();
     gezeigt.ids.push(k.id);
     // Derselbe Ort aus Wikipedia nicht noch einmal (z. B. „Igreja de São Roque (Lissabon)“)
     if (k.ort) for (const x of kand) if (!x.ort && falte(x.titel).startsWith(falte(k.titel))) gezeigt.ids.push(x.id);
     speicher.set('naeheGezeigt', gezeigt);
-    const box = $('#naehe');
-    const zu = () => { box.classList.remove('an'); setTimeout(() => { box.hidden = true; }, 250); };
-    const kurz = k.text.length > 190 ? `${k.text.slice(0, 190).replace(/\s+\S*$/, '')} …` : k.text;
-    setze(box, el('div', { class: 'naehe-karte', role: 'status' },
+    naeheAktiv = k;
+    naeheRingZeichnen();
+    naeheTimer = setTimeout(naeheEntfernen, NAEHE.dauer);
+    naeheAnsage.textContent = `In der Nähe: ${k.titel}. Auf der Karte markiert.`;
+  }
+  function naeheRingZeichnen() {
+    if (!karte || !naeheAktiv) return;
+    if (naeheRing) naeheRing.remove();
+    const k = naeheAktiv;
+    // Eigene Ebene: bleibt stehen, wenn die übrigen Punkte neu gezeichnet werden
+    naeheRing = L.marker([k.lat, k.lon], { icon: L.divIcon({ className: 'naehe-ring', html: '<span class="r"></span>', iconSize: [64, 64], iconAnchor: [32, 32] }),
+      title: `In der Nähe: ${k.titel}. Antippen für mehr`, alt: `In der Nähe: ${k.titel}`, keyboard: true, zIndexOffset: 1000 })
+      .on('click', (e) => { L.DomEvent.stopPropagation(e); naeheZeigen(); })
+      .addTo(karte);
+  }
+  function naeheZeigen() {
+    const k = naeheAktiv; if (!k) return;
+    haptik();
+    const el0 = naeheRing && naeheRing.getElement(); if (el0) el0.classList.add('gesehen');
+    const box = $('#naehe'); box.dataset.art = 'fuehrer';
+    const kurz = k.text.length > 240 ? `${k.text.slice(0, 240).replace(/\s+\S*$/, '')} …` : k.text;
+    const ausblenden = () => {
+      const liste = naeheAus(); if (!liste.includes(k.id)) liste.push(k.id); speicher.set('naeheAus', liste);
+      naeheKarteZu(); naeheEntfernen(); haptik(12);
+      toast(`„${k.titel}“ meldet sich nicht mehr.`, { aktion: 'Rückgängig', fn: () => { speicher.set('naeheAus', naeheAus().filter((x) => x !== k.id)); } });
+    };
+    const alleAus = () => {
+      E.fuehrer = false; speichereE(); naeheKarteZu(); naeheEntfernen(); haptik(12);
+      toast('Hinweise sind aus. Wieder an unter „Mehr“.', { aktion: 'Rückgängig', fn: () => { E.fuehrer = true; speichereE(); } });
+    };
+    setze(box, el('div', { class: 'naehe-karte', role: 'dialog', 'aria-label': `In der Nähe: ${k.titel}` },
       el('div', { class: 'naehe-kopf' }, el('span', { class: 'marker g-nah mini', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.buch}</svg>` }),
-        el('strong', {}, `In der Nähe: ${k.titel}`), el('button', { type: 'button', class: 'naehe-zu', 'aria-label': 'Hinweis schließen', onclick: zu }, ic('x'))),
+        el('strong', {}, k.titel), el('button', { type: 'button', class: 'naehe-zu', 'aria-label': 'Schließen', onclick: naeheKarteZu }, ic('x'))),
       el('p', {}, kurz),
+      el('p', { class: 'quelle', style: 'margin:0 0 6px' }, k.ort ? 'Wikipedia (CC BY-SA)' : `Wikipedia (CC BY-SA)${k.stand ? `, Stand ${datumDe(k.stand)}` : ''}`),
       el('div', { class: 'naehe-fuss' },
-        el('span', { class: 'quelle' }, k.ort ? 'Wikipedia (CC BY-SA)' : `Wikipedia (CC BY-SA)${k.stand ? `, Stand ${datumDe(k.stand)}` : ''}`),
-        k.ort ? el('button', { type: 'button', class: 'knopf flach', onclick: () => { zu(); oeffneOrt(k.ort.id); } }, 'Ansehen')
-          : el('button', { type: 'button', class: 'knopf flach', onclick: () => { zu(); S.tab = 'orte'; S.nah = 'wiki'; S.nahWahl = k.id; S.ort = null; hoehe('mitte'); zeichne({ anpassen: true }); } }, 'Mehr lesen'))));
+        k.ort ? el('button', { type: 'button', class: 'knopf haupt', onclick: () => { naeheKarteZu(); oeffneOrt(k.ort.id); } }, 'Ansehen')
+          : el('button', { type: 'button', class: 'knopf haupt', onclick: () => { naeheKarteZu(); S.tab = 'orte'; S.nah = 'wiki'; S.nahWahl = k.id; S.ort = null; hoehe('mitte'); zeichne({ anpassen: true }); } }, 'Mehr lesen'),
+        el('button', { type: 'button', class: 'knopf', onclick: ausblenden }, 'Diesen Ort nie mehr'),
+        el('button', { type: 'button', class: 'knopf flach', onclick: alleAus }, 'Alle Hinweise aus'))));
     box.hidden = false; requestAnimationFrame(() => box.classList.add('an'));
-    haptik(15);
-    clearTimeout(naeheTimer); naeheTimer = setTimeout(zu, 15000);
   }
 
   // ---------- Standort ----------

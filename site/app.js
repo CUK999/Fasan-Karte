@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.4';
+  const VERSION = '1.5';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -37,6 +37,7 @@
     gruppe: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19.5c.6-3.4 3-5.5 6-5.5s5.4 2.1 6 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14c2.4.2 4 1.9 4.5 4.5"/>',
     qr: '<rect x="3.5" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="14" y="3.5" width="6.5" height="6.5" rx="1"/><rect x="3.5" y="14" width="6.5" height="6.5" rx="1"/><path d="M14 14h3v3h-3zM17.5 17.5h3v3h-3zM14 20.5h.01M20.5 14h.01"/>',
     hoch: '<path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.2 2.6L12.6 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/>',
+    pin: '<path d="M9 3.5h6l-1 5.5 3.5 3.5h-11L10 9zM12 12.5V21"/>',
     runter: '<path d="M7 13V4H4v9zM7 13l4 7c1.5 0 2.5-1 2.2-2.6l-.6-3.4H19a2 2 0 0 0 2-2.3l-1.2-6A2 2 0 0 0 17.8 4H7"/>',
   };
   // Symbole je Ortstyp (Farbe = Gruppe, Form = Typ; nie Farbe allein)
@@ -173,9 +174,13 @@
   // ---------- Gruppe: Abgleich ohne Server ----------
   // Jedes Handy hält, was es kennt. Ein Paket (Link oder QR) trägt alles davon. Zusammenführen je Person: neuere Fassung gewinnt.
   // Die Daten stehen im Teil hinter „#“; der wird beim Laden der Seite nicht an den Server geschickt (RFC 3986, Abschnitt 3.5).
-  let G = Object.assign({ ich: null, leute: {}, umfragen: {} }, speicher.get('gruppe', {}));
+  let G = Object.assign({ ich: null, leute: {}, umfragen: {}, nachrichten: {} }, speicher.get('gruppe', {}));
+  if (!G.nachrichten) G.nachrichten = {};
   const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
-  const speichereG = () => speicher.set('gruppe', G);
+  // Live-Abgleich (Funk, siehe funk.js): Zustand nur im Speicher
+  const F = { an: false, sig: null, timer: {}, leuteOrt: new Map(), gehoert: new Map(), status: { an: false, verbunden: 0, gesamt: 0 }, ortT: 0, ortP: null, warteZeichnen: false };
+  const speichereG = () => { speicher.set('gruppe', G); funkVoll(); };
+  const MAX_NACHRICHTEN = 80;
   function ich() {
     if (!G.ich) { G.ich = { id: neueId(), name: '' }; }
     if (!G.leute[G.ich.id]) G.leute[G.ich.id] = { name: G.ich.name, s: {}, a: {}, t: Date.now() };
@@ -206,14 +211,25 @@
     enc(bytes) { let s = ''; bytes.forEach((b) => { s += String.fromCharCode(b); }); return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); },
     dec(str) { const s = atob(str.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((str.length + 3) % 4)); return Uint8Array.from(s, (c) => c.charCodeAt(0)); },
   };
-  async function packe() {
+  // Gruppenschlüssel für den Live-Abgleich: 32 Zufallsbytes. Treffen zwei Schlüssel aufeinander, gewinnt der ältere,
+  // damit alle Handys beim selben Kanal landen. Alte Schlüssel hört das Handy noch eine Weile mit.
+  function sichereSchluessel() {
+    if (!G.k) { G.k = [b64u.enc(crypto.getRandomValues(new Uint8Array(32))), Date.now()]; speicher.set('gruppe', G); }
+    return G.k;
+  }
+  // Nachrichten: die neuesten MAX_NACHRICHTEN, Reihenfolge fest (Zeit, dann Kennung), damit alle dieselben behalten
+  const nachrichtenListe = () => Object.entries(G.nachrichten).sort((a, b) => (b[1].t - a[1].t) || (a[0] < b[0] ? 1 : -1)).slice(0, MAX_NACHRICHTEN);
+  async function packe(opt = {}) {
     if (G.ich) { const me = ich(); me.name = G.ich.name; }
+    if (G.ich && G.ich.name && window.crypto && crypto.getRandomValues) sichereSchluessel();
     const l = {};
     for (const [id, p] of Object.entries(G.leute)) l[id] = [p.name || '', p.t || 0, p.s || {}, p.a || {}];
     const u = {};
     for (const [id, x] of Object.entries(G.umfragen)) u[id] = [x.von, x.frage, x.o, x.t];
     const tp = G.treff ? [G.treff.name || '', G.treff.lat || 0, G.treff.lon || 0, G.treff.zeit || '', G.treff.von || '', G.treff.t || 0, G.treff.geloescht ? 1 : 0] : null;
-    const roh = new TextEncoder().encode(JSON.stringify({ v: 1, l, u, tp }));
+    const pn = G.pin ? [G.pin.x || '', G.pin.von || '', G.pin.n || '', G.pin.t || 0, G.pin.weg ? 1 : 0] : null;
+    const n = opt.chat ? nachrichtenListe().map(([id, x]) => [id, x.von, x.n, x.x, x.t]) : undefined;
+    const roh = new TextEncoder().encode(JSON.stringify({ v: 1, l, u, tp, pn, k: G.k || null, n }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -249,8 +265,43 @@
       G.treff = weg ? { geloescht: true, von, t: +t || 0 } : { name: String(name).slice(0, 80), lat: +lat, lon: +lon, zeit: String(zeit).slice(0, 5), von, t: +t || 0 };
       if (!weg) neu.push('Treffpunkt');
     }
-    speichereG();
+    if (Array.isArray(d.pn) && (+d.pn[3] || 0) > ((G.pin && G.pin.t) || 0)) {
+      const [x, von, n, t, weg] = d.pn;
+      G.pin = weg ? { weg: 1, von: String(von).slice(0, 12), n: String(n || '').slice(0, 40), t: +t } : { x: String(x || '').slice(0, 300), von: String(von).slice(0, 12), n: String(n || '').slice(0, 40), t: +t };
+      neu.pin = !weg;
+    }
+    neu.nachrichten = [];
+    for (const x of Array.isArray(d.n) ? d.n : []) {
+      if (!Array.isArray(x) || typeof x[0] !== 'string' || G.nachrichten[x[0]]) continue;
+      const [id, von, n, text, t] = x;
+      if (!text || !(+t)) continue;
+      G.nachrichten[id.slice(0, 16)] = { von: String(von || '').slice(0, 12), n: String(n || '').slice(0, 40), x: String(text).slice(0, 300), t: +t };
+      neu.nachrichten.push(G.nachrichten[id.slice(0, 16)]);
+    }
+    const behalten = new Set(nachrichtenListe().map(([id]) => id));
+    for (const id of Object.keys(G.nachrichten)) if (!behalten.has(id)) delete G.nachrichten[id];
+    neu.nachrichten = neu.nachrichten.filter((x) => Object.values(G.nachrichten).includes(x));
+    if (Array.isArray(d.k) && typeof d.k[0] === 'string' && /^[A-Za-z0-9_-]{43}$/.test(d.k[0]) && +d.k[1] > 0) {
+      const [kk, kt] = d.k;
+      if (!G.k || +kt < G.k[1] || (+kt === G.k[1] && kk < G.k[0])) {
+        if (G.k && G.k[0] !== kk) G.altK = [G.k[0], ...(G.altK || []).filter((x) => x !== kk && x !== G.k[0])].slice(0, 4);
+        G.k = [kk, +kt]; neu.schluessel = true;
+      }
+    }
+    speicher.set('gruppe', G); // nicht speichereG: Empfangenes löst kein eigenes Senden aus
     return neu;
+  }
+  // Hat die Gegenseite etwas nicht, das dieses Handy kennt? Dann antwortet es mit seinem Stand.
+  function ihnenFehlt(d) {
+    const l = d.l || {};
+    for (const [id, p] of Object.entries(G.leute)) { const x = l[id]; if (!Array.isArray(x) || (+x[1] || 0) < (p.t || 0)) return true; }
+    const u = d.u || {};
+    for (const id of Object.keys(G.umfragen)) if (!u[id]) return true;
+    if (G.treff && (!Array.isArray(d.tp) || (+d.tp[5] || 0) < (G.treff.t || 0))) return true;
+    if (G.pin && (!Array.isArray(d.pn) || (+d.pn[3] || 0) < (G.pin.t || 0))) return true;
+    if (G.k && (!Array.isArray(d.k) || d.k[0] !== G.k[0])) return true;
+    if (Array.isArray(d.n)) { const ihre = new Set(d.n.map((x) => x && x[0])); for (const [id] of nachrichtenListe()) if (!ihre.has(id)) return true; }
+    return false;
   }
   const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
   async function importiereAusHash() {
@@ -259,6 +310,7 @@
     try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ }
     try {
       const neu = fuehreZusammen(await entpacke(m[1]));
+      if (neu.schluessel) funkStart(); else funkVoll(800); // Neues aus dem Link gleich an die anderen weiterreichen
       S.tab = 'gruppe'; speicher.set('tab', 'gruppe'); S.ort = null; hoehe('gross'); zeichne({ anpassen: true });
       toast(neu.length ? `Abgeglichen: ${neu.join(', ')}.` : 'Abgeglichen. Es war nichts Neues dabei.');
     } catch (e) { toast('Dieser Gruppen-Link ist beschädigt. Bitte neu senden lassen.'); }
@@ -266,10 +318,126 @@
   }
   addEventListener('hashchange', () => { if (/^#g=/.test(location.hash)) importiereAusHash(); });
 
+  // ---------- Live-Abgleich über Nostr (funk.js) ----------
+  // Jedes offene Handy sendet seinen Stand bei Änderungen und alle 2 Minuten. Wer etwas Neueres kennt, antwortet.
+  // So reicht ein offenes Handy, damit Stimmen, Umfragen, Treffpunkt und Nachrichten weiterwandern.
+  const funkErlaubt = () => !!(window.Funk && Funk.moeglich() && E.funk !== false && G.ich && G.ich.name);
+  async function funkStart() {
+    if (!funkErlaubt()) { funkStopp(); return; }
+    const k = sichereSchluessel();
+    const liste = [k[0], ...(G.altK || [])];
+    const sig = liste.join(',');
+    if (F.an && F.sig === sig) return;
+    F.sig = sig;
+    F.an = await Funk.starte(liste, { empfang: funkEmpfang, status: (s) => { const vorher = F.status.verbunden; F.status = s; if (!!vorher !== !!s.verbunden) funkAnzeige(); } });
+    if (F.an) { funkVoll(1500); if (teileOrt() && S.me) funkOrt(S.me, true); }
+    funkAnzeige();
+  }
+  function funkStopp() { if (window.Funk) Funk.stoppe(); F.an = false; F.sig = null; F.status = { an: false, verbunden: 0, gesamt: 0 }; }
+  function funkVoll(ms = 1500, schluessel) {
+    if (!F.an) return;
+    const kanal = schluessel || 'aktuell';
+    clearTimeout(F.timer[kanal]);
+    F.timer[kanal] = setTimeout(async () => {
+      delete F.timer[kanal];
+      try { await Funk.sende({ v: 1, a: 'z', von: G.ich && G.ich.id, d: await packe({ chat: true }) }, schluessel); } catch (e) { /* nächster Versuch beim nächsten Anlass */ }
+    }, ms);
+  }
+  const teileOrt = () => !!(E.teilenBis && Date.now() < E.teilenBis);
+  function funkOrt(p, sofort) {
+    if (!F.an || !G.ich || !p) return;
+    const jetzt = Date.now();
+    if (!sofort && jetzt - F.ortT < 15000) return;
+    if (!sofort && F.ortP && meter(F.ortP, p) < 25 && jetzt - F.ortT < 60000) return;
+    F.ortT = jetzt; F.ortP = p;
+    Funk.sende({ v: 1, a: 'o', id: G.ich.id, n: meinName(), lat: +p.lat.toFixed(5), lon: +p.lon.toFixed(5), acc: Math.round(p.acc || 0), ts: jetzt }).catch(() => {});
+  }
+  function teilenEnde(stumm) {
+    E.teilenBis = 0; speichereE();
+    if (F.an && G.ich) Funk.sende({ v: 1, a: 'o', id: G.ich.id, aus: 1, ts: Date.now() }).catch(() => {});
+    if (!stumm) toast('Du teilst deinen Standort nicht mehr.');
+  }
+  async function funkEmpfang(m, schluessel) {
+    if (!m || m.v !== 1) return;
+    if (typeof m.von === 'string' || typeof m.id === 'string') F.gehoert.set(m.von || m.id, Date.now());
+    if (m.a === 'z' && typeof m.d === 'string') {
+      let d; try { d = await entpacke(m.d); } catch (e) { return; }
+      const neu = fuehreZusammen(d);
+      const alt = G.k && schluessel !== G.k[0];
+      if (alt || ihnenFehlt(d)) funkVoll(800 + Math.random() * 2500, alt ? schluessel : undefined);
+      else if (F.timer.aktuell && !neu.length && !neu.nachrichten.length) { /* andere haben schon denselben Stand gesendet */ clearTimeout(F.timer.aktuell); delete F.timer.aktuell; }
+      if (neu.schluessel) funkStart();
+      const fremde = neu.nachrichten.filter((x) => !G.ich || x.von !== G.ich.id);
+      if (fremde.length) {
+        const x = fremde[fremde.length - 1];
+        if (!(S.tab === 'gruppe' && !S.ort && document.visibilityState === 'visible')) {
+          toast(`${x.n || 'Jemand'}: ${x.x}`, { aktion: 'Öffnen', fn: () => { S.tab = 'gruppe'; S.ort = null; hoehe('gross'); zeichne(); } });
+          try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) { /* egal */ }
+        }
+      } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
+      if (neu.length || neu.nachrichten.length || neu.pin !== undefined) neuZeichnen();
+      leisteZahl();
+      return;
+    }
+    if (m.a === 'o' && typeof m.id === 'string' && (!G.ich || m.id !== G.ich.id)) {
+      if (m.aus) { F.leuteOrt.delete(m.id); zeichneLeute(); return; }
+      const lat = +m.lat, lon = +m.lon, ts = +m.ts;
+      if (!(lat > -90 && lat < 90 && lon > -180 && lon < 180) || !(ts > Date.now() - 3 * 3600e3 && ts < Date.now() + 300e3)) return;
+      const alt = F.leuteOrt.get(m.id);
+      if (alt && alt.ts >= ts) return;
+      F.leuteOrt.set(m.id, { n: String(m.n || 'Jemand').slice(0, 40), lat, lon, acc: Math.min(+m.acc || 0, 2000), ts });
+      zeichneLeute();
+      if (S.tab === 'gruppe' && !S.ort) neuZeichnen();
+    }
+  }
+  // Nicht mitten ins Tippen hinein neu zeichnen
+  function neuZeichnen() {
+    const a = document.activeElement;
+    if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName) && $('#blatt').contains(a)) { F.warteZeichnen = true; return; }
+    if (!S.ort) zeichne({ scroll: true, karte: S.tab === 'plan' && S.plan === 'G' });
+  }
+  document.addEventListener('focusout', () => { if (F.warteZeichnen) setTimeout(() => { if (F.warteZeichnen) { F.warteZeichnen = false; neuZeichnen(); } }, 300); });
+  setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    if (teileOrt() && S.me) funkOrt(S.me); else if (E.teilenBis && !teileOrt()) teilenEnde(false);
+    for (const [id, x] of F.leuteOrt) if (Date.now() - x.ts > 3 * 3600e3) F.leuteOrt.delete(id);
+  }, 20000);
+  setInterval(() => { if (document.visibilityState === 'visible' && F.an) funkVoll(Math.random() * 3000); }, 120000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') return;
+    if (!F.an) funkStart(); else { Funk.pruefe(); funkVoll(1000); }
+  });
+
+  function nachrichtSenden(text) {
+    const x = String(text || '').trim().slice(0, 300);
+    if (!x) return false;
+    const me = ich();
+    const id = neueId() + Date.now().toString(36).slice(-4);
+    G.nachrichten[id] = { von: G.ich.id, n: meinName(), x, t: Date.now() };
+    me.t = Date.now();
+    speichereG();
+    return true;
+  }
+  function anpinnen(text) {
+    G.pin = text ? { x: String(text).slice(0, 300), von: G.ich.id, n: meinName(), t: Date.now() } : { weg: 1, von: G.ich.id, n: meinName(), t: Date.now() };
+    ich().t = Date.now(); speichereG();
+  }
+  const ungelesen = () => Object.values(G.nachrichten).filter((x) => (!G.ich || x.von !== G.ich.id) && x.t > speicher.get('gelesen', 0)).length;
+  function leisteZahl() {
+    const b = $('#leiste [data-tab="gruppe"] .pille');
+    if (!b) return;
+    let z = b.querySelector('.zahl');
+    const n = ungelesen();
+    if (!n) { if (z) z.remove(); return; }
+    if (!z) { z = el('span', { class: 'zahl', 'aria-hidden': 'true' }); b.append(z); }
+    z.textContent = n > 9 ? '9+' : String(n);
+    $('#leiste [data-tab="gruppe"]').setAttribute('aria-label', `Gruppe, ${n} neue ${n === 1 ? 'Nachricht' : 'Nachrichten'}`);
+  }
+
   async function teileGruppe() {
     if (!G.ich || !G.ich.name) { toast('Gib zuerst deinen Namen ein.'); return; }
     const url = await paketLink();
-    const text = `${meinName()}s Stimmen für Lissabon. Antippen zum Abgleichen:`;
+    const text = `${meinName()} lädt dich in unsere Lissabon-Gruppe ein. Antippen zum Beitreten:`;
     if (navigator.share) navigator.share({ title: 'Fasan Karte · Gruppe', text, url }).catch(() => {});
     else kopiere(`${text} ${url}`, 'Link kopiert. Jetzt in WhatsApp einfügen.');
   }
@@ -368,7 +536,7 @@
   }
 
   // ---------- Karte ----------
-  let karte = null, ebene = null, ichPunkt = null, ichKreis = null;
+  let karte = null, ebene = null, leuteEbene = null, ichPunkt = null, ichKreis = null;
   const marker = new Map();
   if (window.L) {
     karte = L.map('karte', { zoomControl: false, attributionControl: true }).setView(LISSABON, 14);
@@ -377,10 +545,24 @@
       maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
     }).addTo(karte);
     ebene = L.layerGroup().addTo(karte);
+    leuteEbene = L.layerGroup().addTo(karte);
     karte.on('dragstart', () => { if (S.follow) { S.follow = false; gpsKnopf(); } });
     karte.on('zoomend', () => namenZoom());
     karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.hoehe !== 'klein') hoehe('klein'); });
   }
+
+  // Mitreisende mit geteiltem Standort: Kreis mit Initialen, Name daneben; nach 10 Minuten blass
+  function zeichneLeute() {
+    if (!leuteEbene) return;
+    leuteEbene.clearLayers();
+    for (const [, x] of F.leuteOrt) {
+      const alt = Date.now() - x.ts > 600000;
+      L.marker([x.lat, x.lon], { icon: L.divIcon({ className: 'punkt person-punkt' + (alt ? ' alt' : ''), html: `<span class="p">${initialen(x.n).replace(/[<>&"]/g, '')}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }), title: x.n, zIndexOffset: 800, keyboard: false })
+        .bindTooltip(`${x.n.replace(/[<>&"]/g, '')} · ${zeitHer(x.ts)}`, { permanent: true, direction: 'right', offset: [14, 0], className: 'name-label person-label', interactive: false })
+        .addTo(leuteEbene);
+    }
+  }
+  setInterval(() => { if (F.leuteOrt.size && document.visibilityState === 'visible') zeichneLeute(); }, 60000);
 
   function punktIcon(o, nr, opt = {}) {
     const m = mk(o.id), g = gruppeVon(o.kategorie);
@@ -536,6 +718,42 @@
     });
   }
 
+  // ---------- Wetter: wetter.json entsteht im Bauprozess (tools/wetter.py), die Handys fragen keinen Wetterdienst ----------
+  let W = null;
+  // WMO-Wettercodes laut Open-Meteo-Doku (open-meteo-website, wmo-codes-table.svelte, abgerufen 24.10.2026)
+  const WMO = (c) => (c === 0 ? ['☀️', 'Klar'] : c === 1 ? ['🌤️', 'Überwiegend klar'] : c === 2 ? ['⛅', 'Teils bewölkt'] : c === 3 ? ['☁️', 'Bedeckt']
+    : c === 45 || c === 48 ? ['🌫️', 'Nebel'] : c >= 51 && c <= 57 ? ['🌦️', 'Niesel'] : c >= 61 && c <= 67 ? ['🌧️', 'Regen']
+      : (c >= 71 && c <= 77) || c === 85 || c === 86 ? ['🌨️', 'Schnee'] : c >= 80 && c <= 82 ? ['🌦️', 'Schauer'] : c >= 95 ? ['⛈️', 'Gewitter'] : ['', '']);
+  const zeitpunkt = (s) => { const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(s || ''); return m ? `${m[3]}.${m[2]}. ${m[4]}:${m[5]}` : ''; };
+  function wetterTeil(tagId) {
+    if (!W) return null;
+    const tag = TAGE.find((t) => t.id === tagId);
+    const ip = W.ipma && (W.ipma.tage || []).find((x) => x.datum === tag.datum);
+    const std = ((W.om && W.om.stunden) || []).filter((x) => x.t.startsWith(tag.datum) && +x.t.slice(11, 13) >= 8 && +x.t.slice(11, 13) <= 22);
+    const sonne = ((W.om && W.om.sonne) || []).find((x) => x.datum === tag.datum);
+    if (!ip && !std.length) return null;
+    const jetztH = tag.datum === iso ? new Date().getHours() : 0;
+    const regenAb = std.find((x) => x.regen >= 60 && +x.t.slice(11, 13) >= jetztH);
+    const mittag = std.filter((x) => +x.t.slice(11, 13) >= 10 && +x.t.slice(11, 13) <= 18).map((x) => x.code);
+    const haeufig = mittag.sort((a, b) => mittag.filter((v) => v === b).length - mittag.filter((v) => v === a).length)[0];
+    const [emo] = WMO(haeufig != null ? haeufig : -1);
+    const alt = W.stand && Date.now() - Date.parse(W.stand) > 6 * 3600e3;
+    const kopf = [ip ? `${Math.round(ip.min)}–${Math.round(ip.max)} °C` : null, ip ? `Regen ${ip.regen} %` : null, ip && ip.text ? ip.text : null].filter(Boolean).join(' · ');
+    return el('section', { class: 'wetter' + (alt ? ' alt' : ''), 'aria-label': `Wetter ${tag.lang}` },
+      el('div', { class: 'w-kopf' }, emo ? el('span', { class: 'w-emo', 'aria-hidden': 'true' }, emo) : null,
+        el('div', {}, el('strong', {}, kopf || 'Wetter'), sonne ? el('small', {}, `Sonnenaufgang ${sonne.auf} · Sonnenuntergang ${sonne.unter}`) : null)),
+      std.length ? el('ol', { class: 'w-stunden', 'aria-label': 'Stündlich' }, std.filter((x, i) => i % 2 === 0).map((x) => {
+        const [e, txt] = WMO(x.code);
+        return el('li', { 'aria-label': `${x.t.slice(11, 13)} Uhr: ${txt}, ${Math.round(x.temp)} Grad, Regen ${x.regen} Prozent` },
+          el('small', {}, x.t.slice(11, 13)), el('span', { 'aria-hidden': 'true' }, e), el('b', {}, `${Math.round(x.temp)}°`), el('small', { class: x.regen >= 50 ? 'nass' : '' }, x.regen >= 20 ? `${x.regen} %` : ' '));
+      })) : null,
+      regenAb ? el('p', { class: 'hilfe', style: 'margin:0' }, el('span', {}, `Regen wahrscheinlich ab ${+regenAb.t.slice(11, 13)} Uhr (${regenAb.regen} %). Für drinnen: Museen, Markthallen, Shoppen.`)) : null,
+      tagId === 'sa' ? el('p', { class: 'klein', style: 'margin:0' }, 'Heute Nacht endet die Sommerzeit: Um 2 Uhr springen die Uhren auf 1 Uhr zurück. Handys stellen sich selbst um. Ab Sonntag wird es eine Stunde früher dunkel (EU-Richtlinie 2000/84/EG).') : null,
+      el('p', { class: 'leise klein', style: 'margin:0' }, alt ? el('b', {}, 'Veraltet. ') : null,
+        [ip ? `Tag: IPMA${W.ipma.aktualisiert ? `, Stand ${zeitpunkt(W.ipma.aktualisiert)}` : ''}` : null, std.length ? `Stunden: Open-Meteo (CC BY 4.0)` : null].filter(Boolean).join(' · '),
+        W.stand ? ` · abgerufen ${uhrzeit(Date.parse(W.stand))}` : ''));
+  }
+
   function zeichnePlan(box) {
     const plan = S.plan === 'G' ? { titel: 'Gruppenplan', untertitel: '' } : PLAENE[S.plan] || { titel: 'Plan ' + S.plan, untertitel: '' };
     const tag = TAGE.find((t) => t.id === S.tag);
@@ -559,7 +777,7 @@
         hilfe('hinfuehren', '„Hinführen“ zeigt den Fußweg auf der Karte und sagt jede Abbiegung an. Am Ziel hakst du den Stopp ab.'));
     } else if (S.plan === 'G' && !stopps.length) {
       zusammen = el('div', { class: 'leer' }, fasan(), el('strong', {}, 'Der Gruppenplan entsteht aus euren Stimmen.'),
-        el('span', {}, 'Stimmt bei Orten mit „Will hin“ ab und gleicht unter „Gruppe“ ab. Dann baut die App die Tage: passende Orte nach Nähe, Öffnungstagen und mit Essen.'),
+        el('span', {}, 'Stimmt bei Orten mit „Will hin“ ab. Unter „Gruppe“ gleicht sich das ab. Dann baut die App die Tage: passende Orte nach Nähe, Öffnungstagen und mit Essen.'),
         el('button', { type: 'button', class: 'knopf', onclick: () => { S.tab = 'gruppe'; hoehe('gross'); zeichne(); } }, ic('gruppe'), 'Zur Gruppe'));
     } else {
       zusammen = el('div', { class: 'leer' }, fasan(), el('strong', {}, stopps.length ? 'Alles erledigt für heute.' : 'Für diesen Tag gibt es keine Stopps.'));
@@ -585,9 +803,11 @@
       }
     }
     setze(box,
+      pinKarte(),
       treffKarte(),
       zusammen,
       el('div', { class: 'abschnitt', style: 'display:grid;gap:8px' }, tageSeg, planSeg),
+      wetterTeil(S.tag),
       el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, S.plan === 'G' ? `Gruppenplan aus ${Object.keys(G.leute).length} ${Object.keys(G.leute).length === 1 ? 'Person' : 'Personen'}: passt sich bei jedem Abgleich an. Zeiten sind geschätzt. ${tag.lang}.` : `${plan.titel}: ${plan.untertitel}. ${tag.lang}.`),
       stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${fertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(fertig / stopps.length) * 100}%` })) : null,
       stopps.length ? el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Die App führt euch Stopp für Stopp. Am Ziel geht es mit einem Tipp zum nächsten.') : null,
@@ -739,10 +959,12 @@
         el('ul', { class: 'klein', style: 'margin:0;padding-left:20px;display:grid;gap:6px' },
           el('li', {}, 'Keine Konten, keine Statistik, keine Werbung.'),
           el('li', {}, 'Markierungen, Notizen und Unterkunft bleiben auf diesem Handy.'),
-          el('li', {}, 'Dein Standort wird nur im Browser verwendet und nicht gesendet.'),
-          el('li', {}, 'Verbindungen: Kartenbilder von OpenStreetMap. Beim Antippen von Navigation, Webseite oder Wikipedia öffnet sich die jeweilige Seite.'))),
+          el('li', {}, 'Dein Standort bleibt im Handy. Ausnahmen: „Hinführen“ schickt Start und Ziel an den Routenserver von FOSSGIS (openstreetmap.de). „Standort teilen“ schickt ihn verschlüsselt an deine Gruppe.'),
+          el('li', {}, `Live-Abgleich: verschlüsselt (AES-256-GCM) mit dem Schlüssel aus eurem Gruppen-Link, über öffentliche Nostr-Server (${(window.Funk ? Funk.RELAYS : []).map((r) => r.replace('wss://', '')).join(', ')}). Die Server sehen deine IP-Adresse und wann du online bist, nicht den Inhalt. Wer den Gruppen-Link hat, liest mit.`),
+          el('li', {}, 'Wetter: holt der Bauprozess auf GitHub bei IPMA und Open-Meteo. Dein Handy fragt dort nicht an.'),
+          el('li', {}, 'Kartenbilder von OpenStreetMap. Webseiten und Wikipedia öffnen sich nur, wenn du sie antippst.'))),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Quellen und Lizenzen'),
-        el('p', { class: 'klein', style: 'margin:0' }, 'Karte und Orte: © OpenStreetMap-Mitwirkende (ODbL). Texte: Wikipedia (CC BY-SA). Fotos: Wikimedia Commons, Autor und Lizenz stehen unter jedem Bild. Karte: Leaflet (BSD-2). Diese App: MPL-2.0.')),
+        el('p', { class: 'klein', style: 'margin:0' }, 'Karte und Orte: © OpenStreetMap-Mitwirkende (ODbL). Texte: Wikipedia (CC BY-SA). Fotos: Wikimedia Commons, Autor und Lizenz stehen unter jedem Bild. Wetter: IPMA (Tage) und Open-Meteo (Stunden, CC BY 4.0). Karte: Leaflet (BSD-2). QR-Codes: qrcode-generator (MIT). Live-Abgleich: nostr-tools (Unlicense). Diese App: MPL-2.0.')),
       el('section', { class: 'abschnitt nur-voll' }, el('h3', {}, 'Zurücksetzen'), el('div', { id: 'reset-box' },
         el('button', { type: 'button', class: 'knopf warn', onclick: () => setze($('#reset-box'),
           el('p', { style: 'margin:0 0 8px' }, 'Alle Markierungen, Notizen und Bewertungen auf diesem Handy löschen?'),
@@ -899,7 +1121,7 @@
       G.treff = { name, lat, lon, zeit: f.zeit, von: G.ich.id, t: Date.now() };
       G.leute[G.ich.id].t = Date.now(); speichereG();
       S.treffForm = null; zeichne({ anpassen: true });
-      toast('Treffpunkt gespeichert. Jetzt QR zeigen oder Link senden, damit alle ihn haben.', { aktion: 'Link senden', fn: teileGruppe });
+      toast(F.an && F.status.verbunden ? 'Treffpunkt gespeichert. Alle mit offener App sehen ihn gleich.' : 'Treffpunkt gespeichert. Ohne Live-Verbindung: QR zeigen oder Link senden.', F.an && F.status.verbunden ? {} : { aktion: 'Link senden', fn: teileGruppe });
     };
     const fuelle = () => {
       const q = falte(f.q || '');
@@ -916,19 +1138,94 @@
       el('span', { class: 'klein leise' }, 'Oder einen Ort wählen:'), such, liste,
       el('div', { class: 'reihe' },
         el('button', { type: 'button', class: 'knopf', onclick: () => { S.treffForm = null; zeichne({ scroll: true }); } }, 'Abbrechen'),
-        G.treff && !G.treff.geloescht ? el('button', { type: 'button', class: 'knopf warn', onclick: () => { G.treff = { geloescht: true, von: ich() && G.ich.id, t: Date.now() }; ich().t = Date.now(); speichereG(); S.treffForm = null; zeichne(); toast('Treffpunkt gelöscht. Link senden, damit es alle wissen.'); } }, 'Treffpunkt löschen') : null));
+        G.treff && !G.treff.geloescht ? el('button', { type: 'button', class: 'knopf warn', onclick: () => { G.treff = { geloescht: true, von: ich() && G.ich.id, t: Date.now() }; ich().t = Date.now(); speichereG(); S.treffForm = null; zeichne(); toast(F.an && F.status.verbunden ? 'Treffpunkt gelöscht.' : 'Treffpunkt gelöscht. Ohne Live-Verbindung: Link senden, damit es alle wissen.'); } }, 'Treffpunkt löschen') : null));
+  }
+
+  // ---------- Gruppe: Live, Nachrichten, Angepinntes ----------
+  const uhrzeit = (t) => { const d = new Date(t), h = new Date(); const z = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; return d.toDateString() === h.toDateString() ? z : `${['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][d.getDay()]} ${z}`; };
+  function funkAnzeige() { if (S.tab === 'gruppe' && !S.ort) neuZeichnen(); }
+  function pinKarte() {
+    if (!G.pin || G.pin.weg || !G.pin.x) return null;
+    const von = G.ich && G.pin.von === G.ich.id ? 'dir' : G.pin.n || 'jemandem';
+    return el('div', { class: 'pin-karte', role: 'note' }, ic('pin'),
+      el('div', { class: 'pin-text' }, el('small', {}, `Angepinnt von ${von} · ${uhrzeit(G.pin.t)}`), el('p', {}, G.pin.x)),
+      G.ich && G.ich.name ? el('button', { type: 'button', class: 'knopf flach nur-voll', onclick: () => { anpinnen(null); zeichne({ scroll: true, karte: false }); toast('Gelöst.'); } }, 'Lösen') : null);
+  }
+  const personOrt = (id) => { const x = F.leuteOrt.get(id); return x ? { id: 'p-' + id, name: x.n, kategorie: 'Verkehr', typ: 'treff', adresse: `Position von ${uhrzeit(x.ts)}`, notiz: '', lat: x.lat, lon: x.lon } : null; };
+  function liveTeil() {
+    const st = F.status, verbunden = F.an && st.verbunden > 0;
+    const da = [...F.gehoert].filter(([, t]) => Date.now() - t < 180000).map(([id]) => (G.leute[id] && G.leute[id].name) || (F.leuteOrt.get(id) || {}).n).filter(Boolean);
+    const bis = E.teilenBis ? new Date(E.teilenBis) : null;
+    const startTeilen = (ms) => {
+      E.teilenBis = ms; speichereE();
+      if (S.watchId == null) starteGps(false);
+      if (S.me) funkOrt(S.me, true);
+      toast(verbunden ? 'Die Gruppe sieht dich jetzt auf der Karte, solange deine App offen ist.' : 'Wird geteilt, sobald Live verbunden ist.');
+      zeichne({ scroll: true, karte: false });
+    };
+    const mitternacht = new Date(); mitternacht.setHours(23, 59, 0, 0);
+    const teilen = teileOrt()
+      ? el('div', { class: 'reihe' }, el('p', { style: 'margin:0;flex:1 1 160px' }, el('strong', {}, 'Du teilst deinen Standort'), ` bis ${uhrzeit(bis.getTime())}.`),
+        el('button', { type: 'button', class: 'knopf warn', onclick: () => { teilenEnde(); zeichne({ scroll: true, karte: false }); } }, 'Nicht mehr teilen'))
+      : el('div', { style: 'display:grid;gap:8px' }, el('strong', {}, 'Meinen Standort mit der Gruppe teilen'),
+        el('div', { class: 'reihe' },
+          el('button', { type: 'button', class: 'knopf', style: 'flex:1 1 130px', onclick: () => startTeilen(Date.now() + 3600e3) }, ic('standort'), '1 Stunde'),
+          el('button', { type: 'button', class: 'knopf', style: 'flex:1 1 130px', onclick: () => startTeilen(mitternacht.getTime()) }, ic('standort'), 'Bis Mitternacht')));
+    const leute = [...F.leuteOrt].sort((a, b) => (S.me ? meter(S.me, a[1]) - meter(S.me, b[1]) : b[1].ts - a[1].ts));
+    const liste = leute.length ? el('ul', { class: 'liste' }, leute.map(([id, x]) => el('li', { class: 'eintrag person-zeile' },
+      el('button', { type: 'button', class: 'auf', onclick: () => { if (karte) { hoehe('klein'); karte.setView([x.lat, x.lon], 17); } } },
+        el('span', { class: 'marker person' + (Date.now() - x.ts > 600000 ? ' alt' : '') }, initialen(x.n)),
+        el('span', { class: 'text' }, el('span', { class: 'titel' }, x.n),
+          el('span', { class: 'unter' }, [S.me ? `${strecke(meter(S.me, x))} entfernt` : null, `Stand ${uhrzeit(x.ts)} (${zeitHer(x.ts)})`].filter(Boolean).join(' · ')))),
+      el('button', { type: 'button', class: 'haken', 'aria-label': `Zu ${x.n} hinführen`, onclick: () => starteNavi(personOrt(id), true) }, ic('route'))))) : null;
+    return el('section', { class: 'karte-box live', style: 'margin-top:4px;display:grid;gap:10px' },
+      el('div', { class: 'live-kopf' }, el('span', { class: 'lampe ' + (verbunden ? 'an' : F.an ? 'sucht' : 'aus'), 'aria-hidden': 'true' }),
+        el('strong', {}, verbunden ? 'Live verbunden' : F.an ? 'Verbinde …' : 'Live aus'),
+        verbunden ? el('span', { class: 'leise klein' }, `${st.verbunden} von ${st.gesamt} Servern · verschlüsselt`) : null),
+      el('p', { class: 'leise klein', style: 'margin:0' }, verbunden
+        ? (da.length ? `Gerade auch offen: ${da.join(', ')}. ` : 'Gerade ist sonst niemand online. ') + 'Stimmen, Umfragen, Treffpunkt und Nachrichten gleichen sich von selbst ab, sobald ein anderes Handy die App offen hat.'
+        : F.an ? 'Noch kein Server erreicht. Der Abgleich per QR-Code oder Link geht immer.' : E.funk === false ? 'Du hast den Live-Abgleich ausgeschaltet. Abgleich per QR-Code oder Link.' : 'Live-Abgleich startet …'),
+      teilen,
+      liste,
+      el('p', { class: 'leise klein', style: 'margin:0' }, 'Positionen kommen nur, solange die App offen ist. Die Server sehen nur Verschlüsseltes, manche halten es ein paar Minuten vor. Für unterwegs in der Tasche: WhatsApp-Live-Standort.'),
+      el('button', { type: 'button', class: 'knopf flach nur-voll', style: 'justify-self:start;min-height:48px', onclick: () => {
+        E.funk = E.funk === false; speichereE();
+        if (E.funk === false) { if (teileOrt()) teilenEnde(true); funkStopp(); } else funkStart();
+        zeichne({ scroll: true, karte: false });
+      } }, E.funk === false ? 'Live-Abgleich einschalten' : 'Live-Abgleich ausschalten'));
+  }
+  function nachrichtenTeil() {
+    const eingabe = el('input', { id: 'nachricht', type: 'text', maxlength: '300', placeholder: 'Nachricht an alle', enterkeyhint: 'send', autocomplete: 'off', 'aria-label': 'Nachricht an die Gruppe' });
+    const senden = () => {
+      if (!nachrichtSenden(eingabe.value)) { eingabe.focus(); return; }
+      F.warteZeichnen = false; eingabe.blur();
+      zeichne({ scroll: true, karte: false });
+      if (!(F.an && F.status.verbunden)) toast('Gespeichert. Geht raus, sobald Live verbunden ist.');
+    };
+    eingabe.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); senden(); } });
+    const liste = nachrichtenListe().slice(0, 30);
+    return el('section', { class: 'abschnitt' }, el('h3', {}, 'Nachrichten'),
+      el('div', { class: 'feld' }, eingabe, el('button', { type: 'button', class: 'knopf haupt', onclick: senden }, 'Senden')),
+      liste.length ? el('ul', { class: 'nachrichten' }, liste.map(([, x]) => {
+        const meine = G.ich && x.von === G.ich.id;
+        return el('li', { class: 'nachricht' + (meine ? ' meine' : '') },
+          el('div', { class: 'n-kopf' }, el('strong', {}, meine ? 'Du' : x.n || 'Jemand'), el('span', { class: 'leise klein' }, uhrzeit(x.t)),
+            el('button', { type: 'button', class: 'knopf flach nur-voll n-pin', onclick: () => { anpinnen(x.x); zeichne({ scroll: true, karte: false }); toast('Angepinnt. Alle sehen es oben im Tagesplan.'); } }, ic('pin'), 'Anpinnen')),
+          el('p', {}, x.x));
+      })) : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Nachrichten. Was du schreibst, sehen alle in eurer Gruppe. Wichtiges zum Anpinnen: Treffpunkt, Zeiten, Notfallnummer.'));
   }
 
   // ---------- Gruppe: Ansicht ----------
+  const initialen = (n) => (String(n || '?').trim().split(/\s+/).map((w) => w[0]).join('').slice(0, 2) || '?').toUpperCase();
   const zeitHer = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? 'gerade eben' : m < 60 ? `vor ${m} Min.` : m < 1440 ? `vor ${Math.round(m / 60)} Std.` : `vor ${Math.round(m / 1440)} Tagen`; };
   function zeichneGruppe(box) {
     if (!G.ich || !G.ich.name) {
       const feld = el('input', { id: 'gruppe-name', type: 'text', autocomplete: 'given-name', placeholder: 'Dein Vorname', maxlength: '30' });
-      const los = () => { const n = feld.value.trim(); if (!n) { feld.focus(); return; } ich(); G.ich.name = n; G.leute[G.ich.id].name = n; G.leute[G.ich.id].t = Date.now(); speichereG(); zeichne(); };
+      const los = () => { const n = feld.value.trim(); if (!n) { feld.focus(); return; } ich(); G.ich.name = n; G.leute[G.ich.id].name = n; G.leute[G.ich.id].t = Date.now(); speichereG(); funkStart(); zeichne(); };
       feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') los(); });
       setze(box, el('div', { class: 'leer' }, fasan(), el('strong', { style: 'font-size:var(--fs-t)' }, 'Gemeinsam entscheiden')),
         el('p', { style: 'margin:0 0 6px' }, 'Jede und jeder stimmt bei Orten ab: „Will hin“ oder „Lieber nicht“. Dazu kommen Umfragen wie „Wohin heute Abend?“.'),
-        el('p', { class: 'leise klein', style: 'margin:0 0 14px' }, 'Abgeglichen wird per QR-Code oder Link, ohne Konto und ohne Server. Dein Name ist nur für die Gruppe.'),
+        el('p', { class: 'leise klein', style: 'margin:0 0 14px' }, 'Einmal per QR-Code oder Link verbinden. Danach gleicht sich alles live und verschlüsselt ab, ohne Konto. Dein Name ist nur für die Gruppe.'),
         el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: los }, 'Los')));
       return;
     }
@@ -947,11 +1244,11 @@
         el('button', { type: 'button', class: 'knopf', style: 'flex:1 1 140px', onclick: teileGruppe }, ic('teilen'), 'Link senden')),
       el('p', { class: 'leise klein', style: 'margin:0' }, leute.length
         ? `Abgeglichen mit: ${leute.map(([, p]) => `${p.name || 'Jemand'} (${zeitHer(p.t)})`).join(', ')}.`
-        : 'Noch niemand abgeglichen. Zeig deinen QR-Code oder schick den Link in eure WhatsApp-Gruppe. Jeder Link enthält alles, was dein Handy kennt.'));
+        : 'Noch niemand verbunden. Zeig deinen QR-Code oder schick den Link in eure WhatsApp-Gruppe. Einmal reicht: danach läuft der Abgleich live.'));
 
     const umfrageTeil = el('section', { class: 'abschnitt' }, el('h3', {}, 'Umfragen'),
       S.neueUmfrage ? formUmfrage() : el('button', { type: 'button', class: 'knopf breit nur-voll', onclick: () => { S.neueUmfrage = { frage: 'Wohin heute Abend?', o: [] }; zeichne({ scroll: true, karte: false }); } }, ic('plan'), 'Neue Umfrage'),
-      umfragen.length ? umfragen.map(([id, u]) => karteUmfrage(id, u)) : (S.neueUmfrage ? null : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Umfrage. Wer eine startet, schickt danach den Link oder zeigt den QR-Code.')));
+      umfragen.length ? umfragen.map(([id, u]) => karteUmfrage(id, u)) : (S.neueUmfrage ? null : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Umfrage. Neue Umfragen sehen alle mit offener App sofort.')));
 
     const strittig = liste.filter((x) => x.ja.length && x.nein.length);
     const strittigTeil = strittig.length ? el('section', { class: 'abschnitt' }, el('h3', {}, `Strittig (${strittig.length})`),
@@ -972,7 +1269,10 @@
         const d = new Date(Date.now() + 90 * 60000); d.setMinutes(d.getMinutes() < 30 ? 30 : 60, 0, 0);
         S.treffForm = { zeit: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, q: '' }; zeichne({ scroll: true });
       } }, ic('orte'), 'Treffpunkt festlegen'));
-    setze(box, abgleich, treffTeil, umfrageTeil, rang, strittigTeil);
+    if (document.visibilityState === 'visible') { speicher.set('gelesen', Date.now()); leisteZahl(); }
+    // Ohne bekannte Mitreisende zuerst der Abgleich per QR/Link: darüber kommt auch der Gruppenschlüssel
+    if (!leute.length) setze(box, pinKarte(), abgleich, liveTeil(), nachrichtenTeil(), treffTeil, umfrageTeil, rang, strittigTeil);
+    else setze(box, pinKarte(), liveTeil(), nachrichtenTeil(), treffTeil, umfrageTeil, rang, strittigTeil, abgleich);
   }
 
   function formUmfrage() {
@@ -1008,7 +1308,7 @@
           G.umfragen[id] = { von: G.ich.id, frage: f.frage.trim(), o: f.o.slice(), t: Date.now() };
           me.t = Date.now(); speichereG();
           S.neueUmfrage = null; zeichne();
-          toast('Umfrage gestartet. Jetzt QR zeigen oder Link senden.', { aktion: 'Link senden', fn: teileGruppe });
+          toast(F.an && F.status.verbunden ? 'Umfrage gestartet. Alle mit offener App sehen sie gleich.' : 'Umfrage gestartet. Ohne Live-Verbindung: QR zeigen oder Link senden.', F.an && F.status.verbunden ? {} : { aktion: 'Link senden', fn: teileGruppe });
         } }, 'Umfrage starten')));
   }
 
@@ -1492,6 +1792,7 @@
     const erst = !S.me;
     S.me = neu;
     zeichneIch();
+    if (teileOrt()) funkOrt(neu);
     if (karte && erst && !N.aktiv && !S.ort) karteZeichnen(true);
     else if (S.follow && karte) { if (erst) zeigeAufKarte(neu, 17); else karte.panTo([neu.lat, neu.lon], { animate: true }); }
     if (N.aktiv) { if (!N.route && !N.letzteVersuch) { N.letzteVersuch = Date.now(); neueRoute().finally(() => { N.letzteVersuch = 0; }); } else naviUpdate(); gpsKnopf(); return; }
@@ -1574,6 +1875,10 @@
     zeichne({ anpassen: true });
     if (!speicher.get('einfuehrung', false) && !/^#g=/.test(location.hash)) zeigeEinfuehrung(0);
     importiereAusHash();
+    funkStart(); leisteZahl();
+    if (E.teilenBis && !teileOrt()) { E.teilenBis = 0; speichereE(); }
+    if (teileOrt()) { if (S.watchId == null) starteGps(false); setTimeout(() => toast(`Du teilst deinen Standort mit der Gruppe bis ${uhrzeit(E.teilenBis)}.`, { aktion: 'Beenden', fn: () => { teilenEnde(); zeichne({ scroll: true, karte: false }); } }), 1500); }
+    fetch('wetter.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((w) => { if (w && (w.ipma || w.om)) { W = w; if (S.tab === 'plan' && !S.ort) zeichne({ scroll: true, karte: false }); } }).catch(() => {});
     const h = /^#ort-(.+)$/.exec(location.hash);
     if (h && NACH_ID.has(h[1])) { try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } oeffneOrt(h[1]); }
     $('#laden').classList.add('weg');

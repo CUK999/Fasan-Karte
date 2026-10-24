@@ -4,6 +4,9 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Live-Abgleich über Nostr: Stimmen, Umfragen, Treffpunkt, Nachrichten, Angepinntes und geteilter Standort gehen verschlüsselt (AES-256-GCM, Schlüssel nur im Gruppen-Link/QR) als flüchtige Ereignisse (Art 20777) über vier öffentliche Relays. Jedes offene Handy reicht den Stand weiter. Kein Senden bei geschlossener App | Wunsch: Live-Standort ohne Traccar und Abgleich ohne Link. Relaistest in CI: manche Relays halten flüchtige Ereignisse kurz vor (strfry: 300 s), deshalb schützt die Verschlüsselung, nicht die Speicherregel |
+| 2026-10-24 | Keine Benachrichtigungen bei geschlossener App | Web-Push braucht einen Absender-Server (MDN Push API); später über den eigenen VPS, dann nur ein leeres Signal über Google/Apple |
+| 2026-10-24 | Wetter holt nur der Bauprozess (IPMA Tage, Open-Meteo Stunden, alle 2 Std.), die Handys laden wetter.json von GitHub Pages | Kein zusätzlicher Dienst sieht die Handys; Stand und „veraltet“ sichtbar |
 | 2026-10-24 | Keine Übergabe an Google Maps oder Apple Karten mehr; Tagesroute, Unterkunft (gespeicherter Standort), weite Ziele (zu Bahn, Fähre, Metro) und Routing-Ausfall (Luftlinie) laufen in der App. Quellen-Links (Wikipedia, Fotos, OSM) bleiben wegen der Lizenzen | Wunsch des Nutzers: nur Funktionen in der App |
 | 2026-10-24 | Kategorie „Shoppen“ mit neun Adressen, jede mit Quelle und Datum (Visit Lisboa, Time Out, lisbontourism.org, Le Petit Journal) | Wunsch der Gruppe: Kleidung kaufen |
 | 2026-10-24 | Gruppenplan nach „Average Without Misery“: Ein „Lieber nicht“ macht einen Ort strittig, er kommt nicht in den Plan und steht unter „Gruppe → Strittig“ | Recherche `docs/recherche/2026-10-24-gruppenreisen.md` (Masthoff 2004; Barile u. a.): Netto-Mehrheit wirkt unfairer |

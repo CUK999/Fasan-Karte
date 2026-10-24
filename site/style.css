@@ -471,3 +471,46 @@ body[data-blatt="klein"] .naechst-karte .kachel.gross { height: 0; }
 body[data-blatt="klein"] .naechst-karte { grid-template-columns: 88px 1fr; align-items: center; }
 body[data-blatt="klein"] .naechst-karte .kachel.gross { width: 88px; height: 88px; }
 body[data-blatt="klein"] .naechst-karte .kachel.gross.ohne svg { width: 36px; height: 36px; }
+
+/* ---------- 1.5: Live, Nachrichten, Angepinntes, Wetter ---------- */
+:root { --person: #1A5FB4; }
+:root[data-theme="dunkel"], :root[data-theme="glas"] { --person: #62A0EA; }
+:root[data-theme="kontrast"] { --person: #FFFFFF; }
+.leiste .pille { position: relative; }
+.leiste .zahl { position: absolute; top: -4px; right: 2px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px;
+  background: var(--danger); color: #fff; font: 700 12px/20px var(--schrift); text-align: center; box-shadow: 0 0 0 2px var(--surface); }
+.pin-karte { display: flex; align-items: flex-start; gap: 10px; margin: 4px 0 10px; padding: 12px 12px 12px 14px; border-radius: var(--r);
+  background: var(--raised); border-left: 5px solid var(--accent); }
+.pin-karte > svg { flex: none; width: 22px; height: 22px; margin-top: 2px; fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pin-text { flex: 1; min-width: 0; }
+.pin-text small { display: block; color: var(--muted); }
+.pin-text p { margin: 2px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.pin-karte .knopf { flex: none; min-height: 48px; padding: 0 10px; }
+.live-kopf { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.lampe { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); flex: none; }
+.lampe.an { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 25%, transparent); }
+.lampe.sucht { background: var(--stern); }
+.marker.person { background: var(--person); color: #fff; font-size: 15px; }
+:root[data-theme="kontrast"] .marker.person { color: #000; }
+.marker.person.alt { opacity: .55; }
+.person-punkt .p { width: 36px; height: 36px; margin: -18px 0 0 -18px; background: var(--person); font-size: 14px; letter-spacing: .02em; }
+:root[data-theme="kontrast"] .person-punkt .p { color: #000; border-color: #000; }
+.person-punkt.alt .p { opacity: .55; }
+.name-label.person-label { color: var(--person); }
+.nachrichten { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.nachricht { padding: 10px 12px; border-radius: var(--r); background: var(--raised); }
+.nachricht.meine { background: color-mix(in srgb, var(--accent) 14%, var(--raised)); }
+.nachricht p { margin: 4px 0 0; overflow-wrap: anywhere; }
+.n-kopf { display: flex; align-items: center; gap: 8px; }
+.n-kopf .n-pin { margin-left: auto; min-height: 44px; padding: 0 8px; font-size: 14px; }
+.n-kopf .n-pin svg { width: 16px; height: 16px; }
+.wetter { margin-top: 12px; padding: 12px 14px; border-radius: var(--r); background: var(--raised); display: grid; gap: 10px; }
+.wetter.alt { outline: 2px dashed var(--stern); }
+.w-kopf { display: flex; align-items: center; gap: 12px; }
+.w-kopf small { display: block; color: var(--muted); }
+.w-emo { font-size: 34px; line-height: 1; }
+.w-stunden { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(44px, 1fr); gap: 4px; overflow-x: auto; }
+.w-stunden li { display: grid; justify-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; background: var(--surface); }
+.w-stunden li span { font-size: 20px; line-height: 1.1; }
+.w-stunden small { color: var(--muted); font-size: 12px; min-height: 14px; }
+.w-stunden small.nass { color: var(--person); font-weight: 700; }

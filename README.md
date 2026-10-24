@@ -10,7 +10,9 @@ Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohn
 - Alle Orte mit Suche, Kategorien, Filtern (Geheimtipps, jetzt offen, nicht erledigt, gemerkt, ausgeblendet) und Sortierung nach Nähe
 - Ortsseite mit Foto, Wikipedia-Text, Öffnungszeiten, Webseite, Zugang, eigener Notiz und Bewertung
 - Merken, Erledigt, Ausblenden – mit Rückgängig
-- Gruppe: Stimmen je Ort (Will hin / Lieber nicht), Umfragen, gemeinsame Rangliste; Abgleich per QR-Code oder Link, ohne Server
+- Gruppe: Stimmen je Ort (Will hin / Lieber nicht), Umfragen, gemeinsame Rangliste, Nachrichten, Angepinntes; einmal per QR-Code oder Link verbinden, danach live und verschlüsselt über Nostr (`site/funk.js`)
+- Standort mit der Gruppe teilen (1 Stunde oder bis Mitternacht), nur solange die App offen ist
+- Wetter je Tag und Stunde (IPMA, Open-Meteo) mit Stand
 - Profile Standard, Einfach, Gut lesbar; Themes System, Hell, Dunkel, Kontrast, Glas
 - Offline: App und Daten bleiben nach dem ersten Öffnen im Gerät
 
@@ -20,6 +22,8 @@ Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohn
 | --- | --- |
 | `data/orte.csv` | Orte: Name, Adresse, Kategorie, Notiz; optional `Lat`/`Lon` (geprüfte Position) und `Zeiten` (eigene Öffnungszeiten, `-` blendet OSM aus) |
 | `site/plaene.json` | Tagespläne, verweisen auf Ortsnamen |
+| `tools/wetter.py` | Holt das Wetter (nur im Bauprozess) |
+| `tools/relaistest.mjs` | Prüft die Nostr-Relays (Protokoll im Branch `ci-logs`) |
 | `tools/daten.py` | Prüft Positionen (OSM-Name, OSM-Adresse, Wikidata), holt Infos, Wikipedia-Text und freie Bilder |
 | `data/pruefbericht.md` | Ergebnis der Prüfung je Ort |
 | `.github/workflows/pages.yml` | Bei jedem Push: Daten aktualisieren, veröffentlichen |
@@ -31,6 +35,6 @@ Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohn
 
 ## Datenschutz
 
-Keine Konten, keine Statistik. Markierungen, Notizen und Unterkunft bleiben im Gerät. Der Standort wird nur im Browser verwendet. Die Seite ist öffentlich, deshalb steht die Unterkunft nicht im Repo.
+Keine Konten, keine Statistik. Markierungen, Notizen und Unterkunft bleiben im Gerät. Der Standort geht nur an FOSSGIS (beim Hinführen) und verschlüsselt an die eigene Gruppe (beim Teilen). Nostr-Relays sehen IP-Adresse und Zeitpunkt, nicht den Inhalt. Die Seite ist öffentlich, deshalb steht die Unterkunft nicht im Repo.
 
 Kartendaten © OpenStreetMap-Mitwirkende (ODbL). Texte Wikipedia (CC BY-SA). Fotos Wikimedia Commons, Lizenz je Bild. Karte: Leaflet (BSD-2). Code: MPL-2.0.

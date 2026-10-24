@@ -3,7 +3,11 @@
  *
  * Belege:
  * - NIP-01 (github.com/nostr-protocol/nips, 01.md, „Kinds“): Arten 20000 ≤ n < 30000 sind flüchtig,
- *   Relays sollen sie nicht speichern. Wir senden Art 20777: nur Weiterreichen an gerade Verbundene.
+ *   „not expected to be stored by relays“. Wir senden Art 20777.
+ * - Relaistest 24.10.2026 (tools/relaistest.mjs, Protokoll im Branch ci-logs): relay.snort.social antwortet
+ *   „ephemeral: will not be stored“, nostr-pub.wellorder.net lieferte nichts nach. nos.lol und relay.primal.net lieferten
+ *   die Ereignisse bei einer neuen Abfrage noch aus. strfry hält flüchtige Ereignisse in der Grundeinstellung 300 s
+ *   (strfry.conf, ephemeralEventsLifetimeSeconds). Schutz ist deshalb die Verschlüsselung, nicht die Speicherregel.
  * - nostr-tools 2.25.2 (Unlicense), Datei vendor/nostr/nostr.bundle.js: SimplePool.subscribeMany(relays, filter, {onevent}),
  *   SimplePool.publish(relays, event) → Promise je Relay, finalizeEvent(vorlage, geheimschluessel), generateSecretKey().
  * - Inhalt: AES-GCM 256 bit über WebCrypto (SubtleCrypto.encrypt), IV 12 Byte zufällig je Nachricht.
@@ -13,7 +17,8 @@
 window.Funk = (() => {
   const ART = 20777;
   // Öffentliche Relays; geprüft mit tools/relaistest.mjs in GitHub Actions (senden, empfangen, nicht speichern).
-  const RELAYS = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net', 'wss://nostr.mom'];
+  // Gewählt nach dem Test: erreichbar, nehmen 24-KB-Ereignisse an, liefern in unter 1 s aus.
+  const RELAYS = ['wss://relay.snort.social', 'wss://nostr-pub.wellorder.net', 'wss://nos.lol', 'wss://relay.primal.net'];
   const NT = window.NostrTools;
   const enc = new TextEncoder(), dec = new TextDecoder();
   const b64 = {

@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.9';
+  const VERSION = '2.0';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -84,6 +84,7 @@
     { id: 'apo', typ: 'apo', label: 'Apotheke', titel: 'Apotheken' },
     { id: 'atm', typ: 'geld', label: 'Geld', titel: 'Geldautomaten' },
     { id: 'wasser', typ: 'wasser', label: 'Wasser', titel: 'Trinkwasser' },
+    { id: 'wiki', typ: 'buch', label: 'Wissenswert', titel: 'Wissenswertes' },
   ];
   const GRUPPEN = [
     { id: 'sehen', label: 'Sehen', kats: ['Sehenswürdigkeit', 'Museum', 'Markt', 'Event'] },
@@ -1133,7 +1134,18 @@
 
   // ---------- In der Nähe ----------
   let U = null, uLaedt = false;
+  // Stadtführer: Wikipedia-Artikel mit Koordinaten (stadtfuehrer.json, im Bauprozess geholt)
+  let SF = null, sfLaedt = false;
+  function ladeFuehrer() {
+    if (SF || sfLaedt) return;
+    sfLaedt = true;
+    fetch('stadtfuehrer.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
+      .then((d) => { SF = d && Array.isArray(d.artikel) ? d : { artikel: [], fehler: true }; })
+      .catch(() => { SF = { artikel: [], fehler: true }; })
+      .finally(() => { sfLaedt = false; if (S.nah === 'wiki' && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); });
+  }
   function ladeUmgebung() {
+    if (S.nah === 'wiki') { ladeFuehrer(); return; }
     if (U || uLaedt) return;
     uLaedt = true;
     fetch('umgebung.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
@@ -1154,6 +1166,12 @@
     return o;
   }
   function nahListe(id) {
+    if (id === 'wiki') {
+      if (!SF) return [];
+      const b = nahBezug();
+      return SF.artikel.map((x) => ({ id: `w-${x[5]}`, nah: 'wiki', typ: 'buch', kategorie: 'Alltag', lat: x[0], lon: x[1], name: x[2], adresse: x[2], notiz: '', text: x[3], stand: x[4], pid: x[5] }))
+        .map((o) => { o.d = meter(b, o); return o; }).filter((o) => o.d < 1500).sort((a, c) => a.d - c.d).slice(0, 25);
+    }
     if (!U || !Array.isArray(U[id])) return [];
     const b = nahBezug();
     return U[id].map((x, i) => { const o = nahOrt(id, x, i); o.d = meter(b, o); return o; })
@@ -1180,8 +1198,9 @@
     const def = NAH.find((n) => n.id === S.nah);
     const kopf = [nahChips(), el('div', { class: 'nah-kopf' }, el('h3', {}, `${def.titel} in der Nähe`),
       el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.nah = null; S.nahWahl = null; zeichne({ anpassen: true }); } }, ic('x'), 'Fertig'))];
-    if (!U) { setze(box, kopf, el('p', { class: 'leise' }, 'Lädt …')); return; }
-    if (U.fehler) { setze(box, kopf, el('p', {}, 'Die Daten konnten nicht geladen werden. Ohne Netz geht es erst, wenn die Liste einmal geladen wurde.')); return; }
+    const daten = S.nah === 'wiki' ? SF : U;
+    if (!daten) { setze(box, kopf, el('p', { class: 'leise' }, 'Lädt …')); return; }
+    if (daten.fehler) { setze(box, kopf, el('p', {}, 'Die Daten konnten nicht geladen werden. Ohne Netz geht es erst, wenn die Liste einmal geladen wurde.')); return; }
     const l = nahListe(S.nah);
     const bezug = S.me ? null : el('div', { class: 'hilfe', style: 'margin:0 0 8px' }, el('span', {}, 'Entfernungen ab der Kartenmitte. Mit Standort ab dir.'),
       el('button', { type: 'button', class: 'knopf flach', onclick: () => starteGps(false) }, 'Standort'));
@@ -1195,6 +1214,15 @@
       const pr = o.nah === 's' ? preisStufe(o) : null;
       const unter = [`${strecke(o.d)} · ${gehzeit(o.d)} Min.`];
       if (o.nah === 'wc') unter.push(o.gebuehr === 'yes' ? 'kostet' : o.gebuehr === 'no' ? 'kostenlos' : 'Gebühr unbekannt', o.rolli === 'yes' ? 'rollstuhlgerecht' : null);
+      if (o.nah === 'wiki') {
+        const offen = S.nahWahl === o.id;
+        return el('li', { class: 'eintrag wiki-zeile' + (offen ? ' gewaehlt' : ''), 'data-nah': o.id },
+          el('button', { type: 'button', class: 'auf', onclick: () => waehleNah(o) },
+            el('span', { class: 'marker g-nah' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.buch}</svg>`, style: 'display:contents' })),
+            el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), el('span', { class: 'unter' }, `${strecke(o.d)} · ${gehzeit(o.d)} Min.`),
+              el('span', { class: offen ? 'wiki-text' : 'wiki-text kurz' }, o.text),
+              offen ? el('span', { class: 'quelle' }, 'Wikipedia (CC BY-SA)', o.stand ? `, Stand ${datumDe(o.stand)}` : '', ' · ', el('a', { href: `https://de.wikipedia.org/?curid=${o.pid}`, target: '_blank', rel: 'noopener' }, 'Artikel')) : null)));
+      }
       return el('li', { class: 'eintrag' + (S.nahWahl === o.id ? ' gewaehlt' : ''), 'data-nah': o.id },
         el('button', { type: 'button', class: 'auf', onclick: () => waehleNah(o) },
           el('span', { class: 'marker g-nah' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL[o.typ]}</svg>`, style: 'display:contents' })),
@@ -1206,7 +1234,7 @@
     };
     setze(box, kopf, bezug, preis,
       l.length ? el('ul', { class: 'liste' }, l.map(zeile)) : el('p', {}, 'Im Umkreis von 4 km nichts gefunden.'),
-      el('p', { class: 'quelle', style: 'margin-top:10px' }, `Daten: OpenStreetMap-Mitwirkende, abgerufen ${uhrzeit(Date.parse(U.stand))}. Öffnungszeiten können fehlen oder veraltet sein.`));
+      el('p', { class: 'quelle', style: 'margin-top:10px' }, S.nah === 'wiki' ? `Texte: Wikipedia (deutsch), CC BY-SA 4.0, abgerufen ${uhrzeit(Date.parse(SF.stand))}. Jeder Text mit Stand der letzten Änderung.` : `Daten: OpenStreetMap-Mitwirkende, abgerufen ${uhrzeit(Date.parse(U.stand))}. Öffnungszeiten können fehlen oder veraltet sein.`));
   }
 
   function zeichneGemerkt(box) {
@@ -1266,6 +1294,8 @@
         wahl([['nein', 'Kürzester Weg', 'auch steil und mit Treppen'], ['ja', 'Steigungen und Treppen meiden', 'etwas länger, dafür bequemer']], E.steigung ? 'ja' : 'nein', (id) => { E.steigung = id === 'ja'; speichereE(); zeichne({ scroll: true }); }),
         el('div', { style: 'height:8px' }),
         wahl([['an', 'Sprachansage an', 'sagt die Abbiegungen an'], ['aus', 'Sprachansage aus', null]], E.ansage ? 'an' : 'aus', (id) => { E.ansage = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
+      el('section', { class: 'abschnitt' }, el('h3', {}, 'Stadtführer beim Gehen'),
+        wahl([['an', 'Hinweise an', 'Kommt ihr an einem Ort vorbei, erscheint oben ein kurzer Text aus Wikipedia, mit Quelle und Stand'], ['aus', 'Hinweise aus', null]], E.fuehrer === false ? 'aus' : 'an', (id) => { E.fuehrer = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Plan'), wahl([['A', 'Plan A', 'Empfehlung: Klassiker mit Geheimtipps'], ['B', 'Plan B', 'Geheimtipps'], ['C', 'Plan C', 'Wenig Steigung'], ['G', 'Gruppenplan', 'Aus euren Stimmen, passt sich bei jedem Abgleich an']], S.plan, (id) => { S.plan = id; speicher.set('plan', id); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Unterkunft'),
         el('p', { class: 'leise klein', style: 'margin:0 0 8px' }, 'Wenn du an der Unterkunft bist: einmal tippen. Der Ort bleibt nur auf diesem Handy. Danach führt dich „Zur Unterkunft“ jederzeit zurück.'),
@@ -2268,6 +2298,44 @@
     if (dx < 0 && i < punkte.length - 1) zeigeEinfuehrung(i + 1, 1); else if (dx > 0 && i > 0) zeigeEinfuehrung(i - 1, -1);
   }, { passive: true });
 
+  // ---------- Stadtführer beim Gehen ----------
+  // Ein Hinweis, wenn ihr einem Ort mit belegtem Text nahe kommt. Radius 60 m, nur bei Genauigkeit ≤ 50 m, höchstens
+  // alle 3 Minuten, jeder Ort nur einmal am Tag, nicht während „Hinführen“. Diese Werte sind Setzungen: Die Recherche
+  // (kosten-und-fuehrung.md) fand keine belegten Zahlen; Android-Geofences liegen bei 100–150 m.
+  const NAEHE = { radius: 60, genau: 50, pause: 180000 };
+  let naeheZuletzt = 0, naeheTimer = null;
+  function naeheHinweis(p) {
+    if (E.fuehrer === false || N.aktiv || !p || p.acc > NAEHE.genau || Date.now() - naeheZuletzt < NAEHE.pause) return;
+    if (!SF) { ladeFuehrer(); return; }
+    const heute = new Date().toDateString();
+    const gezeigt = speicher.get('naeheGezeigt', {});
+    if (gezeigt.tag !== heute) { gezeigt.tag = heute; gezeigt.ids = []; }
+    const kand = [];
+    for (const o of ORTE) if (o.wiki && hatPos(o)) { const d = meter(p, o); if (d < NAEHE.radius) kand.push({ id: o.id, d, titel: o.name, text: o.wiki.text.split('\n')[0], quelle: 'Wikipedia', ort: o }); }
+    for (const x of SF.artikel || []) { const d = meter(p, { lat: x[0], lon: x[1] }); if (d < NAEHE.radius) kand.push({ id: `w-${x[5]}`, d, titel: x[2], text: x[3], stand: x[4], pid: x[5] }); }
+    const k = kand.filter((x) => !gezeigt.ids.includes(x.id)).sort((a, b) => (a.ort ? -1 : 0) - (b.ort ? -1 : 0) || a.d - b.d)[0];
+    if (!k) return;
+    naeheZuletzt = Date.now();
+    gezeigt.ids.push(k.id);
+    // Derselbe Ort aus Wikipedia nicht noch einmal (z. B. „Igreja de São Roque (Lissabon)“)
+    if (k.ort) for (const x of kand) if (!x.ort && falte(x.titel).startsWith(falte(k.titel))) gezeigt.ids.push(x.id);
+    speicher.set('naeheGezeigt', gezeigt);
+    const box = $('#naehe');
+    const zu = () => { box.classList.remove('an'); setTimeout(() => { box.hidden = true; }, 250); };
+    const kurz = k.text.length > 190 ? `${k.text.slice(0, 190).replace(/\s+\S*$/, '')} …` : k.text;
+    setze(box, el('div', { class: 'naehe-karte', role: 'status' },
+      el('div', { class: 'naehe-kopf' }, el('span', { class: 'marker g-nah mini', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.buch}</svg>` }),
+        el('strong', {}, `In der Nähe: ${k.titel}`), el('button', { type: 'button', class: 'naehe-zu', 'aria-label': 'Hinweis schließen', onclick: zu }, ic('x'))),
+      el('p', {}, kurz),
+      el('div', { class: 'naehe-fuss' },
+        el('span', { class: 'quelle' }, k.ort ? 'Wikipedia (CC BY-SA)' : `Wikipedia (CC BY-SA)${k.stand ? `, Stand ${datumDe(k.stand)}` : ''}`),
+        k.ort ? el('button', { type: 'button', class: 'knopf flach', onclick: () => { zu(); oeffneOrt(k.ort.id); } }, 'Ansehen')
+          : el('button', { type: 'button', class: 'knopf flach', onclick: () => { zu(); S.tab = 'orte'; S.nah = 'wiki'; S.nahWahl = k.id; S.ort = null; hoehe('mitte'); zeichne({ anpassen: true }); } }, 'Mehr lesen'))));
+    box.hidden = false; requestAnimationFrame(() => box.classList.add('an'));
+    haptik(15);
+    clearTimeout(naeheTimer); naeheTimer = setTimeout(zu, 15000);
+  }
+
   // ---------- Standort ----------
   function gpsKnopf() {
     const b = $('#btn-standort');
@@ -2296,6 +2364,7 @@
     S.me = neu;
     zeichneIch();
     if (teileOrt()) funkOrt(neu);
+    naeheHinweis(neu);
     if (karte && erst && !N.aktiv && !S.ort) karteZeichnen(true);
     else if (S.follow && karte) { if (erst) zeigeAufKarte(neu, 17); else karte.panTo([neu.lat, neu.lon], { animate: true }); }
     if (N.aktiv) { if (!N.route && !N.letzteVersuch) { N.letzteVersuch = Date.now(); neueRoute().finally(() => { N.letzteVersuch = 0; }); } else naviUpdate(); gpsKnopf(); return; }

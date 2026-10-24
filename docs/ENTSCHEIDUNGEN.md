@@ -4,6 +4,7 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | Stadtführer: 317 deutsche Wikipedia-Artikel mit Koordinaten (GeoSearch, im Bauprozess, höchstens alle 6 Tage) unter „Orte → Wissenswert“ und als Hinweis oben beim Gehen (60 m, Genauigkeit ≤ 50 m, höchstens alle 3 Min., jeder Ort einmal am Tag, nicht beim Hinführen; Werte gesetzt, nicht belegt). Abschaltbar unter „Mehr“ | Wunsch: Infos beim Vorbeigehen; nur belegte Texte mit Quelle und Stand |
 | 2026-10-24 | „Wer war schon da?“ je Ort (geteilt): Beim Abhaken „Waren alle dabei?“; Orte, die alle gesehen haben, fallen aus dem Gruppenplan, die anderen bleiben vorgeschlagen | Wunsch: Gruppe teilt sich unterwegs |
 | 2026-10-24 | Eigene Pläne (Reiseführer-Modus): aus allen Orten bauen, aus Plan A/B/C/Gruppenplan übernehmen, umsortieren, unterwegs ändern; alle sehen Änderungen live und folgen; Abhaken im Plan gilt für alle, die ihm folgen | Wunsch: eine Person führt; Recherche `docs/recherche/2026-10-24-kosten-und-fuehrung.md` |
 | 2026-10-24 | Ausgleich der Kosten exakt mit den wenigsten Überweisungen (Teilmengen mit Summe 0), nicht nur gierig | Gegenbeispiel aus der Recherche: gierig 5, optimal 4 |

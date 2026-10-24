@@ -6,7 +6,7 @@ Reisekarte der Fasan-Familie. Läuft im Handy-Browser, ohne Installation und ohn
 
 ## Was sie kann
 
-- Tagespläne (Plan A, B, C) mit nummerierten Stopps, nächster Stopp mit „Starten“ (Apple Karten, Google Maps oder andere Karten-App)
+- Tagespläne (Plan A, B, C und Gruppenplan aus Stimmen) mit nummerierten Stopps; „Hinführen“ navigiert in der App (Fußweg, Ansagen, Ankunft), ohne fremde Karten-Apps
 - Alle Orte mit Suche, Kategorien, Filtern (Geheimtipps, jetzt offen, nicht erledigt, gemerkt, ausgeblendet) und Sortierung nach Nähe
 - Ortsseite mit Foto, Wikipedia-Text, Öffnungszeiten, Webseite, Zugang, eigener Notiz und Bewertung
 - Merken, Erledigt, Ausblenden – mit Rückgängig

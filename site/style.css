@@ -7,7 +7,7 @@
   --text: #1A1B19; --muted: #575752; --accent: #9A4A1C; --on-accent: #FFFFFF;
   --danger: #B3261E; --ok: #1E6B3A; --stern: #B7791F;
   --flaeche-blatt: var(--surface); --blur: none;
-  --g-sehen: #2F6886; --g-aussicht: #B4501A; --g-essen: #B3261E; --g-veggie: #1E6B3A; --g-abends: #6B3A86; --g-verkehr: #7A6200;
+  --g-sehen: #2F6886; --g-aussicht: #B4501A; --g-essen: #B3261E; --g-veggie: #1E6B3A; --g-abends: #6B3A86; --g-verkehr: #7A6200; --g-shoppen: #A3306E;
   --ziel: 60px; --ziel-haupt: 72px; --r: 14px; --r-gross: 22px; --luecke: 16px; --luecke-k: 8px;
   --t-kurz: 150ms; --t-mittel: 220ms; --t-lang: 320ms;
   --kurve: cubic-bezier(.65, 0, .35, 1); --kurve-aus: cubic-bezier(.33, 1, .68, 1);
@@ -21,7 +21,7 @@
   --bg: #111211; --surface: #1B1C1B; --raised: #252625; --line: #3A3B39;
   --text: #F1F1ED; --muted: #A9AAA4; --accent: #E3955E; --on-accent: #1A1208;
   --danger: #F2766B; --ok: #7BD08F; --stern: #E9B949;
-  --g-sehen: #4E8FB0; --g-aussicht: #D46A2C; --g-essen: #D24A3F; --g-veggie: #3E9A5C; --g-abends: #9563B0; --g-verkehr: #A68A1C;
+  --g-sehen: #4E8FB0; --g-aussicht: #D46A2C; --g-essen: #D24A3F; --g-veggie: #3E9A5C; --g-abends: #9563B0; --g-verkehr: #A68A1C; --g-shoppen: #C9558F;
   --kachel-filter: invert(1) hue-rotate(180deg) brightness(.92) contrast(.88) saturate(.55);
   color-scheme: dark;
 }
@@ -29,7 +29,7 @@
   --bg: #000000; --surface: #000000; --raised: #161616; --line: #FFFFFF;
   --text: #FFFFFF; --muted: #E8E8E8; --accent: #FFD60A; --on-accent: #000000;
   --danger: #FF6B6B; --ok: #7CFC00; --stern: #FFD60A;
-  --g-sehen: #000; --g-aussicht: #000; --g-essen: #000; --g-veggie: #000; --g-abends: #000; --g-verkehr: #000;
+  --g-sehen: #000; --g-aussicht: #000; --g-essen: #000; --g-veggie: #000; --g-abends: #000; --g-verkehr: #000; --g-shoppen: #000;
   --kachel-filter: grayscale(1) contrast(1.15);
   color-scheme: dark;
 }
@@ -38,7 +38,7 @@
   --text: #F4F7FB; --muted: #B7C2D3; --accent: #7FC4FF; --on-accent: #0E1218;
   --danger: #FF7A7A; --ok: #7CE0A0; --stern: #FFD27A;
   --flaeche-blatt: rgba(22, 29, 41, .72); --blur: blur(22px) saturate(1.4);
-  --g-sehen: #4E8FB0; --g-aussicht: #D46A2C; --g-essen: #D24A3F; --g-veggie: #3E9A5C; --g-abends: #9563B0; --g-verkehr: #A68A1C;
+  --g-sehen: #4E8FB0; --g-aussicht: #D46A2C; --g-essen: #D24A3F; --g-veggie: #3E9A5C; --g-abends: #9563B0; --g-verkehr: #A68A1C; --g-shoppen: #C9558F;
   --kachel-filter: invert(1) hue-rotate(180deg) brightness(.9) contrast(.85) saturate(.5);
   color-scheme: dark;
 }
@@ -98,7 +98,7 @@ h2, h3 { margin: 0; text-wrap: balance; line-height: 1.2; }
 .punkt .marke.tipp { background: #B7791F; }
 :root[data-theme="kontrast"] .punkt .p { background: #000; border-color: #FFD60A; color: #FFD60A; }
 .g-sehen { --g: var(--g-sehen); } .g-aussicht { --g: var(--g-aussicht); } .g-essen { --g: var(--g-essen); }
-.g-veggie { --g: var(--g-veggie); } .g-abends { --g: var(--g-abends); } .g-verkehr { --g: var(--g-verkehr); }
+.g-veggie { --g: var(--g-veggie); } .g-abends { --g: var(--g-abends); } .g-verkehr { --g: var(--g-verkehr); } .g-shoppen { --g: var(--g-shoppen); }
 .route { stroke: var(--accent); }
 .ich { fill: #1A73E8; stroke: #fff; }
 .ich-genau { fill: #1A73E8; fill-opacity: .12; stroke: #1A73E8; stroke-opacity: .35; }

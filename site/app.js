@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.3.2';
+  const VERSION = '1.4';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -63,9 +63,11 @@
     weg: '<circle cx="13" cy="4.5" r="1.8"/><path d="M10 21l2-6-3-3 1.5-5 3.5 2 2 3M8 12l-2 2M14 15l2 6"/>',
     kueste: '<path d="M3 9c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0M3 14c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0M3 19c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0"/>',
     treff: '<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>',
+    haus: '<path d="M3 11 12 4l9 7M5.5 9.5V20h13V9.5M10 20v-5h4v5"/>',
+    shop: '<path d="M5 8h14l-1 13H6zM9 8V6.5a3 3 0 0 1 6 0V8M9 11.5v.01M15 11.5v.01"/>',
   };
   const TYP_NAME = { restaurant: 'Restaurant', cafe: 'Café', bar: 'Bar', fado: 'Fado', museum: 'Museum', kirche: 'Kirche', aussicht: 'Aussicht', park: 'Park', markt: 'Markt',
-    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste' };
+    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste', shop: 'Shoppen', haus: 'Unterkunft' };
   const GRUPPEN = [
     { id: 'sehen', label: 'Sehen', kats: ['Sehenswürdigkeit', 'Museum', 'Markt', 'Event'] },
     { id: 'aussicht', label: 'Aussicht', kats: ['Aussichtspunkt'] },
@@ -73,6 +75,7 @@
     { id: 'veggie', label: 'Veggie', kats: ['Vegan portugiesisch', 'Vegetarisch'] },
     { id: 'abends', label: 'Abends', kats: ['Bar', 'Fado', 'Getränk'] },
     { id: 'verkehr', label: 'Verkehr', kats: ['Verkehr'] },
+    { id: 'shoppen', label: 'Shoppen', kats: ['Shoppen'] },
   ];
   const THEMES = [
     ['system', 'System', 'Folgt Hell und Dunkel deines Handys.'],
@@ -142,8 +145,7 @@
   const gehzeit = (m) => Math.max(1, Math.round((m * 1.3) / 67)); // Fußweg ≈ 1,3 × Luftlinie, 4 km/h
 
   // ---------- Einstellungen und Zustand ----------
-  const E = Object.assign({ profil: 'standard', theme: 'system', navi: IOS ? 'apple' : 'google', heim: '', ansage: true, tempo: 'normal', steigung: false }, speicher.get('einstellungen', {}));
-  if (!IOS && E.navi === 'apple') E.navi = 'google';
+  const E = Object.assign({ profil: 'standard', theme: 'system', ansage: true, tempo: 'normal', steigung: false }, speicher.get('einstellungen', {}));
   const S = {
     tab: speicher.get('tab', 'plan'), plan: speicher.get('plan', 'A'), tag: speicher.get('tag', 'sa'),
     gruppen: new Set(speicher.get('gruppen', [])), extra: new Set(speicher.get('extra', [])),
@@ -314,36 +316,11 @@
   dunkelMq.addEventListener('change', () => { if (E.theme === 'system') wendeAn(); });
   const speichereE = () => speicher.set('einstellungen', E);
 
-  // ---------- Navigation an Karten-Apps übergeben ----------
-  // Google Maps URLs: https://developers.google.com/maps/documentation/urls/guide (bis 9 Zwischenstopps)
-  // Apple Maps: https://developer.apple.com/documentation/mapkit/unified-map-urls (iOS 18.4+)
+  // Alles läuft in der App: keine Übergabe an Google Maps oder Apple Karten (Wunsch des Nutzers, 24.10.2026)
   function zielText(o) {
     if (/[()]|\sund\s|^Tram |^Fähre /.test(o.name) || o.adresse.startsWith(o.name)) return o.adresse;
     return `${o.name}, ${o.adresse}`;
   }
-  const NAVI_NAME = { apple: 'Apple Karten', google: 'Google Maps', geo: 'Karten-App' };
-  function naviLink(o, app = E.navi) {
-    const z = encodeURIComponent(zielText(o));
-    if (app === 'apple') return `https://maps.apple.com/directions?mode=walking&destination=${z}`;
-    if (app === 'geo' && hatPos(o)) return `geo:${o.lat},${o.lon}?q=${o.lat},${o.lon}(${encodeURIComponent(o.name)})`;
-    return `https://www.google.com/maps/dir/?api=1&travelmode=walking&dir_action=navigate&destination=${z}`;
-  }
-  const textLink = (t, app = E.navi) => (app === 'apple'
-    ? `https://maps.apple.com/directions?mode=walking&destination=${encodeURIComponent(t)}`
-    : `https://www.google.com/maps/dir/?api=1&travelmode=walking&dir_action=navigate&destination=${encodeURIComponent(t)}`);
-  function routenTeile(orte, app) {
-    const max = 10, n = Math.ceil(orte.length / max) || 1, g = Math.ceil(orte.length / n), teile = [];
-    for (let i = 0; i < orte.length; i += g) teile.push(orte.slice(i, i + g));
-    return teile.map((t, i) => {
-      const ziel = encodeURIComponent(zielText(t[t.length - 1]));
-      const wp = t.slice(0, -1).map((o) => encodeURIComponent(zielText(o)));
-      const href = app === 'apple'
-        ? `https://maps.apple.com/directions?mode=walking&destination=${ziel}${wp.map((w) => '&waypoint=' + w).join('')}`
-        : `https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${ziel}${wp.length ? '&waypoints=' + wp.join('%7C') : ''}`;
-      return { nr: i + 1, von: teile.length, href };
-    });
-  }
-  const linkKnopf = (href, cls, ...kinder) => el('a', { class: 'knopf ' + (cls || ''), href, target: href.startsWith('geo:') ? null : '_blank', rel: 'noopener' }, ...kinder);
 
   // ---------- Daten ----------
   function schritte(plan = S.plan, tag = S.tag) {
@@ -607,22 +584,22 @@
         liste.append(alt);
       }
     }
-    const routen = stopps.length && E.navi !== 'geo'
-      ? routenTeile(stopps.map(({ o }) => o), E.navi).map((t) => linkKnopf(t.href, '', ic('route'), `Ganze Tagesroute${t.von > 1 ? ` · Teil ${t.nr}/${t.von}` : ''}`))
-      : [];
     setze(box,
       treffKarte(),
       zusammen,
       el('div', { class: 'abschnitt', style: 'display:grid;gap:8px' }, tageSeg, planSeg),
       el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, S.plan === 'G' ? `Gruppenplan aus ${Object.keys(G.leute).length} ${Object.keys(G.leute).length === 1 ? 'Person' : 'Personen'}: passt sich bei jedem Abgleich an. Zeiten sind geschätzt. ${tag.lang}.` : `${plan.titel}: ${plan.untertitel}. ${tag.lang}.`),
       stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${fertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(fertig / stopps.length) * 100}%` })) : null,
-      el('div', { class: 'reihe', style: 'margin-top:12px' }, routen, heimKnopf()),
+      stopps.length ? el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Die App führt euch Stopp für Stopp. Am Ziel geht es mit einem Tipp zum nächsten.') : null,
+      el('div', { class: 'reihe', style: 'margin-top:12px' }, heimKnopf()),
       liste);
   }
 
+  const heimOrt = () => (E.heimPos ? { id: 'heim', name: 'Unterkunft', kategorie: 'Verkehr', typ: 'haus', adresse: '', notiz: '', lat: E.heimPos.lat, lon: E.heimPos.lon } : null);
   function heimKnopf() {
-    if (!E.heim) return null;
-    return linkKnopf(textLink(E.heim, E.navi === 'geo' ? 'google' : E.navi), '', ic('haus'), 'Zur Unterkunft');
+    const h = heimOrt();
+    if (!h) return null;
+    return el('button', { type: 'button', class: 'knopf', onclick: () => starteNavi(h, true) }, ic('haus'), 'Zur Unterkunft');
   }
 
   function zeichneOrte(box) {
@@ -730,9 +707,6 @@
   }
 
   function zeichneMehr(box) {
-    const navis = [IOS ? ['apple', 'Apple Karten', 'Auf dem iPhone vorinstalliert.'] : null, ['google', 'Google Maps', 'Fußweg mit Sprachansage.'],
-      ANDROID ? ['geo', 'Andere Karten-App', 'Zum Beispiel CoMaps oder OsmAnd. Zeigt den Ort, die Route startest du dort.'] : null].filter(Boolean);
-    const heimFeld = el('input', { id: 'heim', type: 'text', value: E.heim, autocomplete: 'street-address', placeholder: 'Straße Hausnummer, Lisboa' });
     setze(box,
       el('div', { style: 'display:flex;align-items:center;gap:12px;padding-top:4px' }, fasan('klein-fasan'),
         el('div', {}, el('strong', { style: 'font-size:var(--fs-t)' }, 'Fasan Karte'), el('div', { class: 'leise klein' }, `Lissabon · Version ${VERSION}`))),
@@ -745,14 +719,19 @@
         wahl([['nein', 'Kürzester Weg', 'auch steil und mit Treppen'], ['ja', 'Steigungen und Treppen meiden', 'etwas länger, dafür bequemer']], E.steigung ? 'ja' : 'nein', (id) => { E.steigung = id === 'ja'; speichereE(); zeichne({ scroll: true }); }),
         el('div', { style: 'height:8px' }),
         wahl([['an', 'Sprachansage an', 'sagt die Abbiegungen an'], ['aus', 'Sprachansage aus', null]], E.ansage ? 'an' : 'aus', (id) => { E.ansage = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
-      el('section', { class: 'abschnitt nur-voll' }, el('h3', {}, 'Externe Karten-App'), wahl(navis, E.navi, (id) => { E.navi = id; speichereE(); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Plan'), wahl([['A', 'Plan A', 'Empfehlung: Klassiker mit Geheimtipps'], ['B', 'Plan B', 'Geheimtipps'], ['C', 'Plan C', 'Wenig Steigung'], ['G', 'Gruppenplan', 'Aus euren Stimmen, passt sich bei jedem Abgleich an']], S.plan, (id) => { S.plan = id; speicher.set('plan', id); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Unterkunft'),
-        el('p', { class: 'leise klein', style: 'margin:0 0 8px' }, 'Bleibt nur auf diesem Handy. Danach gibt es im Tagesplan „Zur Unterkunft“.'),
-        el('div', { class: 'feld' }, heimFeld, el('button', { type: 'button', class: 'knopf', onclick: () => { E.heim = heimFeld.value.trim(); speichereE(); toast(E.heim ? 'Unterkunft gespeichert.' : 'Unterkunft entfernt.'); } }, 'Speichern'))),
+        el('p', { class: 'leise klein', style: 'margin:0 0 8px' }, 'Wenn du an der Unterkunft bist: einmal tippen. Der Ort bleibt nur auf diesem Handy. Danach führt dich „Zur Unterkunft“ jederzeit zurück.'),
+        E.heimPos
+          ? el('div', { class: 'reihe' }, heimKnopf(), el('button', { type: 'button', class: 'knopf warn', onclick: () => { delete E.heimPos; speichereE(); zeichne({ scroll: true }); toast('Unterkunft gelöscht.'); } }, 'Löschen'))
+          : el('button', { type: 'button', class: 'knopf breit', onclick: () => {
+            if (!S.me) { starteGps(false); toast('Suche deinen Standort … dann nochmal tippen.'); return; }
+            E.heimPos = { lat: S.me.lat, lon: S.me.lon, t: Date.now() }; speichereE(); zeichne({ scroll: true }); toast('Unterkunft gespeichert.');
+          } }, ic('haus'), 'Hier ist unsere Unterkunft')),
       el('section', { class: 'abschnitt' }, el('h3', {}, `Gut zu wissen in Lissabon · Stand ${STAND_NOTIZEN}`),
         tipps('Fahren', ['Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten.', 'Einzelfahrt 1,90 €. 24-Stunden-Ticket 7,25 €, mit Fähre 10,35 €, mit Zug nach Cascais 11,40 €.', 'Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 €.', 'Gesperrt: Elevador de Santa Justa sowie die Standseilbahnen Glória, Bica und Lavra. Der Funicular da Graça fährt 7–21 Uhr.']),
         tipps('Zeiten', ['Nacht auf Sonntag: Uhren 1 Stunde zurück.', 'Montag zu: Jerónimos und staatliche Museen. Dienstag zu: Gulbenkian.', 'Gulbenkian sonntags ab 14 Uhr gratis.', 'Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend).']),
+        tipps('Shoppen', ['Sonntags haben laut lisbontourism.org (Stand 21.10.2026) vor allem Einkaufszentren und Läden in Touristengegenden offen.', 'Alle Shopping-Adressen findest du unter „Orte“ mit dem Filter „Shoppen“. Bei jedem Ort steht die Quelle mit Datum.']),
         tipps('Notfall', ['Notruf 112: Polizei, Rettung, Feuerwehr (europaweite Notrufnummer).', 'Taschendiebe laut Auswärtigem Amt (abgerufen 24.10.2026) vor allem an Praça do Comércio, Rua Augusta, in der Alfama, am Castelo de São Jorge, in historischen Straßenbahnen, Bahnhöfen und der Metro.', 'Für Notfälle: einen Treffpunkt unter „Gruppe“ festlegen, dann findet jede und jeder dorthin zurück.']),
         tipps('Vor Ort', ['Couvert (Brot, Oliven, Häppchen) kostet extra. Ablehnen mit „Não, obrigado“. Oft ist Schinken dabei.', 'Trinkgeld 5–10 %. Bei Gruppen steht manchmal schon Service auf der Rechnung.', 'Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren.', 'Bargeld am Multibanco-Automaten holen.']),
         tipps('Diese Karte', ['Nummern zeigen die Reihenfolge des Tages. Die gepunktete Linie ist Luftlinie; den Fußweg zeigt die Navigation.', 'Gehzeiten sind geschätzt: 1,3 × Luftlinie bei 4 km/h.', 'Öffnungszeiten stammen aus OpenStreetMap und können veraltet sein.', 'Android: im Chrome-Menü „Zum Startbildschirm hinzufügen“. iPhone: die Karte in Safari nutzen, denn Gruppen-Links aus der Kamera öffnen sich in Safari, und ein Symbol auf dem Home-Bildschirm hätte einen eigenen, getrennten Speicher.'])),
@@ -779,7 +758,7 @@
   // je Tag nach Nähe zum Tagesgebiet aus Plan A, Öffnungstage beachtet, Reihenfolge nach kurzem Fußweg,
   // Mittag- und Abendessen eingeplant. Weniger Stopps im Profil „Einfach“.
   const ESSEN = ['Essen für alle', 'Vegan portugiesisch', 'Vegetarisch'];
-  const DAUER = { museum: 90, kirche: 35, aussicht: 20, park: 25, markt: 60, cafe: 30, bar: 45, platz: 20, friedhof: 40, buch: 60, denkmal: 20, turm: 30, weg: 40, kueste: 30, aufzug: 10, tram: 30, faehre: 30 };
+  const DAUER = { shop: 75, museum: 90, kirche: 35, aussicht: 20, park: 25, markt: 60, cafe: 30, bar: 45, platz: 20, friedhof: 40, buch: 60, denkmal: 20, turm: 30, weg: 40, kueste: 30, aufzug: 10, tram: 30, faehre: 30 };
   const TAG_IDX = { sa: 6, so: 0, mo: 1 };
   function erlaubteTage(o) {
     const n = o.notiz || '', tage = new Set(['sa', 'so', 'mo']);
@@ -1137,7 +1116,7 @@
         o.quelle === 'pruefen' ? el('span', { class: 'abzeichen warn' }, 'Kartenpunkt ungefähr') : null),
       el('div', { style: 'display:grid;gap:8px;margin-top:14px' },
         el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => starteNavi(o) }, ic('route'), 'Hinführen'),
-        linkKnopf(naviLink(o), 'breit nur-voll', `In ${NAVI_NAME[E.navi]} öffnen`)),
+        null),
       el('div', { class: 'aktionen' },
         aktion('fav', 'herz', m.fav ? 'Gemerkt' : 'Merken', m.fav, () => { markiere(o.id, { fav: !m.fav }); zeichne({ scroll: true }); }),
         aktion('fertig', 'haken', 'Erledigt', m.fertig, () => { schalteErledigt(o); }),
@@ -1266,11 +1245,15 @@
     // Weite Ziele: zu Fuß ist Unsinn, Bahn oder Fähre vorschlagen
     const d = S.me && hatPos(o) ? meter(S.me, o) : null;
     if (d != null && d > 4000) {
+      const nahMetro = ORTE.filter((x) => x.typ === 'metro' && hatPos(x)).sort((a, b) => meter(S.me, a) - meter(S.me, b))[0];
+      const weg = o.ort === 'Cascais' ? { ziel: NACH_NAME.get('Bahnhof Cais do Sodré'), text: 'Das ist zu Fuß zu weit. Nach Cascais fährt der Zug ab Bahnhof Cais do Sodré.' }
+        : o.ort === 'Almada' ? { ziel: NACH_NAME.get('Fähre Cais do Sodré'), text: 'Das ist zu Fuß zu weit und liegt auf der anderen Seite des Tejo. Die Fähre fährt ab Cais do Sodré nach Cacilhas.' }
+          : { ziel: nahMetro, text: `Das ist zu Fuß zu weit. Mit der Metro geht es besser.${/Metro/.test(o.notiz || '') ? ` Tipp zum Ort: ${notizText(o)}.` : ''}` };
       setze($('#ansicht'), el('button', { type: 'button', class: 'knopf flach zurueck', onclick: () => zeichne() }, ic('zurueck'), 'Zurück'),
         el('h2', { class: 'ort-titel' }, `${strecke(d)} bis ${o.name}`),
-        el('p', {}, 'Das ist zu Fuß zu weit. Mit Bahn, Metro oder Fähre geht es besser.'),
+        el('p', {}, weg.text),
         el('div', { style: 'display:grid;gap:8px' },
-          linkKnopf(`https://www.google.com/maps/dir/?api=1&travelmode=transit&destination=${encodeURIComponent(zielText(o))}`, 'haupt breit', ic('route'), 'Mit Öffis in Google Maps'),
+          weg.ziel ? el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => starteNavi(weg.ziel, true) }, ic('route'), `Zu ${weg.ziel.name} führen`) : null,
           el('button', { type: 'button', class: 'knopf breit', onclick: () => starteNavi(o, true) }, 'Trotzdem zu Fuß führen')));
       hoehe('mitte');
       return;
@@ -1281,7 +1264,7 @@
   async function starteNavi(o, bestaetigt) {
     if (!hatPos(o)) { toast('Für diesen Ort fehlt der Kartenpunkt.'); return; }
     if (!bestaetigt) { vorStart(o); return; }
-    Object.assign(N, { aktiv: true, ziel: o, route: null, idx: 0, abseit: null, gesagt: new Set(), angekommen: false });
+    Object.assign(N, { aktiv: true, ziel: o, route: null, idx: 0, abseit: null, gesagt: new Set(), angekommen: false, luft: false });
     document.body.dataset.navi = 'an';
     S.ort = null; S.follow = true;
     if (E.ansage && 'speechSynthesis' in window) { try { speechSynthesis.speak(new SpeechSynthesisUtterance('')); } catch (e) { /* iOS: Ton im Tipp freischalten */ } }
@@ -1296,12 +1279,14 @@
     naviPanel(N.route ? 'Neue Route …' : 'Route wird berechnet …');
     try {
       N.route = await holeRoute(S.me, N.ziel);
-      N.idx = 0; N.abseit = null; N.gesagt = new Set();
+      N.idx = 0; N.abseit = null; N.gesagt = new Set(); N.luft = false;
       zeichneRoute();
       naviUpdate(true);
       sage(N.route.schritte[0] && N.route.schritte[0].sag);
     } catch (e) {
-      naviPanel('Keine Route gefunden. Prüfe die Verbindung oder öffne eine Karten-App.', true);
+      N.luft = true;
+      zeichneLuftlinie();
+      naviUpdate(true);
     }
   }
 
@@ -1315,7 +1300,32 @@
     karteZeichnen();
   }
 
+  const RICHTUNG = ['Norden', 'Nordosten', 'Osten', 'Südosten', 'Süden', 'Südwesten', 'Westen', 'Nordwesten'];
+  function peilung(a, b) {
+    const r = Math.PI / 180, y = Math.sin((b.lon - a.lon) * r) * Math.cos(b.lat * r);
+    const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lon - a.lon) * r);
+    return (Math.atan2(y, x) / r + 360) % 360;
+  }
+  function zeichneLuftlinie() {
+    if (!karte || !S.me) return;
+    if (N.linie) N.linie.remove();
+    N.linie = L.layerGroup([L.polyline([[S.me.lat, S.me.lon], [N.ziel.lat, N.ziel.lon]], { color: '#1A73E8', weight: 5, dashArray: '2 10', lineCap: 'round', interactive: false })]).addTo(karte);
+  }
+  // Ohne Route vom Server: gerade Linie, Entfernung und Himmelsrichtung, bis die Route wieder geht
+  function luftUpdate() {
+    const d = meter(S.me, N.ziel);
+    if (!N.angekommen && d < 25) { angekommen(); return; }
+    zeichneLuftlinie();
+    const richtung = RICHTUNG[Math.round(peilung(S.me, N.ziel) / 45) % 8];
+    setze($('#navi-oben'), el('div', { class: 'pfeil', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${PFEIL.gerade}</svg>` }),
+      el('div', { class: 'navi-text' }, el('strong', {}, `${strecke(d)} Luftlinie`), el('span', {}, `Ziel liegt im ${richtung}. Die Fußroute lädt gerade nicht.`)));
+    $('#navi-oben').hidden = false;
+    const tempo = (E.tempo === 'gemuetlich' ? 4 : 5.1) / 3.6;
+    naviPanel(null, false, { rest: d * 1.3, an: new Date(Date.now() + ((d * 1.3) / tempo) * 1000), luft: true });
+    if (Date.now() - N.letzte > 30000) neueRoute();
+  }
   function naviUpdate(neu) {
+    if (N.aktiv && N.luft && !N.route && S.me) { luftUpdate(); return; }
     if (!N.aktiv || !N.route || !S.me) return;
     const R = N.route, ref = [S.me.lat, S.me.lon], p = [0, 0];
     let best = { d: Infinity, along: 0, i: 0 };
@@ -1360,11 +1370,11 @@
       el('div', { class: 'was' }, el('small', {}, 'Navigation zu'), el('strong', {}, N.ziel.name)));
     if (meldung) {
       setze(box, kopf, el('p', { style: 'margin:6px 0 10px', class: fehler ? 'status zu' : 'leise' }, meldung),
-        fehler ? el('div', { class: 'reihe' }, linkKnopf(naviLink(N.ziel), '', ic('route'), `In ${NAVI_NAME[E.navi]} öffnen`), el('button', { type: 'button', class: 'knopf', onclick: neueRoute }, 'Nochmal')) : null,
+        fehler ? el('div', { class: 'reihe' }, el('button', { type: 'button', class: 'knopf', onclick: neueRoute }, 'Nochmal')) : null,
         el('div', { class: 'reihe', style: 'margin-top:8px' }, beenden));
       return;
     }
-    const schritte = el('ol', { class: 'schritte', hidden: !N.zeigeSchritte }, N.route.schritte.map((s, i) => el('li', { class: i === N.idx ? 'jetzt' : i < N.idx ? 'vorbei' : '' },
+    const schritte = el('ol', { class: 'schritte', hidden: !N.zeigeSchritte }, (N.route ? N.route.schritte : []).map((s, i) => el('li', { class: i === N.idx ? 'jetzt' : i < N.idx ? 'vorbei' : '' },
       el('span', { class: 'pfeil klein', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${PFEIL[TYP_PFEIL(s.typ)]}</svg>` }), el('span', {}, s.text, s.laenge ? el('small', {}, ` · ${strecke(s.laenge)}`) : null))));
     setze(box, kopf,
       el('div', { class: 'navi-info' },
@@ -1416,13 +1426,13 @@
     const legende = [['restaurant', 'g-essen', 'Restaurant'], ['restaurant', 'g-veggie', 'Vegetarisch'], ['cafe', 'g-essen', 'Café'], ['bar', 'g-abends', 'Bar'],
       ['fado', 'g-abends', 'Fado'], ['museum', 'g-sehen', 'Museum'], ['kirche', 'g-sehen', 'Kirche'], ['aussicht', 'g-aussicht', 'Aussicht'],
       ['park', 'g-sehen', 'Park'], ['markt', 'g-sehen', 'Markt'], ['metro', 'g-verkehr', 'Metro'], ['tram', 'g-verkehr', 'Tram'],
-      ['aufzug', 'g-verkehr', 'Aufzug'], ['faehre', 'g-verkehr', 'Fähre'], ['treff', 'treff', 'Treffpunkt']];
+      ['aufzug', 'g-verkehr', 'Aufzug'], ['faehre', 'g-verkehr', 'Fähre'], ['shop', 'g-shoppen', 'Shoppen'], ['treff', 'treff', 'Treffpunkt']];
     const seiten = [
       { titel: 'Willkommen in Lissabon', text: 'Diese Karte zeigt eure Tagespläne und alle Orte. Sie führt euch zu Fuß hin. Ohne Konto, ohne Werbung.', bild: () => fasan('einf-fasan') },
       { titel: 'Unten ist alles', text: 'Fünf Bereiche, immer im Daumenbereich:', bild: () => el('ul', { class: 'einf-liste' }, leiste.map(([i, n, t]) => el('li', {}, el('span', { class: 'einf-icon' }, ic(i)), el('span', {}, el('strong', {}, n), el('small', {}, t))))) },
       { titel: 'Tippen, losgehen', text: 'Beim nächsten Stopp auf „Hinführen“ tippen. Die Karte zeigt den Weg, sagt jede Abbiegung an und lässt das Display an. Am Ziel hakst du den Stopp ab.',
         bild: () => el('div', { class: 'einf-navi' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${PFEIL.rechts}</svg>` }), el('span', {}, el('strong', {}, 'In 120 m'), el('small', {}, 'Rechts abbiegen auf Rua da Rosa'))) },
-      { titel: 'Die Symbole', text: 'Das Symbol zeigt, was ein Ort ist. Die Farbe zeigt die Art: Rot Essen, Grün vegetarisch, Blau Sehen, Orange Aussicht, Lila Abends, Ocker Verkehr.',
+      { titel: 'Die Symbole', text: 'Das Symbol zeigt, was ein Ort ist. Die Farbe zeigt die Art: Rot Essen, Grün vegetarisch, Blau Sehen, Orange Aussicht, Lila Abends, Ocker Verkehr, Pink Shoppen.',
         bild: () => el('div', { class: 'einf-legende' }, legende.map(([typ, g, n]) => el('span', {}, el('span', { class: `marker ${g}` }, symbol({ typ, kategorie: '' })), n))) },
       { titel: 'Gemeinsam entscheiden', text: 'Bei jedem Ort „Will hin“ oder „Lieber nicht“. Unter „Gruppe“ zeigst du deinen QR-Code; die anderen scannen ihn mit der Kamera. Aus euren Stimmen entsteht der Gruppenplan.',
         bild: () => el('div', { class: 'segmente stimme', style: 'width:100%' }, el('button', { type: 'button', class: 'ja', 'aria-pressed': 'true', tabindex: '-1' }, ic('hoch'), 'Will hin'), el('button', { type: 'button', class: 'nein', tabindex: '-1' }, ic('runter'), 'Lieber nicht')) },

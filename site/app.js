@@ -1,8 +1,8 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.1';
-  const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
+  const VERSION = '2.2';
+  const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
     { id: 'sa', kurz: 'Sa 24.', lang: 'Samstag, 24. Oktober', datum: '2026-10-24' },
@@ -223,6 +223,7 @@
   if (!G.kosten) G.kosten = {};
   if (!G.plaene) G.plaene = {};
   if (!G.gesehen) G.gesehen = {};
+  if (!G.einkauf) G.einkauf = {};
   const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
   // Live-Abgleich (Funk, siehe funk.js): Zustand nur im Speicher
   const F = { an: false, sig: null, timer: {}, leuteOrt: new Map(), gehoert: new Map(), status: { an: false, verbunden: 0, gesamt: 0 }, ortT: 0, ortP: null, warteZeichnen: false };
@@ -282,7 +283,9 @@
     for (const [id, x] of Object.entries(G.plaene)) ep[id] = [x.n, x.von, x.tag, x.s, x.d, x.t, x.x ? 1 : 0, x.e || x.von];
     const gs = {};
     for (const [id, x] of Object.entries(G.gesehen)) gs[id] = [x.w, x.t];
-    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko, ep, gs }));
+    const ek = {};
+    for (const [id, x] of Object.entries(G.einkauf)) ek[id] = [x.t, x.von, x.d ? 1 : 0, x.m, x.x ? 1 : 0];
+    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko, ep, gs, ek }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -375,6 +378,14 @@
       G.gesehen[id] = { w: (Array.isArray(x[0]) ? x[0] : []).filter((y) => typeof y === 'string').slice(0, 30), t: +x[1] || 0 };
       neu.gesehen += 1;
     }
+    neu.einkauf = 0;
+    for (const [id, x] of Object.entries(d.ek && typeof d.ek === 'object' ? d.ek : {})) {
+      if (!Array.isArray(x) || id.length > 20) continue;
+      const alt = G.einkauf[id];
+      if (alt && (+x[3] || 0) <= (alt.m || 0)) continue;
+      G.einkauf[id] = { t: String(x[0] || '').slice(0, 60), von: String(x[1] || '').slice(0, 16), d: x[2] ? 1 : 0, m: +x[3] || 0, x: x[4] ? 1 : 0 };
+      neu.einkauf += 1;
+    }
     speicher.set('gruppe', G); // nicht speichereG: Empfangenes löst kein eigenes Senden aus
     return neu;
   }
@@ -391,6 +402,7 @@
     if (d.ko && typeof d.ko === 'object') for (const [id, x] of Object.entries(G.kosten)) { const y = d.ko[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.m || 0)) return true; }
     if (d.ep && typeof d.ep === 'object') for (const [id, x] of Object.entries(G.plaene)) { const y = d.ep[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.t || 0)) return true; }
     if (d.gs && typeof d.gs === 'object') for (const [id, x] of Object.entries(G.gesehen)) { const y = d.gs[id]; if (!Array.isArray(y) || (+y[1] || 0) < (x.t || 0)) return true; }
+    if (d.ek && typeof d.ek === 'object') for (const [id, x] of Object.entries(G.einkauf)) { const y = d.ek[id]; if (!Array.isArray(y) || (+y[3] || 0) < (x.m || 0)) return true; }
     return false;
   }
   const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
@@ -467,10 +479,11 @@
       } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
       const aktiv = aktiverEigenplan();
       if (aktiv && neu.plaene.includes(S.plan.slice(2)) && aktiv.e !== (G.ich && G.ich.id)) toast(aktiv.x ? `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ gelöscht.` : `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ geändert.`);
-      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten || neu.plaene.length || neu.gesehen) neuZeichnen();
+      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten || neu.plaene.length || neu.gesehen || neu.einkauf) neuZeichnen();
       leisteZahl();
       return;
     }
+    if (m.a === 'w' && typeof m.von === 'string' && (!G.ich || m.von !== G.ich.id) && +m.ts > Date.now() - 600000) { woFrage(String(m.n || 'Jemand').slice(0, 40)); return; }
     if (m.a === 'o' && typeof m.id === 'string' && (!G.ich || m.id !== G.ich.id)) {
       if (m.aus) { F.leuteOrt.delete(m.id); zeichneLeute(); return; }
       const lat = +m.lat, lon = +m.lon, ts = +m.ts;
@@ -1010,8 +1023,75 @@
       el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, S.plan === 'G' ? `Gruppenplan aus ${Object.keys(G.leute).length} ${Object.keys(G.leute).length === 1 ? 'Person' : 'Personen'}: passt sich bei jedem Abgleich an. Zeiten sind geschätzt. ${tag.lang}.` : `${plan.titel}: ${plan.untertitel}. ${tag.lang}.`),
       stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${nFertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(nFertig / stopps.length) * 100}%` })) : null,
       stopps.length ? el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Die App führt euch Stopp für Stopp. Am Ziel geht es mit einem Tipp zum nächsten.') : null,
+      stopps.length ? zeitleisteTeil(stopps) : null,
       el('div', { class: 'reihe', style: 'margin-top:12px' }, heimKnopf()),
       liste);
+  }
+
+  // ---------- Zeitleiste: was ist noch machbar, auch wenn ihr trödelt ----------
+  // Gehzeit wie überall (1,3 × Luftlinie, 4 km/h; über 2,5 km: 35 Min. mit Bahn/Bus), Aufenthalt aus „Zeitbedarf“
+  // (belegt) sonst Schätzwert je Typ. Trödeln verlängert Wege und Aufenthalte. Öffnungszeiten aus OSM, Sonne aus wetter.json.
+  const hm = (m) => `${String(Math.floor(m / 60) % 24).padStart(2, '0')}:${String(Math.round(m) % 60).padStart(2, '0')}${m >= 1440 ? ' (nachts)' : ''}`;
+  const TAGESENDE = 22 * 60; // Setzung: danach plant die Zeitleiste nichts mehr ein
+  function offenAm(o, tagId, minute) {
+    const roh = o.infos && o.infos.oeffnungszeiten;
+    const w = roh && window.Oeffnung.lies(roh);
+    if (!w) return null;
+    const iv = w.woche[TAG_IDX[tagId]] || [];
+    for (const [a, b] of iv) if (minute >= a && minute < b) return { offen: true, bis: b };
+    const spaeter = iv.filter(([a]) => a > minute).sort((x, y) => x[0] - y[0])[0];
+    return { offen: false, ab: spaeter ? spaeter[0] : null };
+  }
+  function zeitleiste(stopps, troedel) {
+    const tag = TAGE.find((t) => t.id === S.tag);
+    const jetzt = new Date();
+    const heute = tag.datum === iso;
+    let t = heute ? jetzt.getHours() * 60 + jetzt.getMinutes() : 10 * 60;
+    const erster = stopps.find(({ s }) => s.zeit);
+    if (!heute && erster && /^\d{1,2}:\d{2}$/.test(erster.s.zeit)) t = Math.min(t, +erster.s.zeit.split(':')[0] * 60 + +erster.s.zeit.split(':')[1]);
+    const sonne = W && W.om && (W.om.sonne || []).find((x) => x.datum === tag.datum);
+    const unter = sonne ? +sonne.unter.slice(0, 2) * 60 + +sonne.unter.slice(3) : null;
+    let pos = heute && S.me ? S.me : null;
+    const zeilen = [];
+    for (const { o } of stopps) {
+      if (fertig(o)) continue;
+      const d = pos && hatPos(o) ? meter(pos, o) : 0;
+      const weg = (d > 2500 ? 35 : gehzeit(d)) * (1 + troedel);
+      const ankunft = t + weg, bleibe = dauerMin(o) * (1 + troedel);
+      const of = offenAm(o, S.tag, ankunft);
+      let status = 'ok', info = '';
+      if (of && !of.offen) { status = 'zu'; info = of.ab != null ? `zu, öffnet ${hm(of.ab)}` : 'dann geschlossen'; }
+      else if (of && of.offen && of.bis < ankunft + bleibe) { status = 'knapp'; info = `schließt ${hm(of.bis)}`; }
+      else if (of && of.offen) info = `offen bis ${hm(Math.min(of.bis, 1440))}`;
+      if (o.typ === 'aussicht' && unter != null && ankunft > unter + 20) { status = status === 'ok' ? 'dunkel' : status; info = [info, 'nach Sonnenuntergang'].filter(Boolean).join(' · '); }
+      if (ankunft + bleibe > TAGESENDE && status !== 'zu') { status = 'spaet'; info = [info, 'nach 22 Uhr'].filter(Boolean).join(' · '); }
+      zeilen.push({ o, ankunft, bleibe, status, info });
+      t = ankunft + bleibe; pos = o;
+    }
+    const start = heute ? jetzt.getHours() * 60 + jetzt.getMinutes() : null;
+    return { zeilen, ende: t, unter, start, machbar: zeilen.filter((x) => x.status === 'ok' || x.status === 'dunkel').length };
+  }
+  function zeitleisteTeil(stopps) {
+    const modus = S.troedel || 0;
+    const kurz = (tr) => { const z = zeitleiste(stopps, tr); const probleme = z.zeilen.filter((x) => x.status === 'zu' || x.status === 'knapp').length; return { z, probleme }; };
+    const plan = kurz(0), etwas = kurz(0.25), viel = kurz(0.5);
+    if (!plan.z.zeilen.length) return null;
+    const akt = modus === 0.5 ? viel : modus === 0.25 ? etwas : plan;
+    const n = plan.z.zeilen.length;
+    const zusammenfassung = plan.z.machbar === n && viel.z.machbar === n
+      ? `Alle ${n} Stopps machbar: fertig um ${hm(plan.z.ende)}, mit viel Trödeln ${hm(viel.z.ende)}.`
+      : `${plan.z.start != null ? `Ab jetzt (${hm(plan.z.start)}): ` : ''}${plan.z.machbar} von ${n} Stopps bis 22 Uhr machbar${viel.z.machbar < plan.z.machbar ? `, mit viel Trödeln ${viel.z.machbar}` : ''}.`;
+    const details = el('details', { class: 'zeitleiste', open: S.zeitleisteOffen ? true : null },
+      el('summary', {}, el('strong', {}, 'Zeitleiste'), el('span', { class: 'leise klein' }, zusammenfassung)),
+      el('div', { class: 'segmente', role: 'group', 'aria-label': 'Tempo', style: 'margin:10px 0' },
+        [[0, 'Nach Plan'], [0.25, 'Etwas trödeln'], [0.5, 'Viel trödeln']].map(([w, n]) => el('button', { type: 'button', 'aria-pressed': String(modus === w), onclick: () => { S.troedel = w; S.zeitleisteOffen = true; haptik(); zeichne({ scroll: true, karte: false }); } }, n))),
+      el('ol', { class: 'zl-liste' }, akt.z.zeilen.map((x) => el('li', { class: 'zl-' + x.status },
+        el('span', { class: 'zl-zeit' }, hm(x.ankunft)),
+        el('span', { class: 'zl-text' }, el('strong', {}, x.o.name), el('small', {}, [`${Math.round(x.bleibe)} Min. dort`, x.info].filter(Boolean).join(' · '))),
+        el('span', { class: 'zl-marke' }, { ok: '✓', knapp: 'knapp', zu: 'zu', dunkel: 'dunkel', spaet: 'zu spät' }[x.status])))),
+      el('p', { class: 'leise klein', style: 'margin:8px 0 0' }, `Ende etwa ${hm(akt.z.ende)}${akt.z.unter != null ? ` · Sonnenuntergang ${hm(akt.z.unter)}` : ''}. Gehzeiten geschätzt, Öffnungszeiten aus OpenStreetMap, Aufenthalt aus „Zeitbedarf“ oder geschätzt.`));
+    details.addEventListener('toggle', () => { S.zeitleisteOffen = details.open; });
+    return details;
   }
 
   // ---------- Eigene Pläne ----------
@@ -1154,7 +1234,7 @@
     fetch('umgebung.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
       .then((d) => { U = d && d.stand ? d : { fehler: true }; })
       .catch(() => { U = { fehler: true }; })
-      .finally(() => { uLaedt = false; if (S.nah && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); });
+      .finally(() => { uLaedt = false; if (S.nah && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); else if (S.tab === 'mehr' && !S.ort) zeichne({ scroll: true, karte: false }); });
   }
   const nahBezug = () => S.me || (karte ? { lat: karte.getCenter().lat, lon: karte.getCenter().lng } : { lat: LISSABON[0], lon: LISSABON[1] });
   function nahOrt(id, x, i) {
@@ -1211,12 +1291,13 @@
       el('div', { class: 'segmente', role: 'group', 'aria-label': 'Welche Supermärkte' },
         el('button', { type: 'button', 'aria-pressed': String(!S.nahAlle), onclick: () => { S.nahAlle = false; zeichne({ scroll: true }); } }, 'Günstige'),
         el('button', { type: 'button', 'aria-pressed': String(!!S.nahAlle), onclick: () => { S.nahAlle = true; zeichne({ scroll: true }); } }, 'Alle')),
-      el('p', { class: 'leise klein', style: 'margin:0' }, PREIS_HINWEIS)) : null;
+      el('p', { class: 'leise klein', style: 'margin:0' }, PREIS_HINWEIS),
+      (() => { const n = Object.values(G.einkauf).filter((x) => !x.x && !x.d).length; return el('button', { type: 'button', class: 'knopf', onclick: () => { S.tab = 'gruppe'; S.gTeil = 'einkauf'; speicher.set('gTeil', 'einkauf'); hoehe('gross'); zeichne(); } }, ic('haken'), n ? `Einkaufsliste (${n} offen)` : 'Einkaufsliste'); })()) : null;
     const zeile = (o) => {
       const st = o.oh ? window.Oeffnung.status(o.oh) : null;
       const pr = o.nah === 's' ? preisStufe(o) : null;
       const unter = [`${strecke(o.d)} · ${gehzeit(o.d)} Min.`];
-      if (o.nah === 'wc') unter.push(o.gebuehr === 'yes' ? 'kostet' : o.gebuehr === 'no' ? 'kostenlos' : 'Gebühr unbekannt', o.rolli === 'yes' ? 'rollstuhlgerecht' : null);
+      if (o.nah === 'wc') unter.push(o.gebuehr === 'yes' ? 'laut OSM kostenpflichtig' : o.gebuehr === 'no' ? 'laut OSM kostenlos' : 'Gebühr unbekannt', o.rolli === 'yes' ? 'rollstuhlgerecht' : null);
       if (o.nah === 'wiki') {
         const offen = S.nahWahl === o.id;
         return el('li', { class: 'eintrag wiki-zeile' + (offen ? ' gewaehlt' : ''), 'data-nah': o.id },
@@ -1284,10 +1365,41 @@
       el('span', { class: 'kreis' }), el('span', {}, label, text ? el('small', {}, text) : null))));
   }
 
+  // ---------- Notfall: alles im Handy, geht ohne Netz ----------
+  // Quellen: Botschaft laut Auswärtigem Amt (Seite ohne Datum, abgerufen 24.10.2026); SNS 24: Renascença (24.07.2026);
+  // 112: europaweiter Notruf; Notaufnahmen und Apotheken: OpenStreetMap (umgebung.json).
+  function notfallTeil() {
+    ladeUmgebung();
+    const tel = (nr, titel, unter) => el('a', { class: 'knopf notruf', href: `tel:${nr.replace(/[^+\d]/g, '')}` }, el('span', {}, el('strong', {}, titel), el('small', {}, unter)), el('b', {}, nr));
+    const naechste = (key, map, n) => (U && Array.isArray(U[key]) ? U[key].map(map).map((o) => ({ ...o, d: S.me ? meter(S.me, o) : null })).sort((a, b) => (a.d ?? 0) - (b.d ?? 0)).slice(0, n) : []);
+    const kh = naechste('kh', (x) => ({ lat: x[0], lon: x[1], name: x[2] || 'Krankenhaus mit Notaufnahme', tel: x[3] }), 2);
+    const apo = naechste('apo', (x) => ({ lat: x[0], lon: x[1], name: x[2] || 'Apotheke', oh: x[3] }), 3);
+    const ziel = (o, typ) => ({ id: `nf-${typ}-${o.lat}`, name: o.name, kategorie: 'Alltag', typ, adresse: o.name, notiz: '', lat: o.lat, lon: o.lon, nah: typ });
+    const zeile = (o, typ, extra) => el('li', { class: 'eintrag' },
+      el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), el('span', { class: 'unter' }, [o.d != null ? `${strecke(o.d)} · ${gehzeit(o.d)} Min.` : 'Standort fehlt', extra].filter(Boolean).join(' · '))),
+      el('button', { type: 'button', class: 'haken', 'aria-label': `Zu ${o.name} hinführen`, onclick: () => starteNavi(ziel(o, typ), true) }, ic('route')));
+    const adr = el('input', { type: 'text', maxlength: '120', value: E.heimAdresse || '', placeholder: 'Adresse der Unterkunft (bleibt auf dem Handy)', 'aria-label': 'Adresse der Unterkunft' });
+    adr.addEventListener('change', () => { E.heimAdresse = adr.value.trim(); speichereE(); toast('Gespeichert, nur auf diesem Handy.'); });
+    const gross = () => { const b = el('div', { class: 'foto-voll gross-text', role: 'dialog', 'aria-label': 'Adresse groß', onclick: () => b.remove() }, el('p', {}, E.heimAdresse || ''), el('small', {}, 'Antippen zum Schließen')); document.body.append(b); };
+    return el('section', { class: 'abschnitt notfall' }, el('h3', {}, 'Notfall'),
+      el('div', { style: 'display:grid;gap:8px' },
+        tel('112', 'Notruf', 'Polizei, Rettung, Feuerwehr · kostenlos'),
+        tel('808 24 24 24', 'SNS 24', 'Gesundheitstelefon in Portugal'),
+        tel('+351 21 881 02 10', 'Deutsche Botschaft', 'Campo dos Mártires da Pátria 38, Lissabon'),
+        tel('+351 96 580 80 92', 'Botschaft im Notfall', 'außerhalb der Öffnungszeiten')),
+      el('div', { style: 'display:grid;gap:8px;margin-top:12px' }, el('strong', {}, 'Unterkunft'), el('div', { class: 'feld' }, adr),
+        el('div', { class: 'reihe' }, E.heimAdresse ? el('button', { type: 'button', class: 'knopf', onclick: gross }, 'Groß zeigen (Taxi)') : null, heimKnopf())),
+      treffKarte(),
+      kh.length ? el('div', { style: 'margin-top:12px' }, el('strong', {}, 'Nächste Notaufnahme'), el('ul', { class: 'liste' }, kh.map((o) => zeile(o, 'apo', o.tel ? `Tel. ${o.tel}` : '')))) : null,
+      apo.length ? el('div', { style: 'margin-top:12px' }, el('strong', {}, 'Nächste Apotheken'), el('ul', { class: 'liste' }, apo.map((o) => { const st = o.oh ? window.Oeffnung.status(o.oh) : null; return zeile(o, 'apo', st ? (st.offen ? `offen bis ${st.bis}` : 'jetzt zu') : 'Zeiten unbekannt'); }))) : null,
+      el('p', { class: 'quelle', style: 'margin-top:8px' }, 'Botschaft: Auswärtiges Amt (Seite ohne Datum, abgerufen 24.10.2026). SNS 24: Renascença (24.07.2026). Notaufnahmen und Apotheken: OpenStreetMap, ohne Gewähr. Diese Seite geht auch ohne Netz.'));
+  }
+
   function zeichneMehr(box) {
     setze(box,
       el('div', { style: 'display:flex;align-items:center;gap:12px;padding-top:4px' }, fasan('klein-fasan'),
         el('div', {}, el('strong', { style: 'font-size:var(--fs-t)' }, 'Fasan Karte'), el('div', { class: 'leise klein' }, `Lissabon · Version ${VERSION}`))),
+      notfallTeil(),
       el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:14px', onclick: () => zeigeEinfuehrung(0) }, ic('plan'), 'Einführung ansehen'),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Profil'), wahl(PROFILE, E.profil, (id) => { E.profil = id; speichereE(); wendeAn(); hoehe(S.hoehe); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Aussehen'), wahl(THEMES, E.theme, (id) => { E.theme = id; speichereE(); wendeAn(); zeichne({ scroll: true }); })),
@@ -1309,11 +1421,11 @@
             E.heimPos = { lat: S.me.lat, lon: S.me.lon, t: Date.now() }; speichereE(); zeichne({ scroll: true }); toast('Unterkunft gespeichert.');
           } }, ic('haus'), 'Hier ist unsere Unterkunft')),
       el('section', { class: 'abschnitt' }, el('h3', {}, `Gut zu wissen in Lissabon · Stand ${STAND_NOTIZEN}`),
-        tipps('Fahren', ['Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten.', 'Einzelfahrt 1,90 €. 24-Stunden-Ticket 7,25 €, mit Fähre 10,35 €, mit Zug nach Cascais 11,40 €.', 'Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 €.', 'Gesperrt: Elevador de Santa Justa sowie die Standseilbahnen Glória, Bica und Lavra. Der Funicular da Graça fährt 7–21 Uhr.']),
-        tipps('Zeiten', ['Nacht auf Sonntag: Uhren 1 Stunde zurück.', 'Montag zu: Jerónimos und staatliche Museen. Dienstag zu: Gulbenkian.', 'Gulbenkian: „sonntags ab 14 Uhr gratis“ galt vor dem Umbau. Wieder offen seit 18.07.2026 (Observador), Regel nicht neu geprüft.', 'Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend).']),
+        tipps('Fahren', ['Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten.', 'Einzelfahrt 1,90 €. 24-Stunden-Ticket 7,25 €, mit Fähre nach Cacilhas 10,35 €, mit Zug nach Cascais 11,40 € (Metro Lisboa, Tarife ab 01.01.2026).', 'Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 € (Carris, ab 01.01.2026; echoboomer.pt, 23.12.2025).', 'Fähre nach Cacilhas: Einzelticket 2 € (Observador, 23.09.2026), mit Zapping-Guthaben 1,60 € (ttsl.pt, seit 16.03.2026).', 'Gesperrt: Elevador de Santa Justa sowie die Standseilbahnen Glória, Bica und Lavra (lisbontourism.org, 19.10.2026). Der Funicular da Graça fährt wieder seit 30.04.2026 (Lisboa para Pessoas, 01.09.2026). Fahrzeiten: keine aktuelle Info.']),
+        tipps('Zeiten', ['Nacht auf Sonntag: Uhren 1 Stunde zurück.', 'Sonntag zu: Sé und Convento do Carmo. Montag zu: Jerónimos, Torre de Belém, MNAC Chiado. Dienstag zu: Gulbenkian, MAAT.', 'Gulbenkian: sonntags ab 14 Uhr gratis (e-konomista.pt, 12.10.2026).', 'Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend).']),
         tipps('Shoppen', ['Sonntags haben laut lisbontourism.org (Stand 21.10.2026) vor allem Einkaufszentren und Läden in Touristengegenden offen.', 'Alle Shopping-Adressen findest du unter „Orte“ mit dem Filter „Shoppen“. Bei jedem Ort steht die Quelle mit Datum.']),
         tipps('Notfall', ['Notruf 112: Polizei, Rettung, Feuerwehr (europaweite Notrufnummer).', 'Taschendiebe laut Auswärtigem Amt (abgerufen 24.10.2026) vor allem an Praça do Comércio, Rua Augusta, in der Alfama, am Castelo de São Jorge, in historischen Straßenbahnen, Bahnhöfen und der Metro.', 'Für Notfälle: einen Treffpunkt unter „Gruppe“ festlegen, dann findet jede und jeder dorthin zurück.']),
-        tipps('Vor Ort', ['Couvert (Brot, Oliven, Häppchen) kostet extra. Ablehnen mit „Não, obrigado“. Oft ist Schinken dabei.', 'Trinkgeld 5–10 %. Bei Gruppen steht manchmal schon Service auf der Rechnung.', 'Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren.', 'Bargeld am Multibanco-Automaten holen.']),
+        tipps('Vor Ort', ['Couvert (Brot, Oliven, Häppchen) darf nur auf die Rechnung, wenn ihr es bestellt oder angerührt habt (postal.pt nach DECO, 13.07.2023). Nicht gewollt: „Não, obrigado“ und abräumen lassen.', 'Trinkgeld ist freiwillig. Eine feste Servicegebühr gilt nur, wenn sie in der Preisliste steht (DECO, 24.06.2025).', 'Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren.', 'Bargeld am Multibanco-Automaten holen.']),
         tipps('Diese Karte', ['Nummern zeigen die Reihenfolge des Tages. Die gepunktete Linie ist Luftlinie; den Fußweg zeigt die Navigation.', 'Gehzeiten sind geschätzt: 1,3 × Luftlinie bei 4 km/h.', 'Öffnungszeiten stammen aus OpenStreetMap und können veraltet sein.', 'Android: im Chrome-Menü „Zum Startbildschirm hinzufügen“. iPhone: die Karte in Safari nutzen, denn Gruppen-Links aus der Kamera öffnen sich in Safari, und ein Symbol auf dem Home-Bildschirm hätte einen eigenen, getrennten Speicher.'])),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Daten und Verbindungen'),
         el('ul', { class: 'klein', style: 'margin:0;padding-left:20px;display:grid;gap:6px' },
@@ -1549,6 +1661,7 @@
         ? (da.length ? `Gerade auch offen: ${da.join(', ')}. ` : 'Gerade ist sonst niemand online. ') + 'Stimmen, Umfragen, Treffpunkt, Nachrichten, geteilte Orte und Markierungen gleichen sich von selbst ab, sobald ein anderes Handy die App offen hat.'
         : F.an ? 'Noch kein Server erreicht. Der Abgleich per QR-Code oder Link geht immer.' : E.funk === false ? 'Du hast den Live-Abgleich ausgeschaltet. Abgleich per QR-Code oder Link.' : 'Live-Abgleich startet …'),
       teilen,
+      verbunden ? el('button', { type: 'button', class: 'knopf breit', onclick: woFragen }, ic('gruppe'), 'Wo seid ihr? Alle fragen') : null,
       liste,
       el('p', { class: 'leise klein', style: 'margin:0' }, 'Positionen kommen nur, solange die App offen ist. Die Server sehen nur Verschlüsseltes, manche halten es ein paar Minuten vor. Für unterwegs in der Tasche: WhatsApp-Live-Standort.'),
       el('button', { type: 'button', class: 'knopf flach nur-voll', style: 'justify-self:start;min-height:48px', onclick: () => {
@@ -1586,6 +1699,77 @@
       el('button', { type: 'button', class: 'n-ort g-' + gruppeVon(o.kategorie), onclick: () => oeffneOrt(o.id, true), 'aria-label': `${o.name} öffnen` },
         el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o)),
         el('span', {}, el('strong', {}, o.name), el('small', {}, [TYP_NAME[o.typ] || o.kategorie, S.me && hatPos(o) ? `${strecke(meter(S.me, o))} entfernt` : null].filter(Boolean).join(' · ')))));
+  }
+
+  // ---------- „Wo seid ihr?“: alle bitten, 15 Minuten den Standort zu teilen ----------
+  let woZuletzt = 0;
+  function woFragen() {
+    if (!F.an || !F.status.verbunden) { toast('Gerade keine Live-Verbindung. Frag in WhatsApp oder ruf an.'); return; }
+    if (Date.now() - woZuletzt < 60000) { toast('Eben gefragt. Die Antworten erscheinen auf der Karte.'); return; }
+    woZuletzt = Date.now();
+    Funk.sende({ v: 1, a: 'w', von: G.ich.id, n: meinName(), ts: Date.now() }).catch(() => {});
+    haptik(12); toast('Gefragt. Wer zustimmt, erscheint 15 Minuten lang auf der Karte.');
+    if (!teileOrt()) { E.teilenBis = Date.now() + 15 * 60000; speichereE(); if (S.watchId == null) starteGps(false); if (S.me) funkOrt(S.me, true); }
+  }
+  function woFrage(name) {
+    const box = $('#naehe');
+    const zu = () => { box.classList.remove('an'); setTimeout(() => { box.hidden = true; }, 250); };
+    setze(box, el('div', { class: 'naehe-karte wo-karte', role: 'alertdialog', 'aria-label': `${name} fragt, wo ihr seid` },
+      el('div', { class: 'naehe-kopf' }, el('span', { class: 'marker person mini' }, initialen(name)), el('strong', {}, `${name} fragt: Wo seid ihr?`)),
+      el('p', {}, 'Teilst du 15 Minuten lang deinen Standort mit der Gruppe?'),
+      el('div', { class: 'reihe' },
+        el('button', { type: 'button', class: 'knopf', onclick: zu }, 'Nein'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: () => {
+          zu(); E.teilenBis = Math.max(E.teilenBis || 0, Date.now() + 15 * 60000); speichereE();
+          if (S.watchId == null) starteGps(false); if (S.me) funkOrt(S.me, true);
+          toast('Du teilst deinen Standort 15 Minuten lang.'); zeichne({ scroll: true, karte: false });
+        } }, 'Ja, 15 Min. teilen'))));
+    box.hidden = false; requestAnimationFrame(() => box.classList.add('an'));
+    haptik(40);
+  }
+
+  // ---------- Einkaufsliste (geteilt) ----------
+  function einkaufTeil() {
+    const alle = Object.entries(G.einkauf).filter(([, x]) => !x.x);
+    const offen = alle.filter(([, x]) => !x.d).sort((a, b) => a[1].m - b[1].m), fertig = alle.filter(([, x]) => x.d).sort((a, b) => b[1].m - a[1].m);
+    const feld = el('input', { type: 'text', maxlength: '60', placeholder: 'Was fehlt? z. B. Wasser, Brot', 'aria-label': 'Neuer Eintrag', enterkeyhint: 'done', autocomplete: 'off' });
+    const dazu = () => {
+      const t = feld.value.trim(); if (!t) { feld.focus(); return; }
+      for (const teil of t.split(/\s*[,;]\s*/).filter(Boolean)) G.einkauf[neueId() + Date.now().toString(36).slice(-3)] = { t: teil.slice(0, 60), von: G.ich.id, d: 0, m: Date.now(), x: 0 };
+      speichereG(); haptik(); F.warteZeichnen = false; feld.blur(); zeichne({ scroll: true, karte: false }); // Fokus weg, damit Änderungen der anderen live erscheinen
+    };
+    feld.id = 'ek-feld';
+    feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); dazu(); } });
+    const setz = (id, patch) => { Object.assign(G.einkauf[id], patch, { m: Date.now() }); speichereG(); haptik(); zeichne({ scroll: true, karte: false }); };
+    const zeile = ([id, x]) => el('li', { class: 'eintrag ek' + (x.d ? ' erledigt' : '') },
+      el('button', { type: 'button', class: 'haken', 'aria-pressed': String(!!x.d), 'aria-label': `${x.t} ${x.d ? 'wieder offen' : 'erledigt'}`, onclick: () => setz(id, { d: x.d ? 0 : 1 }) }, ic('haken')),
+      el('span', { class: 'text' }, el('span', { class: 'titel' }, x.t), el('span', { class: 'unter' }, `von ${personName(x.von)}`)),
+      el('button', { type: 'button', class: 'haken', 'aria-label': `${x.t} löschen`, onclick: () => { setz(id, { x: 1 }); toast(`„${x.t}“ gelöscht.`, { aktion: 'Rückgängig', fn: () => setz(id, { x: 0 }) }); } }, ic('x')));
+    return el('section', { class: 'abschnitt', style: 'margin-top:8px' },
+      el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: dazu }, 'Dazu')),
+      el('p', { class: 'leise klein', style: 'margin:6px 0 0' }, 'Mehreres mit Komma trennen. Alle sehen die Liste live und haken ab, was gekauft ist.'),
+      offen.length ? el('ul', { class: 'liste', style: 'margin-top:8px' }, offen.map(zeile)) : el('p', { style: 'margin:12px 0 0' }, 'Nichts offen.'),
+      fertig.length ? el('details', { class: 'ek-fertig' }, el('summary', {}, `Gekauft (${fertig.length})`), el('ul', { class: 'liste' }, fertig.map(zeile)),
+        el('button', { type: 'button', class: 'knopf flach warn', onclick: () => { fertig.forEach(([id]) => { G.einkauf[id].x = 1; G.einkauf[id].m = Date.now(); }); speichereG(); zeichne({ scroll: true, karte: false }); } }, 'Gekaufte löschen')) : null,
+      el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:12px', onclick: () => { S.tab = 'orte'; S.nah = 's'; S.ort = null; ladeUmgebung(); if (S.watchId == null) starteGps(false); hoehe('mitte'); zeichne({ anpassen: true }); } },
+        el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.korb}</svg>`, style: 'display:contents' }), 'Günstige Supermärkte in der Nähe'));
+  }
+
+  // ---------- Abrechnung als Text ----------
+  function abrechnungText() {
+    const s2 = salden(), wege = ausgleichWege(s2);
+    const liste = Object.values(G.kosten).filter((x) => !x.x).sort((a, b) => a.t - b.t);
+    const datum = (t) => { const d = new Date(t); return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.`; };
+    const zeilen = [`Lissabon: Kosten (Stand ${datum(Date.now())} ${uhrzeit(Date.now())})`, '', `Ausgaben gesamt: ${euro(liste.filter((x) => !x.a).reduce((a, x) => a + x.b, 0))}`, '', 'So gleicht ihr aus:'];
+    if (wege.length) for (const w of wege) zeilen.push(`- ${personName(w.von)} → ${personName(w.an)}: ${euro(w.b)}`); else zeilen.push('- Alle sind quitt.');
+    zeilen.push('', 'Stand je Person:');
+    for (const id of personenListe()) zeilen.push(`- ${personName(id)}: ${(s2[id] || 0) >= 0 ? '+' : '−'}${euro(s2[id] || 0)}`);
+    zeilen.push('', 'Ausgaben:');
+    for (const x of liste) {
+      const za = x.za || { [x.v]: x.b };
+      zeilen.push(x.a ? `- ${datum(x.t)} Ausgleich ${personName(x.v)} → ${personName(x.f[0])}: ${euro(x.b)}` : `- ${datum(x.t)} ${x.z || 'Ausgabe'}: ${euro(x.b)}, bezahlt von ${Object.entries(za).map(([id, c]) => (Object.keys(za).length > 1 ? `${personName(id)} ${euro(c)}` : personName(id))).join(', ')}`);
+    }
+    return zeilen.join('\n');
   }
 
   // ---------- Kosten teilen (Prinzip wie Splid/Splitwise; Recherche docs/recherche/2026-10-24-kosten-und-fuehrung.md) ----------
@@ -1685,10 +1869,10 @@
     try { const db = await fotoDb(); return await new Promise((ok) => { const r = db.transaction('fotos').objectStore('fotos').get(id); r.onsuccess = () => ok(r.result || null); r.onerror = () => ok(null); }); } catch (e) { return null; }
   }
   // Foto verkleinern (längste Seite 1600 px, JPEG): reicht zum Lesen, spart Speicher
-  function fotoEinlesen(datei) {
+  function fotoEinlesen(datei, max = 1600) {
     return new Promise((ok, fehler) => {
       const r = new FileReader();
-      r.onload = () => { const img = new Image(); img.onload = () => { const f2 = Math.min(1, 1600 / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * f2); c.height = Math.round(img.height * f2); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = fehler; img.src = r.result; };
+      r.onload = () => { const img = new Image(); img.onload = () => { const f2 = Math.min(1, max / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * f2); c.height = Math.round(img.height * f2); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ok(c.toDataURL('image/jpeg', 0.82)); }; img.onerror = fehler; img.src = r.result; };
       r.onerror = fehler; r.readAsDataURL(datei);
     });
   }
@@ -1698,6 +1882,87 @@
     img.addEventListener('click', () => box.classList.toggle('gross'));
     box.append(img, el('button', { type: 'button', class: 'knopf haupt foto-zu', onclick: () => box.remove() }, 'Schließen'), el('p', { class: 'foto-hilfe' }, 'Tippen zum Vergrößern'));
     document.body.append(box);
+  }
+
+  // ---------- Kassenzettel erkennen und im Bild korrigieren (bon.js) ----------
+  async function bonLesen(f) {
+    const neu = () => { if (S.kostenForm === f) zeichne({ scroll: true, karte: false }); };
+    const status = (t) => { S.bonStatus = t; const e = $('.bon-status'); if (e) e.textContent = t; else neu(); };
+    status('Texterkennung startet …');
+    try {
+      if (!window.Bon) await new Promise((ok, fehler) => { const sc = document.createElement('script'); sc.src = 'bon.js'; sc.onload = ok; sc.onerror = fehler; document.head.append(sc); });
+      const r = await window.Bon.erkenne(f.foto, (m) => {
+        const pz = Math.round((m.progress || 0) * 100);
+        if (/load|initial/i.test(m.status || '')) status(`Erkennung wird geladen (einmalig, etwa 5 MB) … ${pz} %`);
+        else if (/recogniz/i.test(m.status || '')) status(`Bon wird gelesen … ${pz} %`);
+      });
+      f.bon = r; f.foto = r.bild; f.bonTotal = r.qr ? r.qr.total : r.total; f.bonWahl = null; f.trotzdem = false;
+      f.posten = r.posten.length ? r.posten.map((p2) => ({ t: p2.t, b: p2.b, w: [], z: p2.zeile, c: p2.c })) : [{ t: '', b: 0, w: [] }];
+      S.bonStatus = null; haptik(12);
+      const soll = f.bonTotal;
+      toast(soll != null && r.summe === soll ? `${r.posten.length} Posten erkannt, Summe stimmt${r.qr ? ' mit dem QR-Code' : ' mit dem Bon'} überein.` : `${r.posten.length} Posten erkannt. Bitte im Bild prüfen.`);
+    } catch (e) {
+      S.bonStatus = 'Erkennung nicht möglich. Posten bitte von Hand eintragen.';
+    }
+    neu();
+  }
+  function bonAnsicht(f, neu) {
+    const r = f.bon, zoom = f.bonZoom || 1;
+    const ist = f.posten.reduce((a, q) => a + (q.b || 0), 0), soll = f.bonTotal;
+    const passt = soll != null && ist === soll;
+    const flaeche = el('div', { class: 'bon-flaeche', style: `width:${zoom * 100}%` }, el('img', { src: f.foto, alt: 'Kassenzettel', draggable: 'false' }));
+    r.zeilen.forEach((z, i) => {
+      const pi = f.posten.findIndex((q) => q.z === i);
+      const typ = pi >= 0 ? ((f.posten[pi].c || 100) < 70 ? 'unsicher' : 'posten') : z.typ === 'summe' ? 'summe' : z.typ === 'teil' ? 'teil' : 'sonst';
+      const b = z.b, w = r.breite, h = r.hoehe;
+      flaeche.append(el('button', { type: 'button', class: `bon-box ${typ}${f.bonWahl === i ? ' wahl' : ''}`, 'aria-label': `Zeile: ${z.text}`,
+        style: `left:${(b.x0 / w) * 100}%;top:${(b.y0 / h) * 100}%;width:${((b.x1 - b.x0) / w) * 100}%;height:${((b.y1 - b.y0) / h) * 100}%`,
+        onclick: () => { f.bonWahl = f.bonWahl === i ? null : i; haptik(); neu(); } }, pi >= 0 ? el('span', { class: 'bon-betrag' }, `${f.posten[pi].b < 0 ? '−' : ''}${euro(f.posten[pi].b)}`) : null));
+    });
+    // Gewählte Zeile bearbeiten
+    let panel = null;
+    if (f.bonWahl != null && r.zeilen[f.bonWahl]) {
+      const z = r.zeilen[f.bonWahl], pi = f.posten.findIndex((q) => q.z === f.bonWahl);
+      if (z.typ === 'summe') {
+        const i2 = el('input', { type: 'text', inputmode: 'decimal', class: 'geld', value: centText(f.bonTotal || 0), 'aria-label': 'Summe laut Bon' });
+        i2.addEventListener('input', () => { f.bonTotal = betragLesen(i2.value) || null; });
+        panel = el('div', { class: 'bon-panel' }, el('small', {}, `Erkannt: „${z.text}“`), el('strong', {}, 'Summe laut Bon'), el('div', { class: 'feld' }, i2, el('button', { type: 'button', class: 'knopf haupt', onclick: () => { f.bonWahl = null; neu(); } }, 'OK')));
+      } else if (pi >= 0) {
+        const q = f.posten[pi];
+        const tx = el('input', { type: 'text', value: q.t, maxlength: '40', 'aria-label': 'Bezeichnung' }); tx.addEventListener('input', () => { q.t = tx.value; });
+        const bt = el('input', { type: 'text', inputmode: 'decimal', class: 'geld', value: centText(q.b), 'aria-label': 'Betrag' }); bt.addEventListener('input', () => { q.b = betragLesen(bt.value) * (bt.value.trim().startsWith('-') ? -1 : 1); q.c = 100; });
+        panel = el('div', { class: 'bon-panel' }, el('small', {}, `Erkannt: „${z.text}“`),
+          el('div', { class: 'feld' }, bt, tx),
+          el('div', { class: 'chips' }, personenListe().map((id) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(q.w.includes(id)), onclick: () => { q.w = q.w.includes(id) ? q.w.filter((x) => x !== id) : q.w.concat(id); haptik(); neu(); } }, personName(id)))),
+          el('div', { class: 'reihe' }, el('button', { type: 'button', class: 'knopf warn', onclick: () => { f.posten.splice(pi, 1); f.bonWahl = null; neu(); } }, 'Kein Posten'),
+            el('button', { type: 'button', class: 'knopf haupt', onclick: () => { f.bonWahl = null; neu(); } }, 'Fertig')));
+      } else {
+        const zahlen = (z.text.match(/-?\d{1,3}(?:[.\s]\d{3})*[,.]\d{2}/g) || []);
+        panel = el('div', { class: 'bon-panel' }, el('small', {}, `Erkannt: „${z.text}“`), el('span', {}, 'Diese Zeile ist kein Posten.'),
+          el('div', { class: 'reihe' }, el('button', { type: 'button', class: 'knopf haupt', onclick: () => {
+            const b0 = zahlen.length ? window.Bon.cent(zahlen[zahlen.length - 1]) : 0;
+            f.posten = f.posten.filter((q) => q.b || q.t); f.posten.push({ t: z.text.replace(/-?\d{1,3}(?:[.\s]\d{3})*[,.]\d{2}.*$/, '').trim().slice(0, 40) || 'Posten', b: b0, w: [], z: f.bonWahl, c: 100 });
+            f.posten.sort((a, c) => (a.z ?? 1e9) - (c.z ?? 1e9)); neu();
+          } }, 'Als Posten übernehmen'), el('button', { type: 'button', class: 'knopf', onclick: () => { f.bonWahl = null; neu(); } }, 'Schließen')));
+      }
+    }
+    const offen = f.posten.filter((q) => q.b && !q.w.length).length;
+    return el('div', { class: 'bon' },
+      r.qr ? el('p', { class: 'bon-qr' }, `QR-Code gelesen: Gesamtbetrag ${euro(r.qr.total)} (vom Kassensystem, sicher)${r.total != null && r.total !== r.qr.total ? `. Die Texterkennung hatte ${euro(r.total)} gelesen.` : '.'}`) : null,
+      el('div', { class: 'bon-probe ' + (passt ? 'ok' : 'warn') }, passt
+        ? `✓ Posten zusammen ${euro(ist)} = Summe ${r.qr && f.bonTotal === r.qr.total ? 'im QR-Code' : 'auf dem Bon'}.`
+        : soll != null ? `Posten ${euro(ist)}, Bon ${euro(soll)}: ${euro(Math.abs(soll - ist))} ${ist < soll ? 'fehlen' : 'zu viel'}. Tippe im Bild auf graue Zeilen oder korrigiere Beträge.`
+          : 'Summe auf dem Bon nicht gefunden. Tippe im Bild auf die TOTAL-Zeile oder trag sie ein.'),
+      soll == null ? (() => { const i3 = el('input', { type: 'text', inputmode: 'decimal', class: 'geld', placeholder: 'Summe laut Bon', 'aria-label': 'Summe laut Bon' }); i3.addEventListener('change', () => { f.bonTotal = betragLesen(i3.value) || null; neu(); }); return el('div', { class: 'feld' }, i3); })() : null,
+      el('div', { class: 'bon-werkzeug' },
+        el('span', { class: 'klein leise' }, 'Grün: Posten · Orange: unsicher · Blau: Summe · Grau: kein Posten'),
+        el('span', { class: 'reihe' }, el('button', { type: 'button', class: 'haken', 'aria-label': 'Bild kleiner', onclick: () => { f.bonZoom = Math.max(1, zoom - 0.5); neu(); } }, '−'),
+          el('button', { type: 'button', class: 'haken', 'aria-label': 'Bild größer', onclick: () => { f.bonZoom = Math.min(3, zoom + 0.5); neu(); } }, '+'))),
+      el('div', { class: 'bon-ansicht' }, flaeche),
+      panel,
+      offen ? el('div', { class: 'reihe' }, el('span', { class: 'klein' }, `${offen} ${offen === 1 ? 'Posten ist' : 'Posten sind'} noch niemandem zugeordnet.`),
+        el('button', { type: 'button', class: 'knopf', onclick: () => { const alle = personenListe(); f.posten.forEach((q) => { if (q.b && !q.w.length) q.w = alle.slice(); }); neu(); } }, 'Rest: alle teilen')) : null,
+      f.trotzdem === 'frage' ? el('button', { type: 'button', class: 'knopf warn breit', onclick: () => { f.trotzdem = true; neu(); } }, 'Trotzdem speichern (Summe weicht ab)') : null);
   }
 
   const leerForm = () => ({ art: 'gleich', b: 0, z: '', v: G.ich.id, mehr: false, zahler: {}, f: personenListe(), betraege: {}, anteile: Object.fromEntries(personenListe().map((id) => [id, 1])), posten: [{ t: '', b: 0, w: [] }], tipArt: '%', tip: 0, foto: null });
@@ -1714,15 +1979,19 @@
   function berechne(f) {
     let b = f.b, an;
     if (f.art === 'posten') {
-      const items = f.posten.filter((q) => q.b > 0);
+      const items = f.posten.filter((q) => q.b);
       if (!items.length) return { fehler: 'Trag die Posten vom Kassenzettel ein.' };
-      const ohne = f.posten.findIndex((q) => q.b > 0 && !q.w.length);
-      if (ohne >= 0) return { fehler: `Posten ${ohne + 1}: Wer hatte das? Personen antippen.` };
+      const ohne = f.posten.findIndex((q) => q.b && !q.w.length);
+      if (ohne >= 0) return { fehler: `Posten ${ohne + 1} (${f.posten[ohne].t || 'ohne Namen'}): Wer hatte das? Personen antippen.` };
       an = {};
-      for (const q of items) for (const [id, c] of Object.entries(verteile(q.b, q.w.map((id) => [id, 1])))) an[id] = (an[id] || 0) + c;
+      // Rabatte (negative Posten) mindern die Anteile der Getippten
+      for (const q of items) for (const [id, c] of Object.entries(verteile(Math.abs(q.b), q.w.map((id) => [id, 1])))) an[id] = (an[id] || 0) + Math.sign(q.b) * c;
       const summe = items.reduce((a, q) => a + q.b, 0);
+      if (summe <= 0) return { fehler: 'Die Summe der Posten muss größer als 0 sein.' };
+      if (Object.values(an).some((c) => c < 0)) return { fehler: 'Ein Rabatt ist größer als die Posten dieser Person. Bitte Personen prüfen.' };
       const tip = f.tipArt === '%' ? Math.round((summe * (f.tip || 0)) / 100) : Math.round(f.tip || 0);
-      if (tip > 0) for (const [id, c] of Object.entries(verteile(tip, Object.entries(an)))) an[id] += c;
+      if (tip > 0) for (const [id, c] of Object.entries(verteile(tip, Object.entries(an).filter(([, w]) => w > 0)))) an[id] += c;
+      for (const id of Object.keys(an)) if (!an[id]) delete an[id];
       b = summe + Math.max(0, tip);
     } else {
       if (!b) return { fehler: 'Bitte den Betrag eingeben, z. B. 12,50.' };
@@ -1782,12 +2051,14 @@
           el('button', { type: 'button', class: 'haken', 'aria-label': `Anteil ${personName(id)} mehr`, onclick: () => { f.anteile[id] = Math.min(20, (f.anteile[id] || 0) + 1); haptik(); neu(); } }, '+')))));
     } else {
       const datei = el('input', { type: 'file', accept: 'image/*', capture: 'environment', hidden: true });
-      datei.addEventListener('change', async () => { const d = datei.files && datei.files[0]; if (!d) return; try { f.foto = await fotoEinlesen(d); haptik(12); neu(); } catch (e) { toast('Das Foto konnte nicht gelesen werden.'); } });
+      datei.addEventListener('change', async () => { const d = datei.files && datei.files[0]; if (!d) return; try { f.foto = await fotoEinlesen(d, 2400); f.bon = null; haptik(12); neu(); bonLesen(f); } catch (e) { toast('Das Foto konnte nicht gelesen werden.'); } });
       teil = [
         el('div', { class: 'reihe' }, datei,
           el('button', { type: 'button', class: 'knopf', onclick: () => datei.click() }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.foto}</svg>`, style: 'display:contents' }), f.foto ? 'Neues Foto' : 'Kassenzettel fotografieren'),
           f.foto ? el('button', { type: 'button', class: 'k-foto', 'aria-label': 'Kassenzettel groß ansehen', onclick: () => zeigeFoto(f.foto) }, el('img', { src: f.foto, alt: '' })) : null),
-        f.foto ? el('p', { class: 'leise klein', style: 'margin:0' }, 'Das Foto bleibt nur auf diesem Handy. Antippen zum Vergrößern.') : null,
+        f.foto ? el('p', { class: 'leise klein', style: 'margin:0' }, 'Das Foto bleibt nur auf diesem Handy. Die Erkennung läuft im Handy.') : null,
+        S.bonStatus ? el('p', { class: 'bon-status', 'aria-live': 'polite' }, S.bonStatus) : null,
+        f.bon ? bonAnsicht(f, neu) : null,
         el('ol', { class: 'k-posten' }, f.posten.map((q, i) => {
           const text = el('input', { type: 'text', maxlength: '40', placeholder: `Posten ${i + 1}, z. B. Bacalhau`, value: q.t, 'aria-label': `Bezeichnung Posten ${i + 1}`, autocomplete: 'off' });
           text.addEventListener('input', () => { q.t = text.value; });
@@ -1811,6 +2082,10 @@
     const speichern = () => {
       const r = berechne(f);
       if (r.fehler) { toast(r.fehler); haptik(30); return; }
+      if (f.art === 'posten' && f.bon) {
+        const ist = f.posten.reduce((a, q) => a + (q.b || 0), 0), soll = f.bonTotal;
+        if (soll != null && ist !== soll && !f.trotzdem) { toast(`Posten ${euro(ist)}, Bon ${euro(soll)}: bitte erst prüfen. Oder unten „Trotzdem speichern“.`); f.trotzdem = 'frage'; neu(); return; }
+      }
       const v = Object.entries(r.za).sort((a, c) => c[1] - a[1])[0][0];
       const id = kostenSpeichern({ id: f.id, v, b: r.b, z: f.z, f: Object.keys(r.an), an: r.an, za: r.za, art: f.art,
         pos: f.art === 'posten' ? f.posten.filter((q) => q.b > 0).map((q) => [q.t, q.b, q.w]) : null, tip: f.art === 'posten' && f.tip ? [f.tipArt, f.tip] : null });
@@ -1892,6 +2167,7 @@
               el('span', { class: 'titel' }, x.a ? `${personName(x.v)} → ${personName(x.f[0])}` : x.z || 'Ausgabe', fotos.includes(id) ? el('span', { class: 'abzeichen', style: 'margin-left:6px;font-size:12px' }, 'Bon') : null),
               el('span', { class: 'unter' }, zeileText(x))),
             el('span', { class: 'betrag' }, euro(x.b)))))) : el('p', { class: 'leise klein', style: 'margin:0' }, 'Noch keine Ausgaben. Wer bezahlt, trägt es hier ein. Alle sehen es sofort.')),
+      liste.length ? el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:12px', onclick: () => kopiere(abrechnungText(), 'Abrechnung kopiert. Du kannst sie jetzt einfügen, wo du willst.') }, ic('kopie'), 'Abrechnung als Text kopieren') : null,
       el('p', { class: 'leise klein', style: 'margin:14px 0 0' }, 'Alles in Euro, auf den Cent genau. Läuft verschlüsselt über euren Gruppenkanal, wie Nachrichten und Stimmen. Fotos bleiben auf dem Handy.'));
   }
 
@@ -1952,10 +2228,11 @@
     if (document.visibilityState === 'visible') { speicher.set('gelesen', Date.now()); leisteZahl(); }
     const teil = S.gTeil || 'unterwegs';
     const reiter = el('div', { class: 'segmente', role: 'tablist', 'aria-label': 'Gruppe', style: 'margin:4px 0 6px' },
-      [['unterwegs', 'Unterwegs'], ['abstimmen', 'Abstimmen'], ['kosten', 'Kosten']].map(([id, n]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(teil === id), 'aria-pressed': String(teil === id), onclick: () => { S.gTeil = id; speicher.set('gTeil', id); S.kostenForm = null; haptik(); zeichne({ karte: false }); } }, n)));
+      [['unterwegs', 'Unterwegs'], ['abstimmen', 'Abstimmen'], ['kosten', 'Kosten'], ['einkauf', 'Einkauf']].map(([id, n]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(teil === id), 'aria-pressed': String(teil === id), onclick: () => { S.gTeil = id; speicher.set('gTeil', id); S.kostenForm = null; haptik(); zeichne({ karte: false }); } }, n)));
     // Ohne bekannte Mitreisende zuerst der Abgleich per QR/Link: darüber kommt auch der Gruppenschlüssel
-    if (!leute.length) setze(box, pinKarte(), abgleich, reiter, teil === 'kosten' ? kostenTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : [liveTeil(), nachrichtenTeil(), treffTeil]);
-    else setze(box, pinKarte(), reiter, teil === 'kosten' ? kostenTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : [liveTeil(), nachrichtenTeil(), treffTeil, abgleich]);
+    const inhalt = teil === 'kosten' ? kostenTeil() : teil === 'einkauf' ? einkaufTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : null;
+    if (!leute.length) setze(box, pinKarte(), abgleich, reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil]);
+    else setze(box, pinKarte(), reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil, abgleich]);
   }
 
   function formUmfrage() {
@@ -2116,7 +2393,7 @@
       gesehenBlock(o),
       gruppeMarkBlock(o),
       o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, o.kategorie === 'Foto' ? 'Foto-Tipp' : 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
-        el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut /.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
+        el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut |\d{2}\.\d{4}\)/.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
       o.foto ? el('section', { class: 'abschnitt' }, el('h3', {}, el('span', { class: 'marker g-foto', style: 'width:28px;height:28px;display:inline-grid;vertical-align:middle;margin-right:8px' }, symbol({ typ: 'foto' })), 'Foto-Tipp'), el('p', { style: 'margin:0' }, o.foto)) : null,
       o.dauer ? el('section', { class: 'abschnitt' }, el('h3', {}, 'Zeitbedarf'), el('p', { style: 'margin:0' }, el('strong', {}, `Etwa ${o.dauer} Minuten`)),
         el('p', { class: 'quelle', style: 'margin-top:4px' }, `Quelle: ${o.dauerQuelle || 'nicht angegeben'}.`)) : null,

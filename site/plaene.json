@@ -15,19 +15,19 @@
         {"ort": "Sé de Lisboa"},
         {"ort": "Museu do Dinheiro"},
         {"ort": "Praça do Comércio"},
-        {"ort": "Museu Nacional de Arte Contemporânea do Chiado", "zeit": "18:00", "text": "Gratis-Konzert"},
+        {"ort": "Museu Nacional de Arte Contemporânea do Chiado", "text": "Museum 10 €, Einlass bis 17:30, schließt um 18 Uhr. Ein Gratis-Konzert ist nicht belegt"},
         {"ort": "Casa do Alentejo", "text": "Abendessen in der Taberna"},
         {"hinweis": "Metro Restauradores → Rato"}
       ],
       "so": [
         {"hinweis": "Heute Nacht wurden die Uhren 1 Stunde zurückgestellt"},
         {"hinweis": "Bus 758 → Tram 15E nach Belém"},
-        {"ort": "Mosteiro dos Jerónimos", "text": "Kirche gratis"},
+        {"ort": "Mosteiro dos Jerónimos", "text": "Kirche gratis, Kloster 18 €"},
         {"ort": "Pastéis de Belém"},
         {"ort": "Padrão dos Descobrimentos"},
         {"ort": "Torre de Belém", "text": "Von außen anschauen"},
         {"ort": "O Frade", "zeit": "12:30", "text": "Mittagessen, für 6 reservieren"},
-        {"ort": "Museu Calouste Gulbenkian", "zeit": "15:00", "text": "Sonntags ab 14 Uhr gratis galt vor dem Umbau. Seit 18.07.2026 wieder offen, die Regel ist nicht neu geprüft"},
+        {"ort": "Museu Calouste Gulbenkian", "zeit": "15:00", "text": "Sonntags ab 14 Uhr gratis (e-konomista.pt, 12.10.2026)"},
         {"ort": "Jardim do Príncipe Real"},
         {"ort": "Faz Frio", "text": "Abendessen", "alt": ["Tascardoso"]}
       ],
@@ -88,7 +88,7 @@
         {"ort": "Elevador do Castelo"},
         {"ort": "Miradouro de Santa Luzia"},
         {"hinweis": "Tram 28 oder 12E zurück"},
-        {"ort": "Museu Nacional de Arte Contemporânea do Chiado", "zeit": "18:00", "text": "Gratis-Konzert"}
+        {"ort": "Museu Nacional de Arte Contemporânea do Chiado", "text": "Museum 10 €, Einlass bis 17:30, schließt um 18 Uhr. Ein Gratis-Konzert ist nicht belegt"}
       ],
       "so": "A",
       "mo": [

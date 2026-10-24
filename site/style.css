@@ -665,3 +665,64 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .k-posten .feld input.geld { flex: 0 0 6.5em; width: 6.5em; }
 .k-posten .feld input[type="text"]:not(.geld) { flex: 1 1 0; width: 0; min-width: 0; }
 .k-zeilen li { min-width: 0; }
+/* Zeitleiste */
+.zeitleiste { margin-top: 12px; padding: 12px 14px; border-radius: var(--r); background: var(--raised); }
+.zeitleiste summary { display: grid; gap: 2px; cursor: pointer; min-height: 44px; align-content: center; list-style: none; }
+.zeitleiste summary::-webkit-details-marker { display: none; }
+.zeitleiste summary::after { content: 'Antippen für Details'; font-size: 12px; color: var(--accent); }
+.zeitleiste[open] summary::after { content: ''; }
+.zl-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.zl-liste li { display: grid; grid-template-columns: 3.4em minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.zl-zeit { font-weight: 700; font-variant-numeric: tabular-nums; }
+.zl-text strong, .zl-text small { display: block; }
+.zl-text small { color: var(--muted); }
+.zl-marke { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.zl-knapp .zl-marke { background: color-mix(in srgb, var(--stern) 22%, transparent); color: var(--text); }
+.zl-zu .zl-marke { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
+.zl-zu .zl-text strong { text-decoration: line-through; opacity: .7; }
+.zl-dunkel .zl-marke { background: var(--surface); color: var(--muted); }
+/* Kassenzettel im Bild */
+.bon { display: grid; gap: 8px; }
+.bon-status { margin: 0; font-weight: 600; color: var(--accent); }
+.bon-probe { padding: 10px 12px; border-radius: var(--r); font-weight: 600; }
+.bon-probe.ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.bon-probe.warn { background: color-mix(in srgb, var(--stern) 20%, transparent); color: var(--text); }
+.bon-werkzeug { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bon-ansicht { max-height: 60vh; overflow: auto; border-radius: var(--r); border: 1.5px solid var(--line); background: #fff; touch-action: pan-x pan-y pinch-zoom; }
+.bon-flaeche { position: relative; }
+.bon-flaeche img { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; }
+.bon-box { position: absolute; padding: 0; border: 2px solid; border-radius: 4px; background: transparent; min-width: 0; min-height: 0; cursor: pointer; }
+.bon-box.posten { border-color: #1E8A4A; background: rgb(30 138 74 / .10); }
+.bon-box.unsicher { border-color: #D97706; background: rgb(217 119 6 / .16); }
+.bon-box.summe { border-color: #1D4ED8; background: rgb(29 78 216 / .10); }
+.bon-box.teil { border-color: #1E8A4A; border-style: dashed; }
+.bon-box.sonst { border-color: rgb(100 100 100 / .45); border-width: 1px; }
+.bon-box.wahl { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bon-betrag { position: absolute; right: -2px; top: -1.6em; font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 6px; background: #1E8A4A; color: #fff; white-space: nowrap; }
+.bon-box.unsicher .bon-betrag { background: #D97706; }
+.bon-panel { display: grid; gap: 8px; padding: 12px; border-radius: var(--r); background: var(--surface); border: 1.5px solid var(--accent); }
+.bon-panel small { color: var(--muted); overflow-wrap: anywhere; }
+.bon-panel .feld input.geld { flex: 0 0 7em; width: 7em; }
+.bon-panel .feld input:not(.geld) { flex: 1 1 0; width: 0; min-width: 0; min-height: var(--ziel); padding: 0 12px; border-radius: var(--r); border: 1.5px solid var(--line); }
+.bon-box { border-width: 1.5px; margin: -2px; padding: 2px; box-sizing: content-box; }
+.bon-box.posten { background: rgb(30 138 74 / .08); }
+.bon-betrag { right: auto; left: calc(100% + 4px); top: 50%; transform: translateY(-50%); font-size: 11px; padding: 0 5px; opacity: .92; }
+.bon-werkzeug .reihe { flex-wrap: nowrap; }
+/* Notfall, Einkauf, Wo seid ihr */
+.notfall .knopf.notruf { justify-content: space-between; text-align: left; min-height: var(--ziel-haupt); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+.notfall .knopf.notruf strong, .notfall .knopf.notruf small { display: block; }
+.notfall .knopf.notruf small { font-weight: 500; font-size: var(--fs-k); color: var(--muted); }
+.notfall .knopf.notruf b { color: var(--danger); white-space: nowrap; }
+.notfall .feld input { flex: 1; min-width: 0; min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); }
+.foto-voll.gross-text { background: #fff; color: #000; padding: 24px; place-items: center; text-align: center; }
+.foto-voll.gross-text p { font-size: clamp(28px, 8vw, 56px); font-weight: 700; margin: 0; overflow-wrap: anywhere; }
+.foto-voll.gross-text small { position: fixed; bottom: 24px; left: 0; right: 0; text-align: center; color: #555; }
+.eintrag.ek { align-items: center; gap: 10px; }
+.eintrag.ek .text { flex: 1; min-width: 0; }
+.eintrag.ek.erledigt .titel { text-decoration: line-through; opacity: .6; }
+.ek-fertig { margin-top: 10px; }
+.ek-fertig summary { min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--muted); }
+.wo-karte .reihe .knopf { flex: 1; }
+.zl-spaet .zl-marke { background: var(--surface); color: var(--muted); }
+.zl-spaet .zl-text { opacity: .6; }
+.bon-qr { margin: 0; padding: 8px 12px; border-radius: var(--r); background: color-mix(in srgb, #1D4ED8 12%, transparent); font-weight: 600; }

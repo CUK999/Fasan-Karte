@@ -309,6 +309,7 @@ def main():
         o = {
             "id": slug(name), "name": name, "adresse": adresse, "ort": stadt(adresse),
             "kategorie": z["Kategorie"].strip(), "notiz": (z.get("Notiz") or "").strip(),
+            "typ": (z.get("Typ") or "").strip(),
             "lat": pos[0] if pos else None, "lon": pos[1] if pos else None,
             "quelle": "pruefen" if hinweise and quelle != "manuell" else quelle,
             "infos": osm_infos(tags),

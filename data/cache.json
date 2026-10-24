@@ -3669,6 +3669,557 @@
      "hoehe": 468
     }
    }
+  },
+  "Amoreiras Shopping Center|Avenida Engenheiro Duarte Pacheco, 1070-103 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.723871,
+    "lon": -9.162016,
+    "anzeige": "Avenida Engenheiro Duarte Pacheco, Amoreiras, Santa Isabel, Campo de Ourique, Lissabon, 1070-988, Portugal",
+    "osm": "way/307665500",
+    "art": "highway:primary",
+    "name": "Avenida Engenheiro Duarte Pacheco",
+    "tags": {
+     "lit": "yes",
+     "lanes": "2",
+     "oneway": "yes",
+     "surface": "asphalt",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=3024",
+     "start_date": "1948-06-25",
+     "description": "Toponímia: Autarca, Politico, Presidente da CML. Início: Rua Artilharia 1. Fim: Auto - Estrada.",
+     "sidewalk:left": "separate",
+     "sidewalk:right": "yes",
+     "name:etymology:wikidata": "Q10268881"
+    }
+   },
+   "n": {
+    "lat": 38.723074,
+    "lon": -9.16233,
+    "anzeige": "Amoreiras Shopping Center, Avenida Engenheiro Duarte Pacheco, Amoreiras, Santa Isabel, Campo de Ourique, Lissabon, 1070-103, Portugal",
+    "osm": "way/755751570",
+    "art": "shop:mall",
+    "name": "Amoreiras Shopping Center",
+    "tags": {
+     "website": "https://www.amoreiras.com/",
+     "building": "yes",
+     "wikidata": "Q2843878",
+     "architect": "Tomás Taveira",
+     "wikimedia_commons": "Category:Amoreiras Shopping Center",
+     "architect:wikidata": "Q1130393"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q2843878",
+     "bild": "Torres das Amoreiras 09.jpg",
+     "koord": [
+      38.723036,
+      -9.162211
+     ],
+     "titel": {
+      "pt": "Amoreiras Shopping Center"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Complexo das Amoreiras",
+     "text": "O Complexo das Amoreiras, ou Torres das Amoreiras, é um complexo de escritórios e habitações, com uma arquitetura ousada para a época. em Lisboa, projetados pelo arquitecto Tomás Taveira e construídos nos anos 80 do século XX. Foi inaugurado a 27 de Setembro de 1985 e está localizado na Avenida Engenheiro Duarte Pacheco, freguesia de Campo de Ourique, em Lisboa. Faz parte dele o centro comercial Amoreiras Shopping Center.\nFoi o primeiro grande espaço de comércio e serviços em área urbana de Portugal sendo, na altura, o maior espaço comercial do país e o quarto maior da Europa.",
+     "url": "https://pt.wikipedia.org/wiki/Complexo_das_Amoreiras",
+     "seitenbild": "Amoreiras_Shopping_Center_(4842463068).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Torres_das_Amoreiras_09.jpg/960px-Torres_das_Amoreiras_09.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "GualdimG",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Torres_das_Amoreiras_09.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Armazéns do Chiado|Rua do Carmo 2, 1200-094 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711001,
+    "lon": -9.139386,
+    "anzeige": "Armazéns do Chiado, 2, Rua do Carmo, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-093, Portugal",
+    "osm": "way/96321698",
+    "art": "shop:mall",
+    "name": "Armazéns do Chiado",
+    "tags": {
+     "height": "24",
+     "website": "https://www.armazensdochiado.com/",
+     "building": "retail",
+     "wikidata": "Q54666542",
+     "wikipedia": "pt:Grandes Armazéns do Chiado",
+     "opening_hours": "Mo-Su 10:00-23:00",
+     "wikimedia_commons": "Category:Armazéns do Chiado"
+    }
+   },
+   "n": {
+    "lat": 38.711001,
+    "lon": -9.139386,
+    "anzeige": "Armazéns do Chiado, 2, Rua do Carmo, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-093, Portugal",
+    "osm": "way/96321698",
+    "art": "shop:mall",
+    "name": "Armazéns do Chiado",
+    "tags": {
+     "height": "24",
+     "website": "https://www.armazensdochiado.com/",
+     "building": "retail",
+     "wikidata": "Q54666542",
+     "wikipedia": "pt:Grandes Armazéns do Chiado",
+     "opening_hours": "Mo-Su 10:00-23:00",
+     "wikimedia_commons": "Category:Armazéns do Chiado"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q54666542",
+     "bild": "Armazéns do Chiado at dusk and with Christmas decorations, Lisbon, Portugal julesvernex2.jpg",
+     "koord": [
+      38.710994720459,
+      -9.13945388793945
+     ],
+     "titel": {
+      "pt": "Armazéns do Chiado"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Armazéns do Chiado",
+     "text": "Os Armazéns do Chiado, também referidos como Palácio Barcelinhos ou Grandes Armazéns do Chiado, são um edifício de comércio localizado na confluência da Rua do Carmo com a Rua Nova do Almada e a Rua Garrett, dando, na fachada oeste, para a Rua do Crucifixo, na freguesia de Santa Maria Maior, Lisboa.\nO edifíco atual, é resultado da reabilitação dos Grandes Armazéns do Chiado, destruídos pelo Incêndio do Chiado de 1988. Atualmente o centro comercial conta com cerca de 50 lojas e restaurantes, numa área bruta locável de 13.976 m².\nOs Armazéns do Chiado encontram-se incluídos na classificação da Lisboa Pombalina.",
+     "url": "https://pt.wikipedia.org/wiki/Armaz%C3%A9ns_do_Chiado",
+     "seitenbild": "Logo_Centro_Armazéns_do_Chiado.png"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/54/Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations%2C_Lisbon%2C_Portugal_julesvernex2.jpg/960px-Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations%2C_Lisbon%2C_Portugal_julesvernex2.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Jules Verne Times Two",
+     "lizenz": "CC BY-SA 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations,_Lisbon,_Portugal_julesvernex2.jpg",
+     "breite": 720,
+     "hoehe": 719
+    }
+   }
+  },
+  "Centro Colombo|Avenida Lusíada, 1500-392 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.752689,
+    "lon": -9.18469,
+    "anzeige": "Estádio da Luz, Avenida Lusíada, São Domingos de Benfica, Lissabon, 1500-065, Portugal",
+    "osm": "way/71229178",
+    "art": "leisure:stadium",
+    "name": "Estádio da Luz",
+    "tags": {
+     "seats": "68 100",
+     "sport": "soccer",
+     "website": "https://www.slbenfica.pt/pt-pt/instituicao/instalacoes/estadio",
+     "operator": "Sport Lisboa e Benfica",
+     "wikidata": "Q7875112",
+     "wikipedia": "pt:Estádio da Luz",
+     "start_date": "2003-10-25",
+     "wikimedia_commons": "Category:Estádio da Luz"
+    }
+   },
+   "n": {
+    "lat": 38.754775,
+    "lon": -9.188908,
+    "anzeige": "Centro Comercial Colombo, Avenida Lusíada, Benfica, Lissabon, 1500-392, Portugal",
+    "osm": "way/42645796",
+    "art": "shop:mall",
+    "name": "Centro Comercial Colombo",
+    "tags": {
+     "email": "info@adm.colombo.pt",
+     "layer": "1",
+     "phone": "+351 21 711 36 00",
+     "website": "https://www.colombo.pt/",
+     "building": "retail",
+     "operator": "Sonae",
+     "wikidata": "Q1054260",
+     "wikipedia": "en:Colombo Centre",
+     "wheelchair": "yes",
+     "opening_hours": "Mo-Su 09:00-24:00",
+     "wikimedia_commons": "Category:Centro Comercial Colombo",
+     "toilets:wheelchair": "yes"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q7875112",
+     "bild": "LuzLissabon.jpg",
+     "koord": [
+      38.75277777777778,
+      -9.184722222222222
+     ],
+     "titel": {
+      "en": "Estádio da Luz",
+      "de": "Estádio da Luz",
+      "pt": "Estádio da Luz"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Estádio da Luz",
+     "text": "Das Estádio da Luz ist ein Fußballstadion in der Gemeinde São Domingos de Benfica der portugiesischen Hauptstadt Lissabon. Die Anlage ist im Besitz des Fußballvereins Benfica Lissabon. Das Fußballstadion wurde von Damon Lavelle vom Architektenbüro Populous als Stadion der Zukunft sowie heute als Vorbild für viele Fußballstadien einer Euro- und Weltmeisterschaft gebaut. Bei Fußballspielen auf nationaler und Internationaler Ebene fasst die Sitzplatzarena 68.100 Zuschauer.",
+     "url": "https://de.wikipedia.org/wiki/Est%C3%A1dio_da_Luz",
+     "seitenbild": "Estadio_Benfica_April_2013-1.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1b/LuzLissabon.jpg/960px-LuzLissabon.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Massimo Catarinella",
+     "lizenz": "CC BY 3.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/3.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:LuzLissabon.jpg",
+     "breite": 720,
+     "hoehe": 262
+    }
+   }
+  },
+  "El Corte Inglés|Avenida António Augusto de Aguiar 31, 1069-413 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.733042,
+    "lon": -9.153454,
+    "anzeige": "Sephora, 31, Avenida António Augusto de Aguiar, São Sebastião da Pedreira, Campo Pequeno, Avenidas Novas, Lissabon, 1069-413, Portugal",
+    "osm": "node/12407559013",
+    "art": "shop:cosmetics",
+    "name": "Sephora",
+    "tags": {
+     "level": "1",
+     "brand:wikidata": "Q2408041"
+    }
+   },
+   "n": {
+    "lat": 38.733022,
+    "lon": -9.153449,
+    "anzeige": "El Corte Inglés, 31, Avenida António Augusto Aguiar, São Sebastião da Pedreira, Campo Pequeno, Avenidas Novas, Lissabon, 1050-994, Portugal",
+    "osm": "way/96719280",
+    "art": "shop:department_store",
+    "name": "El Corte Inglés",
+    "tags": {
+     "atm": "yes",
+     "email": "servico_clientes@elcorteingles.pt",
+     "phone": "+351 213 711 700",
+     "parking": "underground",
+     "website": "https://www.elcorteingles.pt/",
+     "building": "retail",
+     "wheelchair": "yes",
+     "opening_hours": "Mo-Th 10:00-22:00; Fr-Sa 10:00-23:30; Su 10:00-20:00; Jan 1,May 1,Dec 25 closed",
+     "brand:wikidata": "Q623133",
+     "building:levels": "15",
+     "internet_access": "yes"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Rua Augusta|Rua Augusta, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711316,
+    "lon": -9.137935,
+    "anzeige": "Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1100-050, Portugal",
+    "osm": "way/689384704",
+    "art": "highway:pedestrian",
+    "name": "Rua Augusta",
+    "tags": {
+     "lit": "yes",
+     "width": "13",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2527",
+     "wikidata": "Q2304451",
+     "wikipedia": "pt:Rua Augusta (Lisboa)",
+     "description": "Toponímia: Monarquia. Início: Praça do Comércio. Fim: Praça D. Pedro IV.",
+     "name:etymology:wikidata": "Q1058391"
+    }
+   },
+   "n": {
+    "lat": 38.711316,
+    "lon": -9.137935,
+    "anzeige": "Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1100-050, Portugal",
+    "osm": "way/689384704",
+    "art": "highway:pedestrian",
+    "name": "Rua Augusta",
+    "tags": {
+     "lit": "yes",
+     "width": "13",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2527",
+     "wikidata": "Q2304451",
+     "wikipedia": "pt:Rua Augusta (Lisboa)",
+     "description": "Toponímia: Monarquia. Início: Praça do Comércio. Fim: Praça D. Pedro IV.",
+     "name:etymology:wikidata": "Q1058391"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q2304451",
+     "bild": "Rua Augusta from Arco Triunfal da Rua Augusta 08.jpg",
+     "koord": [
+      38.710975,
+      -9.13779167
+     ],
+     "titel": {
+      "pt": "Rua Augusta (Lisboa)",
+      "de": "Rua Augusta"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Rua Augusta",
+     "text": "Die Rua Augusta ist eine Straße im Zentrum der portugiesischen Hauptstadt Lissabon. Sie führt von der Praça do Comércio etwa 550 Meter in nördlicher Richtung zur Praça de D. Pedro IV.",
+     "url": "https://de.wikipedia.org/wiki/Rua_Augusta",
+     "seitenbild": "Rua_Augusta_from_Arco_Triunfal_da_Rua_Augusta_08.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Rua_Augusta_from_Arco_Triunfal_da_Rua_Augusta_08.jpg/960px-Rua_Augusta_from_Arco_Triunfal_da_Rua_Augusta_08.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Kent Wang",
+     "lizenz": "CC BY 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Rua_Augusta_from_Arco_Triunfal_da_Rua_Augusta_08.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Rua Garrett|Rua Garrett, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.710821,
+    "lon": -9.14064,
+    "anzeige": "Rua Garrett, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-204, Portugal",
+    "osm": "way/19657233",
+    "art": "highway:residential",
+    "name": "Rua Garrett",
+    "tags": {
+     "lit": "yes",
+     "oneway": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2024",
+     "sidewalk": "both",
+     "start_date": "1880-06-14",
+     "description": "Toponímia: Poeta 1799 - 1854. Início: Rua Nova do Almada. Fim: Largo do Chiado.",
+     "lane_markings": "no",
+     "maxspeed:type": "PT:urban",
+     "name:etymology:wikidata": "Q316806"
+    }
+   },
+   "n": {
+    "lat": 38.710821,
+    "lon": -9.14064,
+    "anzeige": "Rua Garrett, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-204, Portugal",
+    "osm": "way/19657233",
+    "art": "highway:residential",
+    "name": "Rua Garrett",
+    "tags": {
+     "lit": "yes",
+     "oneway": "yes",
+     "surface": "sett",
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2024",
+     "sidewalk": "both",
+     "start_date": "1880-06-14",
+     "description": "Toponímia: Poeta 1799 - 1854. Início: Rua Nova do Almada. Fim: Largo do Chiado.",
+     "lane_markings": "no",
+     "maxspeed:type": "PT:urban",
+     "name:etymology:wikidata": "Q316806"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q1709719",
+     "bild": "LisbonChiado1-CCBYSA.jpg",
+     "koord": [
+      38.71083889,
+      -9.14047778
+     ],
+     "titel": {
+      "de": "Rua Garrett",
+      "pt": "Rua Garrett"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Rua Garrett",
+     "text": "Die Rua Garrett ist eine Straße im Zentrum der portugiesischen Hauptstadt Lissabon. Sie führt von den Armazéns do Chiado am Kreuzungspunkt der Rua do Carmo und der Rua Nova do Almada 210 Meter in westlicher Richtung bergauf zum Largo do Chiado.\nDie Straße bildet neben dem Largo do Chiado das Zentrum des Stadtteils Chiado und entwickelte sich in Nachbarschaft zur Oper sowie dem Teatro São Luiz und dem Teatro da Trindade im 20. Jahrhundert zum geistigen Zentrum der Stadt.",
+     "url": "https://de.wikipedia.org/wiki/Rua_Garrett",
+     "seitenbild": "LisbonChiado1-CCBYSA.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/16/LisbonChiado1-CCBYSA.jpg/960px-LisbonChiado1-CCBYSA.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Scalleja [2]",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:LisbonChiado1-CCBYSA.jpg",
+     "breite": 720,
+     "hoehe": 960
+    }
+   }
+  },
+  "Embaixada|Praça do Príncipe Real 26, 1250-184 Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.716912,
+    "lon": -9.148382,
+    "anzeige": "Palacete Ribeiro da Cunha, 26, Praça do Príncipe Real, Mercês, Santo António, Misericórdia, Lissabon, 1250-184, Portugal",
+    "osm": "way/96494535",
+    "art": "historic:castle",
+    "name": "Palacete Ribeiro da Cunha",
+    "tags": {
+     "ref:ipa": "15322",
+     "building": "retail",
+     "heritage": "2",
+     "ref:dgpc": "21828223",
+     "wikidata": "Q74473872",
+     "castle_type": "stately",
+     "description": "Palacete edificado na Praça do Príncipe Real, entre 1877 e 1879, por iniciativa do abastado capitalista José Ribeiro da Cunha, para sua residência. Trata-se de um volume muito marcante da referida praça, com projeto do arquiteto Henrique Carlos Afon",
+     "related_law": "Portaria n.º 80/2019, DR, 2.ª série, n.º 10, de 15-01-2019",
+     "roof:levels": "1",
+     "heritage:ref": "MIP",
+     "heritage:since": "2019",
+     "building:levels": "2",
+     "heritage:website": "https://servicos.dgpc.gov.pt/pesquisapatrimonioimovel/detalhes.php?code=21828223",
+     "protection_title": "Monumento de Interesse Público",
+     "heritage:operator": "dgpc",
+     "wikimedia_commons": "Category:Palacete Ribeiro da Cunha",
+     "heritage:website:sipa": "http://www.monumentos.gov.pt/Site/APP_PagesUser/SIPA.aspx?id=15322"
+    }
+   },
+   "n": {
+    "lat": 38.721753,
+    "lon": -9.160106,
+    "anzeige": "Embaixada, Travessa do Barbosa, Amoreiras, Santa Isabel, Campo de Ourique, Lissabon, 1250-259, Portugal",
+    "osm": "node/9795676575",
+    "art": "office:diplomatic",
+    "name": "Embaixada",
+    "tags": {
+     "check_date": "2024-11-06",
+     "diplomatic": "embassy"
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q74473872",
+     "bild": "Palacete Ribeiro da Cunha 02.jpg",
+     "koord": [
+      38.71690556,
+      -9.14838611
+     ],
+     "titel": {
+      "de": "Palacete Ribeiro da Cunha"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Palacete Ribeiro da Cunha",
+     "text": "Der Palacete Ribeiro da Cunha ist ein Stadtpalast im Zentrum der portugiesischen Hauptstadt Lissabon.",
+     "url": "https://de.wikipedia.org/wiki/Palacete_Ribeiro_da_Cunha",
+     "seitenbild": "Elegant_facade_-_Lisbon.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/fc/Palacete_Ribeiro_da_Cunha_02.jpg/960px-Palacete_Ribeiro_da_Cunha_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Kent Wang",
+     "lizenz": "CC BY 4.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/4.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Palacete_Ribeiro_da_Cunha_02.jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Sons of the Silent Age|Rua do Ouro 172, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.711037,
+    "lon": -9.138619,
+    "anzeige": "172, Rua Áurea, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal",
+    "osm": "node/8379915919",
+    "art": "place:house",
+    "name": "",
+    "tags": {}
+   },
+   "n": null,
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Avenida da Liberdade|Avenida da Liberdade, Lisboa": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.720354,
+    "lon": -9.145717,
+    "anzeige": "Avenida da Liberdade, São José, Santo António, Madalena, Lissabon, 1250-144, Portugal",
+    "osm": "way/1340657686",
+    "art": "place:square",
+    "name": "Avenida da Liberdade",
+    "tags": {
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2536",
+     "wikidata": "Q790492",
+     "start_date": "1879-08-18",
+     "description": "Toponímia: Outros. Início: Praça dos Restauradores. Fim: Praça Marquês do Pombal."
+    }
+   },
+   "n": {
+    "lat": 38.720354,
+    "lon": -9.145717,
+    "anzeige": "Avenida da Liberdade, São José, Santo António, Madalena, Lissabon, 1250-144, Portugal",
+    "osm": "way/1340657686",
+    "art": "place:square",
+    "name": "Avenida da Liberdade",
+    "tags": {
+     "website": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2536",
+     "wikidata": "Q790492",
+     "start_date": "1879-08-18",
+     "description": "Toponímia: Outros. Início: Praça dos Restauradores. Fim: Praça Marquês do Pombal."
+    }
+   },
+   "datum": "2026-10-24",
+   "wiki": {
+    "wd": {
+     "qid": "Q790492",
+     "bild": "Avenida da Liberdade (22344060581) (cropped).jpg",
+     "koord": [
+      38.719565,
+      -9.145311
+     ],
+     "titel": {
+      "pt": "Avenida da Liberdade (Lisboa)",
+      "de": "Avenida da Liberdade (Lissabon)",
+      "en": "Avenida da Liberdade"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Avenida da Liberdade (Lissabon)",
+     "text": "Die Avenida da Liberdade ist eine am Vorbild der Pariser Avenue des Champs-Élysées orientierte Prachtstraße in Lissabon. Sie beginnt am Praça dos Restauradores und verbindet die nach dem Erdbeben von 1755 angelegte Unterstadt mit den höher gelegenen Stadtvierteln im Norden und fand ab Beginn des 20. Jahrhunderts in den Avenidas Novas ihre Fortsetzung.",
+     "url": "https://de.wikipedia.org/wiki/Avenida_da_Liberdade_%28Lissabon%29",
+     "seitenbild": "Avenida_de_Liberdade-Parque.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/21/Avenida_da_Liberdade_%2822344060581%29_%28cropped%29.jpg/960px-Avenida_da_Liberdade_%2822344060581%29_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Alexander Svensson",
+     "lizenz": "CC BY 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Avenida_da_Liberdade_(22344060581)_(cropped).jpg",
+     "breite": 720,
+     "hoehe": 864
+    }
+   }
   }
  }
 }

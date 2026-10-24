@@ -1,6 +1,6 @@
 # Prüfbericht der Orte
 
-64 von 64 mit Koordinate, 36 mit Wikipedia-Text, 39 mit Bild.
+73 von 73 mit Koordinate, 43 mit Wikipedia-Text, 46 mit Bild.
 
 | Ort | Quelle | Position | Hinweise | OSM-Treffer |
 | --- | --- | --- | --- | --- |
@@ -68,3 +68,12 @@
 | Metro Restauradores | adresse | 38.71571, -9.14165 | ok | Platz der Restauratore, Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1250-188, Portugal |
 | Metro Baixa-Chiado | name | 38.71063, -9.13896 | ok | Sabores do Metro, Rua do Crucifixo, Chiado, Baixa, Madalena, Lissabon, 1100-184, Portugal |
 | Bahnhof Cais do Sodré | name | 38.70616, -9.14683 | ok | Cais do Sodré, Avenida 24 de Julho, São Paulo, Misericórdia, Lissabon, 1200-109, Portugal |
+| Amoreiras Shopping Center | name | 38.72307, -9.16233 | ok | Amoreiras Shopping Center, Avenida Engenheiro Duarte Pacheco, Amoreiras, Santa Isabel, Campo de Ourique, Lissa |
+| Armazéns do Chiado | name | 38.71100, -9.13939 | ok | Armazéns do Chiado, 2, Rua do Carmo, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-093, Portugal |
+| Centro Colombo | pruefen | 38.75269, -9.18469 | Name und Adresse 433 m auseinander | Centro Comercial Colombo, Avenida Lusíada, Benfica, Lissabon, 1500-392, Portugal |
+| El Corte Inglés | name | 38.73302, -9.15345 | ok | El Corte Inglés, 31, Avenida António Augusto Aguiar, São Sebastião da Pedreira, Campo Pequeno, Avenidas Novas, |
+| Rua Augusta | name | 38.71132, -9.13794 | ok | Rua Augusta, Santa Maria Maior, Madalena, Lissabon, 1100-050, Portugal |
+| Rua Garrett | name | 38.71082, -9.14064 | ok | Rua Garrett, Chiado, Santa Maria Maior, Madalena, Lissabon, 1200-204, Portugal |
+| Embaixada | pruefen | 38.71691, -9.14838 | Name und Adresse 1151 m auseinander | Embaixada, Travessa do Barbosa, Amoreiras, Santa Isabel, Campo de Ourique, Lissabon, 1250-259, Portugal |
+| Sons of the Silent Age | adresse | 38.71104, -9.13862 | ok | 172, Rua Áurea, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal |
+| Avenida da Liberdade | name | 38.72035, -9.14572 | ok | Avenida da Liberdade, São José, Santo António, Madalena, Lissabon, 1250-144, Portugal |

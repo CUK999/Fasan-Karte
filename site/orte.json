@@ -1628,5 +1628,254 @@
    "breite": 720,
    "hoehe": 468
   }
+ },
+ {
+  "id": "amoreiras-shopping-center",
+  "name": "Amoreiras Shopping Center",
+  "adresse": "Avenida Engenheiro Duarte Pacheco, 1070-103 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Einkaufszentrum mit vielen Modegeschäften, nah an der Unterkunft. Laut Visit Lisboa heute 10–23 Uhr (abgerufen 24.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.723074,
+  "lon": -9.16233,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://www.amoreiras.com/"
+  },
+  "wiki": {
+   "text": "O Complexo das Amoreiras, ou Torres das Amoreiras, é um complexo de escritórios e habitações, com uma arquitetura ousada para a época. em Lisboa, projetados pelo arquitecto Tomás Taveira e construídos nos anos 80 do século XX. Foi inaugurado a 27 de Setembro de 1985 e está localizado na Avenida Engenheiro Duarte Pacheco, freguesia de Campo de Ourique, em Lisboa. Faz parte dele o centro comercial Amoreiras Shopping Center.\nFoi o primeiro grande espaço de comércio e serviços em área urbana de Portugal sendo, na altura, o maior espaço comercial do país e o quarto maior da Europa.",
+   "url": "https://pt.wikipedia.org/wiki/Complexo_das_Amoreiras",
+   "lang": "pt",
+   "titel": "Complexo das Amoreiras"
+  },
+  "bild": {
+   "src": "bilder/amoreiras-shopping-center.jpg",
+   "autor": "GualdimG",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Torres_das_Amoreiras_09.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "armazens-do-chiado",
+  "name": "Armazéns do Chiado",
+  "adresse": "Rua do Carmo 2, 1200-094 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Über 50 Geschäfte, vor allem Mode und Parfümerie. Laut Visit Lisboa heute 10–23 Uhr (abgerufen 24.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.711001,
+  "lon": -9.139386,
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Su 10:00-23:00",
+   "webseite": "https://www.armazensdochiado.com/"
+  },
+  "wiki": {
+   "text": "Os Armazéns do Chiado, também referidos como Palácio Barcelinhos ou Grandes Armazéns do Chiado, são um edifício de comércio localizado na confluência da Rua do Carmo com a Rua Nova do Almada e a Rua Garrett, dando, na fachada oeste, para a Rua do Crucifixo, na freguesia de Santa Maria Maior, Lisboa.\nO edifíco atual, é resultado da reabilitação dos Grandes Armazéns do Chiado, destruídos pelo Incêndio do Chiado de 1988. Atualmente o centro comercial conta com cerca de 50 lojas e restaurantes, numa área bruta locável de 13.976 m².\nOs Armazéns do Chiado encontram-se incluídos na classificação da Lisboa Pombalina.",
+   "url": "https://pt.wikipedia.org/wiki/Armaz%C3%A9ns_do_Chiado",
+   "lang": "pt",
+   "titel": "Armazéns do Chiado"
+  },
+  "bild": {
+   "src": "bilder/armazens-do-chiado.jpg",
+   "autor": "Jules Verne Times Two",
+   "lizenz": "CC BY-SA 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Armaz%C3%A9ns_do_Chiado_at_dusk_and_with_Christmas_decorations,_Lisbon,_Portugal_julesvernex2.jpg",
+   "breite": 720,
+   "hoehe": 719
+  }
+ },
+ {
+  "id": "centro-colombo",
+  "name": "Centro Colombo",
+  "adresse": "Avenida Lusíada, 1500-392 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Über 340 Geschäfte. Laut Visit Lisboa heute 8–24 Uhr (abgerufen 24.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.752689,
+  "lon": -9.18469,
+  "quelle": "pruefen",
+  "infos": {
+   "webseite": "https://www.slbenfica.pt/pt-pt/instituicao/instalacoes/estadio"
+  },
+  "wiki": {
+   "text": "Das Estádio da Luz ist ein Fußballstadion in der Gemeinde São Domingos de Benfica der portugiesischen Hauptstadt Lissabon. Die Anlage ist im Besitz des Fußballvereins Benfica Lissabon. Das Fußballstadion wurde von Damon Lavelle vom Architektenbüro Populous als Stadion der Zukunft sowie heute als Vorbild für viele Fußballstadien einer Euro- und Weltmeisterschaft gebaut. Bei Fußballspielen auf nationaler und Internationaler Ebene fasst die Sitzplatzarena 68.100 Zuschauer.",
+   "url": "https://de.wikipedia.org/wiki/Est%C3%A1dio_da_Luz",
+   "lang": "de",
+   "titel": "Estádio da Luz"
+  },
+  "bild": {
+   "src": "bilder/centro-colombo.jpg",
+   "autor": "Massimo Catarinella",
+   "lizenz": "CC BY 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:LuzLissabon.jpg",
+   "breite": 720,
+   "hoehe": 262
+  }
+ },
+ {
+  "id": "el-corte-ingles",
+  "name": "El Corte Inglés",
+  "adresse": "Avenida António Augusto de Aguiar 31, 1069-413 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Kaufhaus mit vielen Modemarken, Metro São Sebastião (Time Out, Stand 29.06.2016). Öffnungszeiten vor Ort prüfen",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.733022,
+  "lon": -9.153449,
+  "quelle": "name",
+  "infos": {
+   "oeffnungszeiten": "Mo-Th 10:00-22:00; Fr-Sa 10:00-23:30; Su 10:00-20:00; Jan 1,May 1,Dec 25 closed",
+   "webseite": "https://www.elcorteingles.pt/",
+   "telefon": "+351 213 711 700",
+   "rollstuhl": "yes"
+  }
+ },
+ {
+  "id": "rua-augusta",
+  "name": "Rua Augusta",
+  "adresse": "Rua Augusta, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Fußgängerzone mit Zara, H&M, Mango, Pull&Bear (lisbontourism.org, Stand 21.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.711316,
+  "lon": -9.137935,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2527"
+  },
+  "wiki": {
+   "text": "Die Rua Augusta ist eine Straße im Zentrum der portugiesischen Hauptstadt Lissabon. Sie führt von der Praça do Comércio etwa 550 Meter in nördlicher Richtung zur Praça de D. Pedro IV.",
+   "url": "https://de.wikipedia.org/wiki/Rua_Augusta",
+   "lang": "de",
+   "titel": "Rua Augusta"
+  },
+  "bild": {
+   "src": "bilder/rua-augusta.jpg",
+   "autor": "Kent Wang",
+   "lizenz": "CC BY 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Rua_Augusta_from_Arco_Triunfal_da_Rua_Augusta_08.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "rua-garrett",
+  "name": "Rua Garrett",
+  "adresse": "Rua Garrett, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Chiado: Zara, H&M, Hugo Boss, Benetton (lisbontourism.org, Stand 21.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.710821,
+  "lon": -9.14064,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2024"
+  },
+  "wiki": {
+   "text": "Die Rua Garrett ist eine Straße im Zentrum der portugiesischen Hauptstadt Lissabon. Sie führt von den Armazéns do Chiado am Kreuzungspunkt der Rua do Carmo und der Rua Nova do Almada 210 Meter in westlicher Richtung bergauf zum Largo do Chiado.\nDie Straße bildet neben dem Largo do Chiado das Zentrum des Stadtteils Chiado und entwickelte sich in Nachbarschaft zur Oper sowie dem Teatro São Luiz und dem Teatro da Trindade im 20. Jahrhundert zum geistigen Zentrum der Stadt.",
+   "url": "https://de.wikipedia.org/wiki/Rua_Garrett",
+   "lang": "de",
+   "titel": "Rua Garrett"
+  },
+  "bild": {
+   "src": "bilder/rua-garrett.jpg",
+   "autor": "Scalleja [2]",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:LisbonChiado1-CCBYSA.jpg",
+   "breite": 720,
+   "hoehe": 960
+  }
+ },
+ {
+  "id": "embaixada",
+  "name": "Embaixada",
+  "adresse": "Praça do Príncipe Real 26, 1250-184 Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Concept-Store in einem Palast mit portugiesischen Marken. Laut Le Petit Journal täglich 12–20 Uhr (Seite ohne Datum, abgerufen 24.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.716912,
+  "lon": -9.148382,
+  "quelle": "pruefen",
+  "infos": {},
+  "wiki": {
+   "text": "Der Palacete Ribeiro da Cunha ist ein Stadtpalast im Zentrum der portugiesischen Hauptstadt Lissabon.",
+   "url": "https://de.wikipedia.org/wiki/Palacete_Ribeiro_da_Cunha",
+   "lang": "de",
+   "titel": "Palacete Ribeiro da Cunha"
+  },
+  "bild": {
+   "src": "bilder/embaixada.jpg",
+   "autor": "Kent Wang",
+   "lizenz": "CC BY 4.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/4.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Palacete_Ribeiro_da_Cunha_02.jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "sons-of-the-silent-age",
+  "name": "Sons of the Silent Age",
+  "adresse": "Rua do Ouro 172, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Vintage-Mode, auch Designerstücke (Time Out, Stand 07.03.2025)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.711037,
+  "lon": -9.138619,
+  "quelle": "adresse",
+  "infos": {}
+ },
+ {
+  "id": "avenida-da-liberdade",
+  "name": "Avenida da Liberdade",
+  "adresse": "Avenida da Liberdade, Lisboa",
+  "ort": "Lisboa",
+  "kategorie": "Shoppen",
+  "notiz": "Luxusmarken wie Prada, Gucci, Hermès (lisbontourism.org, Stand 21.10.2026)",
+  "typ": "shop",
+  "stand": "2026-10-24",
+  "lat": 38.720354,
+  "lon": -9.145717,
+  "quelle": "name",
+  "infos": {
+   "webseite": "https://revelar.lisboa.pt/explorar/toponimia/detalhe?tx_toponimia_pi1%5Baction%5D=show&tx_toponimia_pi1%5Bcontroller%5D=Toponimia&tx_toponimia_pi1%5Btopid%5D=2536"
+  },
+  "wiki": {
+   "text": "Die Avenida da Liberdade ist eine am Vorbild der Pariser Avenue des Champs-Élysées orientierte Prachtstraße in Lissabon. Sie beginnt am Praça dos Restauradores und verbindet die nach dem Erdbeben von 1755 angelegte Unterstadt mit den höher gelegenen Stadtvierteln im Norden und fand ab Beginn des 20. Jahrhunderts in den Avenidas Novas ihre Fortsetzung.",
+   "url": "https://de.wikipedia.org/wiki/Avenida_da_Liberdade_%28Lissabon%29",
+   "lang": "de",
+   "titel": "Avenida da Liberdade (Lissabon)"
+  },
+  "bild": {
+   "src": "bilder/avenida-da-liberdade.jpg",
+   "autor": "Alexander Svensson",
+   "lizenz": "CC BY 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Avenida_da_Liberdade_(22344060581)_(cropped).jpg",
+   "breite": 720,
+   "hoehe": 864
+  }
  }
 ]

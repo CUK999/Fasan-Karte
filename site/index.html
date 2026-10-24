@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1d4f91">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lissabon">
+<title>Lissabon-Karte</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header id="kopf" class="kopf">
+  <div class="reihe" role="group" aria-label="Plan wählen">
+    <button type="button" data-plan="A">Plan A</button>
+    <button type="button" data-plan="B">Plan B</button>
+    <button type="button" data-plan="C">Plan C</button>
+    <button type="button" data-plan="alle">Alle Orte</button>
+  </div>
+  <div id="tage" class="reihe" role="group" aria-label="Tag wählen">
+    <button type="button" data-tag="sa">Sa 24.</button>
+    <button type="button" data-tag="so">So 25.</button>
+    <button type="button" data-tag="mo">Mo 26.</button>
+  </div>
+  <div id="chips" class="reihe chips" role="group" aria-label="Kategorien" hidden></div>
+</header>
+
+<div id="karte" aria-label="Karte"></div>
+
+<div class="knoepfe">
+  <button type="button" id="btn-gps" class="rund" aria-label="Mein Standort">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4" stroke="currentColor" stroke-width="2"/></svg>
+  </button>
+  <button type="button" id="btn-info" class="rund mit-text" aria-label="Tipps und Unterkunft">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5v6.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="7" r="1.4" fill="currentColor"/></svg>
+    <span>Tipps</span>
+  </button>
+</div>
+
+<section id="blatt" class="blatt" aria-label="Stopps">
+  <button type="button" id="griff" class="griff" aria-expanded="false" aria-controls="blatt-inhalt">
+    <span class="leiste" aria-hidden="true"></span>
+    <span id="zusammenfassung" class="zusammenfassung"></span>
+  </button>
+  <div id="naechster" class="naechster"></div>
+  <div id="blatt-inhalt" class="blatt-inhalt"></div>
+</section>
+
+<div id="info" class="info" hidden>
+  <div class="info-karte" role="dialog" aria-modal="true" aria-labelledby="info-titel">
+    <div class="info-kopf">
+      <h2 id="info-titel">Gut zu wissen</h2>
+      <button type="button" id="info-zu" class="text-knopf">Schließen</button>
+    </div>
+    <h3>Unterkunft</h3>
+    <p class="klein">Adresse wird nur auf diesem Handy gespeichert. Danach erscheint unten „Zur Unterkunft“.</p>
+    <div class="feld">
+      <input id="heim" type="text" autocomplete="street-address" placeholder="Straße Hausnummer, Lisboa">
+      <button type="button" id="heim-speichern">Speichern</button>
+    </div>
+    <h3>Fahren</h3>
+    <ul>
+      <li>Pro Person eine navegante-Karte (0,50 €) am Metro-Automaten</li>
+      <li>Einzelfahrt 1,90 €; 24-h-Ticket 7,25 €, mit Fähre 10,35 €, mit Zug nach Cascais 11,40 €</li>
+      <li>Beim Fahrer teurer: Tram 3,30 €, Bus 2,30 €</li>
+      <li>Gesperrt: Elevador de Santa Justa, Standseilbahnen Glória, Bica, Lavra. Der Funicular da Graça fährt 7–21 Uhr</li>
+    </ul>
+    <h3>Zeiten</h3>
+    <ul>
+      <li>Nacht auf Sonntag: Uhren 1 Stunde zurück</li>
+      <li>Montag zu: Jerónimos und staatliche Museen. Dienstag zu: Gulbenkian</li>
+      <li>Gulbenkian sonntags ab 14 Uhr gratis</li>
+      <li>Reservieren: O Frade (So Mittag), Estrela da Bica (Mo Abend)</li>
+    </ul>
+    <h3>Vor Ort</h3>
+    <ul>
+      <li>Couvert (Brot, Oliven, Häppchen) kostet extra. Ablehnen: „Não, obrigado“. Oft ist Schinken dabei</li>
+      <li>Trinkgeld 5–10 %, bei Gruppen steht manchmal schon Service auf der Rechnung</li>
+      <li>Taschendiebe in Tram 28 und 15E. Falsche Dealer in der Baixa ignorieren</li>
+      <li>Bargeld am Multibanco-Automaten holen</li>
+    </ul>
+    <h3>Diese Karte</h3>
+    <ul class="klein">
+      <li>Nummern zeigen die Reihenfolge des Tages. Gestrichelte Linie ist Luftlinie, den Fußweg zeigt die Navigation</li>
+      <li>„Navi“ öffnet Google Maps, auf dem iPhone auch Apple Karten</li>
+      <li>Dein Standort bleibt auf deinem Handy. Kartenbilder lädt das Handy von OpenStreetMap</li>
+      <li>★ = Geheimtipp</li>
+    </ul>
+  </div>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

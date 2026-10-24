@@ -1,0 +1,542 @@
+[
+ {
+  "name": "Jardim do Príncipe Real",
+  "adresse": "Praça do Príncipe Real, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Riesenzeder (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Igreja de São Roque",
+  "adresse": "Largo Trindade Coelho, 1200-470 Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Vergoldete Kapelle, Kirche gratis (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro de São Pedro de Alcântara",
+  "adresse": "Rua de São Pedro de Alcântara, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Tram 24E Start Praça Luís de Camões",
+  "adresse": "Praça Luís de Camões, Lisboa",
+  "kategorie": "Verkehr",
+  "notiz": "Historische Tram ohne Schlange",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Pavilhão Chinês",
+  "adresse": "Pavilhão Chinês, Rua Dom Pedro V, Lisboa",
+  "kategorie": "Bar",
+  "notiz": "Bar voller Sammlerstücke (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "A Tasca do Chico",
+  "adresse": "Rua do Diário de Notícias 39, 1200-141 Lisboa",
+  "kategorie": "Fado",
+  "notiz": "Fado vadio Mo und Mi ab 21 Uhr, kein Eintritt",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Funicular da Graça (Talstation)",
+  "adresse": "Rua dos Lagares, Lisboa",
+  "kategorie": "Verkehr",
+  "notiz": "Neue Standseilbahn, täglich 7–21 Uhr (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro da Graça",
+  "adresse": "Largo da Graça, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro da Senhora do Monte",
+  "adresse": "Miradouro da Senhora do Monte, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Schönster Blick, steiler Aufstieg",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Feira da Ladra",
+  "adresse": "Campo de Santa Clara, Lisboa",
+  "kategorie": "Markt",
+  "notiz": "Flohmarkt nur Sa und Di",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro das Portas do Sol",
+  "adresse": "Miradouro das Portas do Sol, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro de Santa Luzia",
+  "adresse": "Miradouro de Santa Luzia, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Sé de Lisboa",
+  "adresse": "Largo da Sé, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Kathedrale, Kirchenschiff gratis",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Largo do Intendente",
+  "adresse": "Largo do Intendente Pina Manique, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Kachelfassaden (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Praça do Comércio",
+  "adresse": "Praça do Comércio, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Museu do Dinheiro",
+  "adresse": "Museu do Dinheiro, Lisboa",
+  "kategorie": "Museum",
+  "notiz": "Gratis, Mi–Sa 10–18 Uhr (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Elevador do Castelo",
+  "adresse": "Rua dos Fanqueiros 176, Lisboa",
+  "kategorie": "Verkehr",
+  "notiz": "Zwei Gratis-Aufzüge, zweiter im Pingo Doce am Chão do Loureiro",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Casa do Alentejo",
+  "adresse": "Rua das Portas de Santo Antão 58, 1150-268 Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Maurischer Innenhof, Anschauen gratis; Taberna statt Restaurant",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "A Ginjinha",
+  "adresse": "Largo de São Domingos, Lisboa",
+  "kategorie": "Getränk",
+  "notiz": "Erster Ginjinha-Ausschank seit 1840, nur Stehtresen",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Museu Nacional de Arte Contemporânea do Chiado",
+  "adresse": "Museu Nacional de Arte Contemporânea do Chiado, Lisboa",
+  "kategorie": "Museum",
+  "notiz": "Sa 18 Uhr Gratis-Konzert",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Reservatório da Mãe d'Água",
+  "adresse": "Praça das Amoreiras 10, 1250-020 Lisboa",
+  "kategorie": "Museum",
+  "notiz": "Wasserhalle von 1746, ca. 4 €, Mo zu (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Jardim das Amoreiras",
+  "adresse": "Jardim das Amoreiras, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Aquädukt-Bögen",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Mercado de Campo de Ourique",
+  "adresse": "Mercado de Campo de Ourique, Lisboa",
+  "kategorie": "Markt",
+  "notiz": "Markthalle für Einheimische",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Cemitério dos Prazeres",
+  "adresse": "Cemitério dos Prazeres, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Gräberstadt, Endstation Tram 28 (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro de Santa Catarina",
+  "adresse": "Miradouro de Santa Catarina, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Sonnenuntergang",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Mosteiro dos Jerónimos",
+  "adresse": "Praça do Império, 1400-206 Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Kirche gratis, Kreuzgang ca. 18 €, Mo zu",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Pastéis de Belém",
+  "adresse": "Pastéis de Belém, Rua de Belém, Lisboa",
+  "kategorie": "Café",
+  "notiz": "Klassiker",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Padrão dos Descobrimentos",
+  "adresse": "Padrão dos Descobrimentos, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Windrose im Boden",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Torre de Belém",
+  "adresse": "Torre de Belém, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Von außen gratis, innen 8 €, ab 65 4 €, Mo zu",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Central Tejo",
+  "adresse": "Central Tejo, Lisboa",
+  "kategorie": "Museum",
+  "notiz": "Altes Kraftwerk, ca. 5 € (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Museu Calouste Gulbenkian",
+  "adresse": "Museu Calouste Gulbenkian, Lisboa",
+  "kategorie": "Museum",
+  "notiz": "So ab 14 Uhr gratis, Di zu, Park täglich gratis",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Panorâmico de Monsanto",
+  "adresse": "Panorâmico de Monsanto, Alto da Serafina, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Verlassenes Restaurant, 360-Grad-Blick, gratis (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Miradouro de Santo Amaro",
+  "adresse": "Miradouro de Santo Amaro, Lisboa",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Kachelkapelle, Brückenblick (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "LX Factory",
+  "adresse": "Rua Rodrigues de Faria 103, Lisboa",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Buchhandlung Ler Devagar",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Feira do Relógio",
+  "adresse": "Avenida Santo Condestável, Lisboa",
+  "kategorie": "Markt",
+  "notiz": "Nur So 9–14 Uhr, Metro Bela Vista (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Mercado de Arroios (FLIFA)",
+  "adresse": "Mercado de Arroios, Rua Ângela Pinto, Lisboa",
+  "kategorie": "Event",
+  "notiz": "Buchmesse Sa und So 11–19 Uhr",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Praça de São Paulo (Arte na Praça)",
+  "adresse": "Praça de São Paulo, Lisboa",
+  "kategorie": "Event",
+  "notiz": "Kunstmarkt So 10–18 Uhr",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Fähre Cais do Sodré",
+  "adresse": "Terminal Fluvial do Cais do Sodré, Lisboa",
+  "kategorie": "Verkehr",
+  "notiz": "Fähre nach Cacilhas, ca. 1,50 €",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Rua do Ginjal",
+  "adresse": "Rua do Ginjal, Almada",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Uferweg mit Streetart (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Jardim do Rio und Elevador da Boca do Vento",
+  "adresse": "Elevador da Boca do Vento, Almada",
+  "kategorie": "Aussichtspunkt",
+  "notiz": "Gratis-Aufzug, Sonnenuntergang (Geheimtipp)",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Cristo Rei",
+  "adresse": "Santuário de Cristo Rei, Almada",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Terrasse gratis, Lift kostet extra",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Boca do Inferno",
+  "adresse": "Boca do Inferno, Cascais",
+  "kategorie": "Sehenswürdigkeit",
+  "notiz": "Felsküste",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Faz Frio",
+  "adresse": "Rua Dom Pedro V 96, 1250-094 Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Täglich; vegetarisch: Peixinhos da horta, Caldo verde ohne Chouriço",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Tascardoso",
+  "adresse": "Rua de O Século 242, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Di–So, Mo zu; vegetarisch: Peixinhos da horta",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "O Frade",
+  "adresse": "Calçada da Ajuda 14, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Täglich 12:30–16 und 18–23 Uhr; vegetarisch: Pilzreis; reservieren",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Coelho da Rocha",
+  "adresse": "Rua Coelho da Rocha 104, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Mo–Sa; vegetarisch: Peixinhos; teuer",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Estrela da Bica",
+  "adresse": "Travessa do Cabral 33, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Nur abends, Di zu; über die Hälfte vegetarisch; reservieren",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Santa Clara dos Cogumelos",
+  "adresse": "Mercado de Santa Clara, Campo de Santa Clara, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Sa 13–15:30, sonst abends; Pilzküche",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Taberna Albricoque",
+  "adresse": "Rua dos Caminhos de Ferro 98, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Sa 12–15 und 19–23, So und Mo zu; Algarve-Küche",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Solar dos Nunes",
+  "adresse": "Rua dos Lusíadas 68, Lisboa",
+  "kategorie": "Essen für alle",
+  "notiz": "Mo–Sa; vegetarisch: Açorda; teuer",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Kong",
+  "adresse": "Rua do Corpo Santo 2, Lisboa",
+  "kategorie": "Vegan portugiesisch",
+  "notiz": "Täglich 12–23 Uhr",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "A Minha Avó",
+  "adresse": "Avenida António Augusto de Aguiar 74B, Lisboa",
+  "kategorie": "Vegan portugiesisch",
+  "notiz": "Di–So mittags und abends, Mo nur abends",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Ao 26 Vegan Food Project",
+  "adresse": "Rua da Horta Seca 5, Lisboa",
+  "kategorie": "Vegan portugiesisch",
+  "notiz": "Täglich",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Granos Espaço Vegetariano",
+  "adresse": "Rua Saraiva de Carvalho 358, Lisboa",
+  "kategorie": "Vegetarisch",
+  "notiz": "Mo–Fr 7:30–18, Sa 9–16, So zu",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Vegan Nata",
+  "adresse": "Rua 4 de Infantaria 29B, Lisboa",
+  "kategorie": "Vegetarisch",
+  "notiz": "Veganer Pastel de nata",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Gal Café",
+  "adresse": "Rua do Forno do Tijolo 54A, Lisboa",
+  "kategorie": "Vegetarisch",
+  "notiz": "Täglich 9–16, So bis 15 Uhr",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "The Food Temple",
+  "adresse": "Beco do Jasmim 18, Lisboa",
+  "kategorie": "Vegetarisch",
+  "notiz": "Abends ab 18:30, Mo zu",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Jardim das Cerejas",
+  "adresse": "Calçada do Sacramento 36, Lisboa",
+  "kategorie": "Vegetarisch",
+  "notiz": "Veganes Buffet",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "House of Wonders",
+  "adresse": "Rua da Misericórdia 53, Cascais",
+  "kategorie": "Vegetarisch",
+  "notiz": "Täglich 10–23 Uhr",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ },
+ {
+  "name": "Padaria São Roque",
+  "adresse": "Padaria São Roque, Rua Dom Pedro V, Lisboa",
+  "kategorie": "Café",
+  "notiz": "Bäckerei mit Kathedralen-Deko",
+  "lat": null,
+  "lon": null,
+  "quelle": "fehlt"
+ }
+]

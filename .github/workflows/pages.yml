@@ -90,6 +90,15 @@ jobs:
             cd .. && rm -rf tz
           fi
 
+      - name: QR-Leser einbinden (jsQR 1.4.0, Apache-2.0; einmalig ins Repo)
+        run: |
+          if [ ! -f site/vendor/jsqr/jsQR.js ]; then
+            mkdir -p site/vendor/jsqr qz && cd qz
+            npm pack jsqr@1.4.0 --silent && tar -xzf jsqr-1.4.0.tgz
+            cp package/dist/jsQR.js package/LICENSE* package/package.json ../site/vendor/jsqr/ 2>/dev/null || cp package/dist/jsQR.js ../site/vendor/jsqr/
+            cd .. && rm -rf qz
+          fi
+
       - name: Ergebnisse im Repo sichern
         run: |
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor

@@ -24,13 +24,14 @@ FILTER = {
     'apo': ['["amenity"="pharmacy"]'],
     'atm': ['["amenity"="atm"]', '["amenity"="bank"]["atm"="yes"]'],
     'wasser': ['["amenity"="drinking_water"]'],
+    'kh': ['["amenity"="hospital"]["emergency"="yes"]'],
 }
 
 
 def frisch():
     try:
         d = json.load(open(ZIEL, encoding='utf-8'))
-        return datetime.now(timezone.utc) - datetime.fromisoformat(d['stand']) < timedelta(hours=20)
+        return 'kh' in d and datetime.now(timezone.utc) - datetime.fromisoformat(d['stand']) < timedelta(hours=20)
     except Exception:  # noqa: BLE001
         return False
 
@@ -61,6 +62,8 @@ def art(t):
     if t.get('shop') == 'supermarket':
         return 's'
     a = t.get('amenity')
+    if a == 'hospital':
+        return 'kh'
     return {'toilets': 'wc', 'pharmacy': 'apo', 'atm': 'atm', 'bank': 'atm', 'drinking_water': 'wasser'}.get(a)
 
 
@@ -72,7 +75,7 @@ def main():
     if not d:
         print('Overpass nicht erreichbar, alte Datei bleibt')
         return 0
-    aus = {'stand': datetime.now(timezone.utc).isoformat(timespec='minutes'), 'quelle': url, 's': [], 'wc': [], 'apo': [], 'atm': [], 'wasser': []}
+    aus = {'stand': datetime.now(timezone.utc).isoformat(timespec='minutes'), 'quelle': url, 's': [], 'wc': [], 'apo': [], 'atm': [], 'wasser': [], 'kh': []}
     gesehen = set()
     for e in d.get('elements', []):
         t = e.get('tags') or {}
@@ -97,6 +100,8 @@ def main():
             aus['apo'].append([round(lat, 6), round(lon, 6), name, oh])
         elif k == 'atm':
             aus['atm'].append([round(lat, 6), round(lon, 6), t.get('operator') or t.get('brand') or name, oh])
+        elif k == 'kh':
+            aus['kh'].append([round(lat, 6), round(lon, 6), name, t.get('phone') or t.get('contact:phone') or ''])
         else:
             aus['wasser'].append([round(lat, 6), round(lon, 6)])
     os.makedirs('site', exist_ok=True)

@@ -37,11 +37,11 @@
  },
  {
   "name": "Pavilhão Chinês",
-  "adresse": "Pavilhão Chinês, Rua Dom Pedro V, Lisboa",
+  "adresse": "Rua Dom Pedro V 89, 1250-093 Lisboa",
   "kategorie": "Bar",
   "notiz": "Bar voller Sammlerstücke (Geheimtipp)",
-  "lat": 38.700386,
-  "lon": -9.202899,
+  "lat": 38.715713,
+  "lon": -9.146769,
   "quelle": "pruefen"
  },
  {
@@ -172,12 +172,12 @@
  },
  {
   "name": "Museu Nacional de Arte Contemporânea do Chiado",
-  "adresse": "Museu Nacional de Arte Contemporânea do Chiado, Lisboa",
+  "adresse": "Rua Serpa Pinto 4, 1200-444 Lisboa",
   "kategorie": "Museum",
   "notiz": "Sa 18 Uhr Gratis-Konzert",
-  "lat": null,
-  "lon": null,
-  "quelle": "fehlt"
+  "lat": 38.708836,
+  "lon": -9.141183,
+  "quelle": "adresse"
  },
  {
   "name": "Reservatório da Mãe d'Água",
@@ -487,11 +487,11 @@
  },
  {
   "name": "Vegan Nata",
-  "adresse": "Rua 4 de Infantaria 29B, Lisboa",
+  "adresse": "Rua 4 de Infantaria 29D, 1350-169 Lisboa",
   "kategorie": "Vegetarisch",
-  "notiz": "Veganer Pastel de nata",
-  "lat": 38.820377,
-  "lon": -9.12256,
+  "notiz": "Veganer Pastel de nata, täglich 9–19 Uhr",
+  "lat": 38.819522,
+  "lon": -9.122706,
   "quelle": "pruefen"
  },
  {
@@ -532,11 +532,11 @@
  },
  {
   "name": "Padaria São Roque",
-  "adresse": "Padaria São Roque, Rua Dom Pedro V, Lisboa",
+  "adresse": "Rua Dom Pedro V 57, 1250-092 Lisboa",
   "kategorie": "Café",
-  "notiz": "Bäckerei mit Kathedralen-Deko",
-  "lat": null,
-  "lon": null,
-  "quelle": "fehlt"
+  "notiz": "Bäckerei mit Kathedralen-Deko; war Ende 2025 von Schließung bedroht",
+  "lat": 38.715578,
+  "lon": -9.146115,
+  "quelle": "adresse"
  }
 ]

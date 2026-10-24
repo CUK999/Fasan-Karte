@@ -4,6 +4,8 @@ Neueste oben. Format: Datum · Entscheidung · Grund. Familienweite Regeln stehe
 
 | Datum | Entscheidung | Grund |
 | --- | --- | --- |
+| 2026-10-24 | „In der Nähe“ unter Orte: Supermärkte, Toiletten, Apotheken, Geldautomaten, Trinkwasser aus OSM (Overpass, höchstens täglich im Bauprozess). „Günstige“ zeigt nur große Ketten; Stufen nur mit Beleg (Einkaufstests 2026, DECO online 2026), Kleinformate ohne Preisangabe | Wunsch: günstig einkaufen statt Kiosk. Recherche `docs/recherche/2026-10-24-supermaerkte.md` |
+| 2026-10-24 | Blatt mit vier Rasten (mini, klein, mitte, groß), folgt dem Finger, rastet mit Schwung und Feder ein; Karte ziehen macht unter „Orte“ das Blatt mini. Einführung: vier Seiten, „Weiter“ immer sichtbar, Standort erst im Zusammenhang | Rückmeldung: Karte verdeckt, Einführung unklar auf manchen Handys |
 | 2026-10-24 | Orte teilen und Markierungen (Merken, Erledigt, Bewertung, Notiz) laufen über den Live-Abgleich statt über WhatsApp-Text; „Ausgeblendet“ bleibt privat, Teilen abschaltbar. Nur der Beitritt (QR-Code oder Link mit Schlüssel) bleibt außerhalb | Wunsch: nichts mehr über fremde Apps. Den Schlüssel muss ein Handy einmal ohne Server bekommen |
 | 2026-10-24 | Foto-Ebene: 17 Foto-Spots (Kategorie „Foto“) erscheinen nur mit dem Filter „Foto“; 15 bekannte Orte haben zusätzlich einen Foto-Tipp. Jede Angabe mit Quelle und Datum | Wunsch: Fotografie getrennt, damit die Karte für alle übersichtlich bleibt. Recherche `docs/recherche/2026-10-24-fotospots.md` |
 | 2026-10-24 | Zeitbedarf je Ort nur mit Quelle (Spalten `Dauer`, `DauerQuelle`); ohne Quelle keine Zahl. Der Gruppenplan nimmt den Mittelwert, sonst einen Schätzwert je Typ | Wunsch: Zeit je Spot; Regel „nichts erfinden“. Recherche `docs/recherche/2026-10-24-besuchsdauer.md` |

@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '1.6';
+  const VERSION = '1.7';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Tipps, Preise und Zeiten im Plan
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -68,9 +68,23 @@
     haus: '<path d="M3 11 12 4l9 7M5.5 9.5V20h13V9.5M10 20v-5h4v5"/>',
     shop: '<path d="M5 8h14l-1 13H6zM9 8V6.5a3 3 0 0 1 6 0V8M9 11.5v.01M15 11.5v.01"/>',
     foto: '<path d="M3.5 8.5h3.5l1.8-2.5h6.4l1.8 2.5h3.5V19h-17z"/><circle cx="12" cy="13" r="3.5"/>',
+    korb: '<path d="M3 9h18l-2 10.5H5zM8 9l3-5M16 9l-3-5M9 13v3M15 13v3M12 13v3"/>',
+    wc: '<circle cx="7.5" cy="5" r="1.8"/><circle cx="16.5" cy="5" r="1.8"/><path d="M5.5 21v-6H4.5l1-6.5h4l1 6.5h-1v6M14.5 21v-5h-2l2.5-7.5h3l2.5 7.5h-2v5M12 3v18"/>',
+    apo: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/>',
+    geld: '<rect x="2.5" y="6.5" width="19" height="11" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/>',
+    wasser: '<path d="M12 3c3.5 4.6 6 8 6 11a6 6 0 0 1-12 0c0-3 2.5-6.4 6-11z"/>',
   };
   const TYP_NAME = { restaurant: 'Restaurant', cafe: 'Café', bar: 'Bar', fado: 'Fado', museum: 'Museum', kirche: 'Kirche', aussicht: 'Aussicht', park: 'Park', markt: 'Markt',
-    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste', shop: 'Shoppen', haus: 'Unterkunft', foto: 'Foto-Spot' };
+    platz: 'Platz', friedhof: 'Friedhof', tram: 'Tram', metro: 'Metro', bahn: 'Bahn', aufzug: 'Aufzug, Standseilbahn', faehre: 'Fähre', denkmal: 'Denkmal', turm: 'Turm', buch: 'Bücher, Kultur', weg: 'Spazierweg', kueste: 'Küste', shop: 'Shoppen', haus: 'Unterkunft', foto: 'Foto-Spot',
+    korb: 'Supermarkt', wc: 'Toilette', apo: 'Apotheke', geld: 'Geldautomat', wasser: 'Trinkwasser' };
+  // „In der Nähe“: Alltagsorte aus OpenStreetMap (umgebung.json, im Bauprozess geholt)
+  const NAH = [
+    { id: 's', typ: 'korb', label: 'Supermarkt', titel: 'Supermärkte' },
+    { id: 'wc', typ: 'wc', label: 'Toilette', titel: 'Toiletten' },
+    { id: 'apo', typ: 'apo', label: 'Apotheke', titel: 'Apotheken' },
+    { id: 'atm', typ: 'geld', label: 'Geld', titel: 'Geldautomaten' },
+    { id: 'wasser', typ: 'wasser', label: 'Wasser', titel: 'Trinkwasser' },
+  ];
   const GRUPPEN = [
     { id: 'sehen', label: 'Sehen', kats: ['Sehenswürdigkeit', 'Museum', 'Markt', 'Event'] },
     { id: 'aussicht', label: 'Aussicht', kats: ['Aussichtspunkt'] },
@@ -203,8 +217,9 @@
   // ---------- Gruppe: Abgleich ohne Server ----------
   // Jedes Handy hält, was es kennt. Ein Paket (Link oder QR) trägt alles davon. Zusammenführen je Person: neuere Fassung gewinnt.
   // Die Daten stehen im Teil hinter „#“; der wird beim Laden der Seite nicht an den Server geschickt (RFC 3986, Abschnitt 3.5).
-  let G = Object.assign({ ich: null, leute: {}, umfragen: {}, nachrichten: {} }, speicher.get('gruppe', {}));
+  let G = Object.assign({ ich: null, leute: {}, umfragen: {}, nachrichten: {}, kosten: {} }, speicher.get('gruppe', {}));
   if (!G.nachrichten) G.nachrichten = {};
+  if (!G.kosten) G.kosten = {};
   const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
   // Live-Abgleich (Funk, siehe funk.js): Zustand nur im Speicher
   const F = { an: false, sig: null, timer: {}, leuteOrt: new Map(), gehoert: new Map(), status: { an: false, verbunden: 0, gesamt: 0 }, ortT: 0, ortP: null, warteZeichnen: false };
@@ -258,7 +273,9 @@
     const tp = G.treff ? [G.treff.name || '', G.treff.lat || 0, G.treff.lon || 0, G.treff.zeit || '', G.treff.von || '', G.treff.t || 0, G.treff.geloescht ? 1 : 0] : null;
     const pn = G.pin ? [G.pin.x || '', G.pin.von || '', G.pin.n || '', G.pin.t || 0, G.pin.weg ? 1 : 0] : null;
     const n = opt.chat ? nachrichtenListe().map(([id, x]) => (x.o ? [id, x.von, x.n, x.x, x.t, x.o] : [id, x.von, x.n, x.x, x.t])) : undefined;
-    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n }));
+    const ko = {};
+    for (const [id, x] of Object.entries(G.kosten)) ko[id] = [x.v, x.b, x.z, x.f, x.t, x.m, x.x ? 1 : 0, x.a ? 1 : 0];
+    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -320,6 +337,16 @@
         G.k = [kk, +kt]; neu.schluessel = true;
       }
     }
+    neu.kosten = 0;
+    for (const [id, x] of Object.entries(d.ko && typeof d.ko === 'object' ? d.ko : {})) {
+      if (!Array.isArray(x) || typeof id !== 'string' || id.length > 20) continue;
+      const [v, b, z, f, t, m, weg, ausgleich] = x;
+      const alt = G.kosten[id];
+      if (alt && (+m || 0) <= (alt.m || 0)) continue;
+      if (typeof v !== 'string' || !(Number.isInteger(+b) && +b > 0 && +b < 10000000) || !Array.isArray(f) || !f.length) continue;
+      G.kosten[id] = { v: v.slice(0, 16), b: +b, z: String(z || '').slice(0, 60), f: f.filter((y) => typeof y === 'string').slice(0, 30).map((y) => y.slice(0, 16)), t: +t || 0, m: +m || 0, x: weg ? 1 : 0, a: ausgleich ? 1 : 0 };
+      neu.kosten += 1;
+    }
     speicher.set('gruppe', G); // nicht speichereG: Empfangenes löst kein eigenes Senden aus
     return neu;
   }
@@ -333,6 +360,7 @@
     if (G.pin && (!Array.isArray(d.pn) || (+d.pn[3] || 0) < (G.pin.t || 0))) return true;
     if (G.k && (!Array.isArray(d.k) || d.k[0] !== G.k[0])) return true;
     if (Array.isArray(d.n)) { const ihre = new Set(d.n.map((x) => x && x[0])); for (const [id] of nachrichtenListe()) if (!ihre.has(id)) return true; }
+    if (d.ko && typeof d.ko === 'object') for (const [id, x] of Object.entries(G.kosten)) { const y = d.ko[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.m || 0)) return true; }
     return false;
   }
   const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
@@ -407,7 +435,7 @@
           try { if (navigator.vibrate) navigator.vibrate(60); } catch (e) { /* egal */ }
         }
       } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
-      if (neu.length || neu.nachrichten.length || neu.pin !== undefined) neuZeichnen();
+      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten) neuZeichnen();
       leisteZahl();
       return;
     }
@@ -587,9 +615,14 @@
     }).addTo(karte);
     ebene = L.layerGroup().addTo(karte);
     leuteEbene = L.layerGroup().addTo(karte);
-    karte.on('dragstart', () => { if (S.follow) { S.follow = false; gpsKnopf(); } });
+    karte.on('dragstart', () => {
+      if (S.follow) { S.follow = false; gpsKnopf(); }
+      if (S.ort || N.aktiv || innerWidth >= 760) return;
+      if (S.tab === 'orte' && S.hoehe !== 'mini') hoehe('mini');
+      else if (S.hoehe === 'mitte' || S.hoehe === 'gross') hoehe('klein');
+    });
     karte.on('zoomend', () => namenZoom());
-    karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.hoehe !== 'klein') hoehe('klein'); });
+    karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.tab === 'orte') hoehe(S.hoehe === 'mini' ? 'klein' : 'mini'); else if (S.hoehe !== 'klein') hoehe('klein'); });
   }
 
   // Mitreisende mit geteiltem Standort: Kreis mit Initialen, Name daneben; nach 10 Minuten blass
@@ -606,7 +639,7 @@
   setInterval(() => { if (F.leuteOrt.size && document.visibilityState === 'visible') zeichneLeute(); }, 60000);
 
   function punktIcon(o, nr, opt = {}) {
-    const m = mk(o.id), g = gruppeVon(o.kategorie);
+    const m = mk(o.id), g = o.nah ? 'nah' : gruppeVon(o.kategorie);
     const kl = ['punkt', 'g-' + g, nr ? 'nr' : '', m.fertig ? 'erledigt' : '', S.ort === o.id ? 'gewaehlt' : '', opt.naechster ? 'naechster' : ''].filter(Boolean).join(' ');
     const innen = `<svg viewBox="0 0 24 24">${symbolSvg(o)}</svg>` + (nr ? `<span class="nummer">${nr}</span>` : '');
     const marke = m.fav ? `<span class="marke herz"><svg viewBox="0 0 24 24">${SVG.herz}</svg></span>`
@@ -634,6 +667,8 @@
       for (const u of Object.values(G.umfragen)) u.o.map((id) => NACH_ID.get(id)).filter(Boolean).forEach((o) => { if (!orte.includes(o)) orte.push(o); });
     } else if (S.tab === 'gemerkt') {
       orte = ORTE.filter((o) => { const m = mk(o.id); return !m.aus && (m.fav || m.notiz || m.sterne || m.fertig); });
+    } else if (S.nah) {
+      orte = [];
     } else {
       orte = gefiltert();
     }
@@ -654,6 +689,17 @@
     if (tp) L.marker([tp.lat, tp.lon], { icon: L.divIcon({ className: 'punkt treffpunkt', html: `<span class="p"><svg viewBox="0 0 24 24">${SYMBOL.treff}</svg></span>`, iconSize: [60, 60], iconAnchor: [30, 30] }), title: tp.name, zIndexOffset: 900 })
       .bindTooltip(`${G.treff.zeit} · ${G.treff.name}`, { permanent: true, direction: 'right', offset: [18, 0], className: 'name-label treff-label', interactive: false })
       .on('click', (e) => { L.DomEvent.stopPropagation(e); starteNavi(tp, true); }).addTo(ebene);
+    if (S.tab === 'orte' && S.nah && !S.ort && !N.aktiv) {
+      const l = nahListe(S.nah);
+      l.forEach((o, i) => {
+        const mm = L.marker([o.lat, o.lon], { icon: L.divIcon({ className: 'punkt g-nah nah-punkt' + (S.nahWahl === o.id ? ' gewaehlt' : ''), html: `<span class="p"><svg viewBox="0 0 24 24">${SYMBOL[o.typ]}</svg></span>`, iconSize: [52, 52], iconAnchor: [26, 26] }), title: o.name, alt: o.name, keyboard: true, zIndexOffset: S.nahWahl === o.id ? 900 : 300 - i })
+          .on('click', (e) => { L.DomEvent.stopPropagation(e); waehleNah(o, true); })
+          .addTo(ebene);
+        // Namen nur an den drei nächsten und am gewählten, sonst überdecken sie sich
+        if (i < 3 || S.nahWahl === o.id) mm.bindTooltip(o.name.replace(/[<>&"]/g, ''), { permanent: true, direction: 'right', offset: [16, 0], className: 'name-label', interactive: false });
+      });
+      if (anpassen && l.length) passeAn(l.slice(0, 6).map((o) => [o.lat, o.lon]));
+    }
     if (anpassen && punkte.length && !S.follow && !S.ort) passeAn(punkte);
     namenZoom();
   }
@@ -677,48 +723,85 @@
   }
 
   // ---------- Blatt ----------
-  function hoehe(h) {
+  // Rasten wie bei Apple Karten: mini (Suche und Kategorien), klein (Vorschau mit Aktion), mitte, groß.
+  // Recherche: docs/recherche/2026-10-24-natives-gefuehl.md
+  const STUFEN = ['mini', 'klein', 'mitte', 'gross'];
+  function stufenPx() {
+    const vh = innerHeight, nav = $('#leiste').offsetHeight, extra = E.profil === 'standard' ? 0 : 36;
+    const oben = parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0;
+    const gross = vh - nav - (innerWidth >= 760 ? 48 : 56 + oben);
+    return { mini: Math.min(miniPx(), 300), klein: Math.min(300 + extra, gross), mitte: Math.round(vh * 0.55), gross };
+  }
+  // Mini: Griff, Suche und unter „Orte“ die erste Zeile (Kategorien bzw. „In der Nähe“)
+  function miniPx() {
+    const blatt = $('#blatt'), ansicht = $('#ansicht');
+    const kopf = ansicht.getBoundingClientRect().top - blatt.getBoundingClientRect().top;
+    const erstes = S.tab === 'orte' && !S.ort ? ansicht.querySelector('.chips') : null;
+    return Math.round(Math.max(110, kopf + (erstes ? erstes.getBoundingClientRect().height + 4 : 6)));
+  }
+  function setzeBlatt(px) { document.documentElement.style.setProperty('--blatt-h', `${Math.round(px)}px`); }
+  function hoehe(h, opt = {}) {
+    if (!STUFEN.includes(h)) h = 'klein';
+    const vorher = S.hoehe;
     S.hoehe = h;
-    const vh = innerHeight, nav = $('#leiste').offsetHeight;
-    const gross = E.profil === 'standard' ? 0 : 36;
-    const px = innerWidth >= 760
-      ? { klein: 300 + gross, mitte: Math.round(vh * 0.55), gross: vh - nav - 48 }[h]
-      : { klein: 300 + gross, mitte: Math.round(vh * 0.55), gross: vh - nav - 56 - (parseFloat(getComputedStyle(document.documentElement).paddingTop) || 0) }[h];
-    document.documentElement.style.setProperty('--blatt-h', `${px}px`);
+    if (h === 'mini') $('#ansicht').scrollTop = 0;
+    setzeBlatt(stufenPx()[h]);
     document.body.dataset.blatt = h;
     if (h === 'klein') passeKleinAn();
     $('#griff').setAttribute('aria-label', h === 'gross' ? 'Blatt verkleinern' : 'Blatt vergrößern');
+    if (opt.spuerbar && vorher !== h) haptik();
   }
   // Im kleinen Zustand soll der wichtigste Knopf ganz zu sehen sein (Google-Maps-Muster: Vorschau mit Aktion)
   function passeKleinAn() {
     if (S.hoehe !== 'klein' || innerWidth >= 760) return;
     requestAnimationFrame(() => {
-      const ziel = $('#ansicht .zusammen .knopf.haupt') || $('#ansicht .zusammen') || $('#ansicht').firstElementChild;
+      const ziel = $('#ansicht .zusammen .knopf.haupt') || $('#ansicht .zusammen');
       if (!ziel) return;
       const kopf = $('#ansicht').getBoundingClientRect().top - $('#blatt').getBoundingClientRect().top;
       const unten = ziel.getBoundingClientRect().bottom - $('#ansicht').getBoundingClientRect().top + $('#ansicht').scrollTop;
-      const px = Math.min(Math.round(innerHeight * 0.5), Math.max(200, Math.round(kopf + unten + 14)));
-      document.documentElement.style.setProperty('--blatt-h', `${px}px`);
+      setzeBlatt(Math.min(Math.round(innerHeight * 0.5), Math.max(200, Math.round(kopf + unten + 14))));
     });
   }
-  const STUFEN = ['klein', 'mitte', 'gross'];
-  const groesser = () => hoehe(STUFEN[Math.min(2, STUFEN.indexOf(S.hoehe) + 1)]);
-  const kleiner = () => hoehe(STUFEN[Math.max(0, STUFEN.indexOf(S.hoehe) - 1)]);
+  const groesser = () => hoehe(STUFEN[Math.min(3, STUFEN.indexOf(S.hoehe) + 1)], { spuerbar: true });
+  const kleiner = () => hoehe(STUFEN[Math.max(0, STUFEN.indexOf(S.hoehe) - 1)], { spuerbar: true });
+
+  // Spürbare Rückmeldung (Android; iOS Safari kennt navigator.vibrate nicht)
+  function haptik(ms = 8) { try { if (navigator.vibrate && !matchMedia('(prefers-reduced-motion: reduce)').matches) navigator.vibrate(ms); } catch (e) { /* egal */ } }
+
+  // Feder als CSS-Kurve: gedämpfte Schwingung x(t) = 1 − e^(−ζωt)(cos ω_d t + ζω/ω_d · sin ω_d t), als linear()-Punkte
+  (function feder() {
+    const antwort = 0.42, daempfung = 0.86; // Sekunden bis zur Hauptbewegung, Dämpfung (1 = ohne Überschwingen)
+    const w = (2 * Math.PI) / antwort, wd = w * Math.sqrt(1 - daempfung ** 2);
+    const x = (t) => 1 - Math.exp(-daempfung * w * t) * (Math.cos(wd * t) + ((daempfung * w) / wd) * Math.sin(wd * t));
+    let dauer = 0.2;
+    while (dauer < 1.5 && (Math.abs(1 - x(dauer)) > 0.002 || Math.abs(1 - x(dauer - 0.05)) > 0.002)) dauer += 0.02;
+    const punkte = []; for (let i = 0; i <= 32; i++) punkte.push(+x((dauer * i) / 32).toFixed(4));
+    punkte[punkte.length - 1] = 1;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.style.setProperty('--feder-zeit', '0ms'); return; }
+    if (window.CSS && CSS.supports && CSS.supports('transition-timing-function', 'linear(0, 1)')) {
+      document.documentElement.style.setProperty('--feder', `linear(${punkte.join(', ')})`);
+      document.documentElement.style.setProperty('--feder-zeit', `${Math.round(dauer * 1000)}ms`);
+    }
+  })();
 
   // ---------- Ansichten ----------
   function zeichne(opt = {}) {
     $$('#leiste [data-tab]').forEach((b) => { if (b.dataset.tab === S.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     const box = $('#ansicht');
     const scroll = opt.scroll ? box.scrollTop : 0;
+    const ansichtNeu = `${S.tab}|${S.ort || ''}|${S.nah || ''}`;
+    if (S.letzteAnsicht && S.letzteAnsicht !== ansichtNeu) { box.classList.remove('neu'); void box.offsetWidth; box.classList.add('neu'); }
+    S.letzteAnsicht = ansichtNeu;
     $('.blatt-kopf').hidden = !!S.ort;
     if (S.ort) zeichneOrt(box);
     else if (S.tab === 'plan') zeichnePlan(box);
-    else if (S.tab === 'orte') zeichneOrte(box);
+    else if (S.tab === 'orte') (S.nah ? zeichneNah(box) : zeichneOrte(box));
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
     else if (S.tab === 'gruppe') zeichneGruppe(box);
     else zeichneMehr(box);
     box.scrollTop = scroll;
     passeKleinAn();
+    if (S.hoehe === 'mini') setzeBlatt(stufenPx().mini);
     if (opt.karte !== false) karteZeichnen(opt.anpassen);
   }
 
@@ -897,12 +980,103 @@
     const zuruecksetzen = aktiv ? el('button', { type: 'button', class: 'knopf flach', style: 'margin-top:4px', onclick: () => { S.gruppen.clear(); S.extra.clear(); speicher.set('gruppen', []); speicher.set('extra', []); zeichne({ anpassen: true }); } }, ic('x'), `Filter zurücksetzen (${aktiv})`) : null;
     const kopf = S.suche
       ? el('p', { class: 'leise', style: 'margin:4px 0 0' }, `${liste.length} Treffer für „${S.suche}“`)
-      : el('div', {}, gruppen, zeile, extras, zuruecksetzen,
+      : el('div', {}, nahChips(), gruppen, zeile, extras, zuruecksetzen,
         el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, `${liste.length} von ${ORTE.length} Orten${S.sort === 'naehe' && !S.me ? ' · Standort fehlt, sortiert nach Name' : ''}`));
     setze(box, kopf,
       liste.length ? el('ul', { class: 'liste' }, liste.map((o) => eintragOrt(o)))
         : el('div', { class: 'leer' }, fasan(), el('strong', {}, 'Kein Ort passt.'),
           el('button', { type: 'button', class: 'knopf', onclick: () => { S.gruppen.clear(); S.extra.clear(); S.suche = ''; $('#suche').value = ''; speicher.set('gruppen', []); speicher.set('extra', []); zeichne({ anpassen: true }); } }, 'Filter zurücksetzen')));
+  }
+
+  // Preisstufen der Supermarktketten nur mit Beleg (docs/recherche/2026-10-24-supermaerkte.md); ohne Beleg keine Stufe
+  // Einkaufstests 2026: menu5euros.com (29.05.2026, Mercadona < Aldi < Lidl < Pingo Doce < Auchan < Continente < Minipreço),
+  // oprecocerto.pt (22.04.2026, Lidl vor Continente und Pingo Doce); DECO online (13.01.2026): Continente 100, Pingo Doce 101,
+  // Auchan 102, Intermarché 103, Minipreço 104, El Corte Inglés 110. Kleinformate: keine Preismessung gefunden.
+  const PREISE = [
+    { re: /bom dia|my auchan|meu super|amanhecer|\bspar\b|express/i, stufe: 4, text: 'Kleinformat' },
+    { re: /minipre[cç]o|el corte ingl[eé]s|supercor/i, stufe: 3, text: 'teurer' },
+    { re: /mercadona|\baldi\b|\blidl\b/i, stufe: 1, text: 'günstig' },
+    { re: /pingo doce|continente|auchan|intermarch[eé]/i, stufe: 2, text: '' },
+  ];
+  const PREIS_HINWEIS = '„Günstige“ zeigt nur große Supermärkte, keine Kioske und Kleinformate. In Einkaufstests 2026 waren Mercadona, Aldi und Lidl am günstigsten (menu5euros.com, 29.05.2026; oprecocerto.pt, 22.04.2026). Pingo Doce, Continente und Auchan liegen knapp dahinter (DECO, online, 13.01.2026). Minipreço und El Corte Inglés sind teurer.';
+  function preisStufe(o) { const t = `${o.marke || ''} ${o.name || ''}`; return PREISE.find((x) => x.re.test(t)) || { stufe: 0, text: '' }; }
+
+  // ---------- In der Nähe ----------
+  let U = null, uLaedt = false;
+  function ladeUmgebung() {
+    if (U || uLaedt) return;
+    uLaedt = true;
+    fetch('umgebung.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
+      .then((d) => { U = d && d.stand ? d : { fehler: true }; })
+      .catch(() => { U = { fehler: true }; })
+      .finally(() => { uLaedt = false; if (S.nah && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); });
+  }
+  const nahBezug = () => S.me || (karte ? { lat: karte.getCenter().lat, lon: karte.getCenter().lng } : { lat: LISSABON[0], lon: LISSABON[1] });
+  function nahOrt(id, x, i) {
+    const def = NAH.find((n) => n.id === id);
+    const o = { id: `n-${id}-${i}`, nah: id, typ: def.typ, kategorie: 'Alltag', lat: x[0], lon: x[1], adresse: '', notiz: '' };
+    if (id === 's') Object.assign(o, { name: x[2] || x[3] || 'Supermarkt', marke: x[3] || '', oh: x[4] });
+    else if (id === 'wc') Object.assign(o, { name: x[2] || 'Öffentliche Toilette', gebuehr: x[3], oh: x[4], rolli: x[5] });
+    else if (id === 'apo') Object.assign(o, { name: x[2] || 'Apotheke', oh: x[3] });
+    else if (id === 'atm') Object.assign(o, { name: x[2] ? `Geldautomat ${x[2]}` : 'Geldautomat', oh: x[3] });
+    else o.name = 'Trinkwasser';
+    o.adresse = o.name;
+    return o;
+  }
+  function nahListe(id) {
+    if (!U || !Array.isArray(U[id])) return [];
+    const b = nahBezug();
+    return U[id].map((x, i) => { const o = nahOrt(id, x, i); o.d = meter(b, o); return o; })
+      .filter((o) => o.d < 4000 && (id !== 's' || S.nahAlle || [1, 2].includes(preisStufe(o).stufe)))
+      .sort((a, b) => a.d - b.d).slice(0, 25);
+  }
+  function waehleNah(o, vonKarte) {
+    S.nahWahl = o.id;
+    if (vonKarte) { if (S.hoehe === 'mini') hoehe('klein'); } else zeigeAufKarte(o, 17);
+    zeichne({ scroll: true, karte: true });
+    requestAnimationFrame(() => { const li = $(`#ansicht [data-nah="${o.id}"]`); if (li) li.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
+    haptik();
+  }
+  function nahChips() {
+    return el('div', { class: 'chips nah-chips', role: 'group', 'aria-label': 'In der Nähe' },
+      NAH.map((n) => el('button', { type: 'button', class: 'chip nah-chip', 'aria-pressed': String(S.nah === n.id), onclick: () => {
+        S.nah = S.nah === n.id ? null : n.id; S.nahWahl = null; haptik();
+        if (S.nah) { ladeUmgebung(); if (S.watchId == null) starteGps(false); if (S.hoehe === 'mini') hoehe('klein'); }
+        zeichne({ anpassen: true });
+      } }, el('span', { class: 'nah-icon', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL[n.typ]}</svg>` }), n.label)));
+  }
+  function zeichneNah(box) {
+    ladeUmgebung();
+    const def = NAH.find((n) => n.id === S.nah);
+    const kopf = [nahChips(), el('div', { class: 'nah-kopf' }, el('h3', {}, `${def.titel} in der Nähe`),
+      el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.nah = null; S.nahWahl = null; zeichne({ anpassen: true }); } }, ic('x'), 'Fertig'))];
+    if (!U) { setze(box, kopf, el('p', { class: 'leise' }, 'Lädt …')); return; }
+    if (U.fehler) { setze(box, kopf, el('p', {}, 'Die Daten konnten nicht geladen werden. Ohne Netz geht es erst, wenn die Liste einmal geladen wurde.')); return; }
+    const l = nahListe(S.nah);
+    const bezug = S.me ? null : el('div', { class: 'hilfe', style: 'margin:0 0 8px' }, el('span', {}, 'Entfernungen ab der Kartenmitte. Mit Standort ab dir.'),
+      el('button', { type: 'button', class: 'knopf flach', onclick: () => starteGps(false) }, 'Standort'));
+    const preis = S.nah === 's' ? el('div', { style: 'display:grid;gap:6px;margin-bottom:8px' },
+      el('div', { class: 'segmente', role: 'group', 'aria-label': 'Welche Supermärkte' },
+        el('button', { type: 'button', 'aria-pressed': String(!S.nahAlle), onclick: () => { S.nahAlle = false; zeichne({ scroll: true }); } }, 'Günstige'),
+        el('button', { type: 'button', 'aria-pressed': String(!!S.nahAlle), onclick: () => { S.nahAlle = true; zeichne({ scroll: true }); } }, 'Alle')),
+      el('p', { class: 'leise klein', style: 'margin:0' }, PREIS_HINWEIS)) : null;
+    const zeile = (o) => {
+      const st = o.oh ? window.Oeffnung.status(o.oh) : null;
+      const pr = o.nah === 's' ? preisStufe(o) : null;
+      const unter = [`${strecke(o.d)} · ${gehzeit(o.d)} Min.`];
+      if (o.nah === 'wc') unter.push(o.gebuehr === 'yes' ? 'kostet' : o.gebuehr === 'no' ? 'kostenlos' : 'Gebühr unbekannt', o.rolli === 'yes' ? 'rollstuhlgerecht' : null);
+      return el('li', { class: 'eintrag' + (S.nahWahl === o.id ? ' gewaehlt' : ''), 'data-nah': o.id },
+        el('button', { type: 'button', class: 'auf', onclick: () => waehleNah(o) },
+          el('span', { class: 'marker g-nah' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL[o.typ]}</svg>`, style: 'display:contents' })),
+          el('span', { class: 'text' },
+            el('span', { class: 'titel' }, o.name, pr && pr.text ? el('span', { class: 'abzeichen preis p' + pr.stufe }, pr.text) : null),
+            el('span', { class: 'unter' }, unter.filter(Boolean).join(' · '),
+              st ? el('span', { class: 'status ' + (st.offen ? 'offen' : 'zu') }, st.offen ? ` · offen bis ${st.bis}` : st.naechste ? ` · zu, öffnet ${st.naechste}` : ' · geschlossen') : o.oh ? '' : ' · Zeiten unbekannt'))),
+        el('button', { type: 'button', class: 'haken', 'aria-label': `Zu ${o.name} hinführen`, onclick: () => starteNavi(o, true) }, ic('route')));
+    };
+    setze(box, kopf, bezug, preis,
+      l.length ? el('ul', { class: 'liste' }, l.map(zeile)) : el('p', {}, 'Im Umkreis von 4 km nichts gefunden.'),
+      el('p', { class: 'quelle', style: 'margin-top:10px' }, `Daten: OpenStreetMap-Mitwirkende, abgerufen ${uhrzeit(Date.parse(U.stand))}. Öffnungszeiten können fehlen oder veraltet sein.`));
   }
 
   function zeichneGemerkt(box) {
@@ -1785,37 +1959,36 @@
 
   // ---------- Einführung beim ersten Start ----------
   // Kurz (6 Karten), jederzeit überspringbar, unter „Mehr“ wieder abrufbar. Der Fasan tritt hier auf (ruhiger Bereich).
-  function zeigeEinfuehrung(seite = 0) {
+  // Einführung: vier kurze Seiten, „Weiter“ immer sichtbar unten, Standort erst im Zusammenhang (Recherche: natives-gefuehl.md)
+  function zeigeEinfuehrung(seite = 0, richtung = 1) {
     const box = $('#einfuehrung');
-    const leiste = [['plan', 'Tagesplan', 'Euer Tag, Stopp für Stopp'], ['orte', 'Orte', 'Alle Orte suchen und filtern'], ['gruppe', 'Gruppe', 'Abstimmen, Treffpunkt, Umfragen'],
-      ['herz', 'Gemerkt', 'Deine Favoriten und Notizen'], ['mehr', 'Mehr', 'Größe, Aussehen, Tipps']];
-    const legende = [['restaurant', 'g-essen', 'Restaurant'], ['restaurant', 'g-veggie', 'Vegetarisch'], ['cafe', 'g-essen', 'Café'], ['bar', 'g-abends', 'Bar'],
-      ['fado', 'g-abends', 'Fado'], ['museum', 'g-sehen', 'Museum'], ['kirche', 'g-sehen', 'Kirche'], ['aussicht', 'g-aussicht', 'Aussicht'],
-      ['park', 'g-sehen', 'Park'], ['markt', 'g-sehen', 'Markt'], ['metro', 'g-verkehr', 'Metro'], ['tram', 'g-verkehr', 'Tram'],
-      ['aufzug', 'g-verkehr', 'Aufzug'], ['faehre', 'g-verkehr', 'Fähre'], ['shop', 'g-shoppen', 'Shoppen'], ['foto', 'g-foto', 'Foto-Spot (Filter „Foto“)'], ['treff', 'treff', 'Treffpunkt']];
+    const leiste = [['plan', 'Tagesplan', 'Euer Tag, Stopp für Stopp'], ['orte', 'Orte', 'Karte, Suche, „In der Nähe“'], ['gruppe', 'Gruppe', 'Abstimmen, Nachrichten, Standort'],
+      ['herz', 'Gemerkt', 'Favoriten und Notizen'], ['mehr', 'Mehr', 'Schrift, Aussehen, Tipps']];
+    const legende = [['restaurant', 'g-essen', 'Essen'], ['restaurant', 'g-veggie', 'Vegetarisch'], ['museum', 'g-sehen', 'Sehen'], ['aussicht', 'g-aussicht', 'Aussicht'],
+      ['bar', 'g-abends', 'Abends'], ['metro', 'g-verkehr', 'Verkehr'], ['shop', 'g-shoppen', 'Shoppen'], ['korb', 'g-nah', 'Supermarkt']];
+    const schrift = () => el('div', { class: 'segmente', role: 'group', 'aria-label': 'Schriftgröße', style: 'width:100%' },
+      [['standard', 'Normale Schrift'], ['einfach', 'Große Schrift']].map(([id, n]) => el('button', { type: 'button', 'aria-pressed': String(E.profil === id || (id === 'einfach' && E.profil === 'lesbar')), onclick: () => { E.profil = id; speichereE(); wendeAn(); haptik(); zeigeEinfuehrung(seite, 0); } }, n)));
     const seiten = [
-      { titel: 'Willkommen in Lissabon', text: 'Diese Karte zeigt eure Tagespläne und alle Orte. Sie führt euch zu Fuß hin. Ohne Konto, ohne Werbung.', bild: () => fasan('einf-fasan') },
-      { titel: 'Unten ist alles', text: 'Fünf Bereiche, immer im Daumenbereich:', bild: () => el('ul', { class: 'einf-liste' }, leiste.map(([i, n, t]) => el('li', {}, el('span', { class: 'einf-icon' }, ic(i)), el('span', {}, el('strong', {}, n), el('small', {}, t))))) },
-      { titel: 'Tippen, losgehen', text: 'Beim nächsten Stopp auf „Hinführen“ tippen. Die Karte zeigt den Weg, sagt jede Abbiegung an und lässt das Display an. Am Ziel hakst du den Stopp ab.',
-        bild: () => el('div', { class: 'einf-navi' }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${PFEIL.rechts}</svg>` }), el('span', {}, el('strong', {}, 'In 120 m'), el('small', {}, 'Rechts abbiegen auf Rua da Rosa'))) },
-      { titel: 'Die Symbole', text: 'Das Symbol zeigt, was ein Ort ist. Die Farbe zeigt die Art: Rot Essen, Grün vegetarisch, Blau Sehen, Orange Aussicht, Lila Abends, Ocker Verkehr, Pink Shoppen, Indigo Foto-Spots (erscheinen nur mit dem Filter „Foto“).',
+      { titel: 'Willkommen in Lissabon', text: 'Eure Karte für die Reise: Tagespläne, alle Orte und der Weg zu Fuß. Ohne Konto, ohne Werbung.',
+        bild: () => el('div', { style: 'display:grid;gap:18px;justify-items:center;width:100%' }, fasan('einf-fasan'), schrift()) },
+      { titel: 'Unten ist alles', text: 'Fünf Bereiche, immer im Daumenbereich.', bild: () => el('ul', { class: 'einf-liste' }, leiste.map(([i, n, t]) => el('li', {}, el('span', { class: 'einf-icon' }, ic(i)), el('span', {}, el('strong', {}, n), el('small', {}, t))))) },
+      { titel: 'Karte und Symbole', text: 'Tippe auf einen Punkt. „Hinführen“ zeigt den Weg und sagt jede Abbiegung an. Das Blatt unten ziehst du mit dem Finger größer oder kleiner.',
         bild: () => el('div', { class: 'einf-legende' }, legende.map(([typ, g, n]) => el('span', {}, el('span', { class: `marker ${g}` }, symbol({ typ, kategorie: '' })), n))) },
-      { titel: 'Gemeinsam entscheiden', text: 'Bei jedem Ort „Will hin“ oder „Lieber nicht“. Unter „Gruppe“ zeigst du deinen QR-Code; die anderen scannen ihn mit der Kamera. Aus euren Stimmen entsteht der Gruppenplan.',
+      { titel: 'Gemeinsam unterwegs', text: 'Unter „Gruppe“ zeigst du deinen QR-Code. Danach gleicht sich alles von selbst ab: Stimmen, Nachrichten, Treffpunkt und auf Wunsch dein Standort.',
         bild: () => el('div', { class: 'segmente stimme', style: 'width:100%' }, el('button', { type: 'button', class: 'ja', 'aria-pressed': 'true', tabindex: '-1' }, ic('hoch'), 'Will hin'), el('button', { type: 'button', class: 'nein', tabindex: '-1' }, ic('runter'), 'Lieber nicht')) },
-      { titel: 'Wie groß soll alles sein?', text: 'Das kannst du später unter „Mehr“ ändern.',
-        bild: () => el('div', { style: 'display:grid;gap:10px;width:100%' }, wahl(PROFILE, E.profil, (id) => { E.profil = id; speichereE(); wendeAn(); zeigeEinfuehrung(5); }),
-          el('button', { type: 'button', class: 'knopf breit', onclick: () => starteGps(false) }, ic('standort'), S.watchId != null ? 'Standort ist freigegeben' : 'Standort freigeben')) },
     ];
-    const ende = () => { box.hidden = true; speicher.set('einfuehrung', true); hoehe(S.hoehe); zeichne({ anpassen: true }); };
-    const s = seiten[seite];
+    const letzte = seite === seiten.length - 1;
+    const ende = () => { box.classList.add('weg'); haptik(); setTimeout(() => { box.hidden = true; box.classList.remove('weg'); }, 260); speicher.set('einfuehrung', true); hoehe(S.hoehe); zeichne({ anpassen: true }); };
+    const weiter = () => { haptik(); if (letzte) ende(); else zeigeEinfuehrung(seite + 1, 1); };
+    const s2 = seiten[seite];
     setze(box, el('div', { class: 'einf-karte', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'einf-titel' },
-      el('div', { class: 'einf-oben' }, el('span', { class: 'leise klein' }, `${seite + 1} von ${seiten.length}`),
-        seite < seiten.length - 1 ? el('button', { type: 'button', class: 'knopf flach', onclick: ende }, 'Überspringen') : null),
-      el('div', { class: 'einf-inhalt' }, s.bild(), el('h2', { id: 'einf-titel' }, s.titel), el('p', {}, s.text)),
-      el('div', { class: 'einf-punkte', 'aria-hidden': 'true' }, seiten.map((_, i) => el('span', { class: i === seite ? 'an' : '' }))),
-      el('div', { class: 'reihe einf-knoepfe' },
-        seite ? el('button', { type: 'button', class: 'knopf', onclick: () => zeigeEinfuehrung(seite - 1) }, 'Zurück') : null,
-        el('button', { type: 'button', class: 'knopf haupt', onclick: () => (seite < seiten.length - 1 ? zeigeEinfuehrung(seite + 1) : ende()) }, seite < seiten.length - 1 ? 'Weiter' : 'Los geht’s'))));
+      el('div', { class: 'einf-oben' },
+        el('div', { class: 'einf-punkte', 'aria-label': `Seite ${seite + 1} von ${seiten.length}`, role: 'img' }, seiten.map((_, i) => el('span', { class: i === seite ? 'an' : i < seite ? 'war' : '' }))),
+        letzte ? el('span') : el('button', { type: 'button', class: 'knopf flach einf-ueber', onclick: ende }, 'Überspringen')),
+      el('div', { class: 'einf-inhalt ' + (richtung > 0 ? 'von-rechts' : richtung < 0 ? 'von-links' : '') }, s2.bild(), el('h2', { id: 'einf-titel' }, s2.titel), el('p', {}, s2.text)),
+      el('div', { class: 'einf-knoepfe' },
+        seite ? el('button', { type: 'button', class: 'knopf', 'aria-label': 'Zurück', onclick: () => { haptik(); zeigeEinfuehrung(seite - 1, -1); } }, ic('zurueck')) : null,
+        el('button', { type: 'button', class: 'knopf haupt', onclick: weiter }, letzte ? 'Los geht’s' : 'Weiter', letzte ? null : el('span', { class: 'pfeil-weiter', 'aria-hidden': 'true' }, '→')))));
     box.hidden = false;
     const f = box.querySelector('.knopf.haupt'); if (f) f.focus({ preventScroll: true });
   }
@@ -1825,10 +1998,10 @@
   document.addEventListener('touchend', (e) => {
     if (einfX == null) return;
     const dx = e.changedTouches[0].clientX - einfX; einfX = null;
-    const t = $('#einfuehrung .einf-oben .leise');
-    if (!t || Math.abs(dx) < 60) return;
-    const i = parseInt(t.textContent, 10) - 1;
-    if (dx < 0 && i < 5) zeigeEinfuehrung(i + 1); else if (dx > 0 && i > 0) zeigeEinfuehrung(i - 1);
+    const punkte = $$('#einfuehrung .einf-punkte span');
+    if (!punkte.length || Math.abs(dx) < 60) return;
+    const i = punkte.findIndex((p) => p.classList.contains('an'));
+    if (dx < 0 && i < punkte.length - 1) zeigeEinfuehrung(i + 1, 1); else if (dx > 0 && i > 0) zeigeEinfuehrung(i - 1, -1);
   }, { passive: true });
 
   // ---------- Standort ----------
@@ -1904,21 +2077,48 @@
     zeichne({ anpassen: true });
   }));
   $('#griff').addEventListener('click', () => (S.hoehe === 'gross' ? hoehe('klein') : groesser()));
-  // Wischen am Blattkopf: hoch = größer, runter = kleiner (sichtbarer Zwilling: der Griff)
-  let startY = null;
+  // Blatt folgt dem Finger. Beim Loslassen rastet es ein; ein Wisch zählt mit seinem Schwung
+  // (Projektion wie UIScrollView: Weg = v · 0,998 / (1 − 0,998), v in px/ms · 1000 / 1000). Sichtbarer Zwilling: der Griff.
+  const zug = { an: false };
   const zone = $('#blatt');
   zone.addEventListener('touchstart', (e) => {
-    const inhalt = e.target.closest('.ansicht');
-    startY = inhalt && inhalt.scrollTop > 0 ? null : e.touches[0].clientY;
+    if (e.touches.length !== 1 || window.innerWidth >= 760) return;
+    const t = e.touches[0], inhalt = e.target.closest('#ansicht');
+    Object.assign(zug, { an: true, los: false, y0: t.clientY, x0: t.clientX, h0: blattPx(), inhalt: !!inhalt, pkt: [[e.timeStamp, t.clientY]] });
   }, { passive: true });
-  zone.addEventListener('touchend', (e) => {
-    if (startY == null) return;
-    const dy = e.changedTouches[0].clientY - startY;
-    const imInhalt = e.target.closest('.ansicht');
-    startY = null;
-    if (dy < -45 && !imInhalt) groesser();
-    else if (dy > 60) kleiner();
-  }, { passive: true });
+  zone.addEventListener('touchmove', (e) => {
+    if (!zug.an) return;
+    const t = e.touches[0], dy = t.clientY - zug.y0;
+    if (!zug.los) {
+      if (Math.abs(dy) < 8 || Math.abs(t.clientX - zug.x0) > Math.abs(dy)) return;
+      const ansicht = $('#ansicht');
+      // Im Inhalt: nach unten nur ganz oben, nach oben nur solange das Blatt nicht groß ist; sonst scrollt der Inhalt
+      if (zug.inhalt && ((dy > 0 && ansicht.scrollTop > 0) || (dy < 0 && S.hoehe === 'gross'))) { zug.an = false; return; }
+      zug.los = true; document.body.classList.add('zieht');
+    }
+    e.preventDefault();
+    const p = stufenPx();
+    let h = zug.h0 - dy;
+    if (h > p.gross) h = p.gross + (h - p.gross) * 0.25; // Gummiband an den Enden
+    if (h < p.mini) h = p.mini - (p.mini - h) * 0.25;
+    setzeBlatt(h);
+    zug.pkt.push([e.timeStamp, t.clientY]); if (zug.pkt.length > 5) zug.pkt.shift();
+  }, { passive: false });
+  const zugEnde = () => {
+    if (!zug.an) return;
+    zug.an = false;
+    if (!zug.los) return;
+    document.body.classList.remove('zieht');
+    const [t0, y0] = zug.pkt[0], [t1, y1] = zug.pkt[zug.pkt.length - 1];
+    const v = t1 > t0 ? (y1 - y0) / (t1 - t0) : 0; // px/ms, positiv = nach unten
+    const ziel = blattPx() - v * 0.998 / (1 - 0.998);
+    const p = stufenPx();
+    const naechste = STUFEN.reduce((a, b) => (Math.abs(p[b] - ziel) < Math.abs(p[a] - ziel) ? b : a), 'mini');
+    hoehe(naechste, { spuerbar: true });
+    karte && karte.invalidateSize({ pan: false });
+  };
+  zone.addEventListener('touchend', zugEnde, { passive: true });
+  zone.addEventListener('touchcancel', zugEnde, { passive: true });
 
   const suche = $('#suche');
   suche.addEventListener('focus', () => { hoehe('gross'); if (S.tab !== 'orte') { S.tab = 'orte'; S.ort = null; zeichne(); } });

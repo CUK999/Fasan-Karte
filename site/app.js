@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.4';
+  const VERSION = '2.5';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -18,6 +18,7 @@
     verkehr: '<rect x="6" y="4" width="12" height="13" rx="2.5"/><path d="M6 11h12M9 20l-1.5 2M15 20l1.5 2M9.5 14.5h.01M14.5 14.5h.01"/>',
     plan: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/>',
     live: '<path d="M12 3 19 20l-7-3.6L5 20z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
     orte: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
     herz: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.1a4.3 4.3 0 0 1 7.5 2.7C19.5 15.4 12 20 12 20z"/>',
     mehr: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
@@ -95,6 +96,7 @@
     { id: 'abends', label: 'Abends', kats: ['Bar', 'Fado', 'Getränk'] },
     { id: 'verkehr', label: 'Verkehr', kats: ['Verkehr'] },
     { id: 'shoppen', label: 'Shoppen', kats: ['Shoppen'] },
+    { id: 'strand', label: 'Strand', kats: ['Strand'] },
     { id: 'foto', label: 'Foto', kats: ['Foto'] }, // eigene Ebene: nur sichtbar, wenn „Foto“ gewählt ist
   ];
   const THEMES = [
@@ -225,6 +227,7 @@
   if (!G.plaene) G.plaene = {};
   if (!G.gesehen) G.gesehen = {};
   if (!G.einkauf) G.einkauf = {};
+  if (!G.eigene) G.eigene = {};
   const neueId = () => (crypto.getRandomValues ? Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => b.toString(36).padStart(2, '0')).join('').slice(0, 10) : Math.random().toString(36).slice(2, 12));
   // Live-Abgleich (Funk, siehe funk.js): Zustand nur im Speicher
   const F = { an: false, sig: null, timer: {}, leuteOrt: new Map(), gehoert: new Map(), status: { an: false, verbunden: 0, gesamt: 0 }, ortT: 0, ortP: null, warteZeichnen: false };
@@ -286,7 +289,9 @@
     for (const [id, x] of Object.entries(G.gesehen)) gs[id] = [x.w, x.t];
     const ek = {};
     for (const [id, x] of Object.entries(G.einkauf)) ek[id] = [x.t, x.von, x.d ? 1 : 0, x.m, x.x ? 1 : 0];
-    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko, ep, gs, ek }));
+    const eo = {};
+    for (const [id, x] of Object.entries(G.eigene)) eo[id] = [x.n, x.k, x.y, x.lat, x.lon, x.x || '', x.von, x.t, x.w ? 1 : 0, x.q || '', x.a || '', x.oh || ''];
+    const roh = new TextEncoder().encode(JSON.stringify(opt.nurIch ? { v: 1, l, k: G.k || null } : { v: 1, l, u, tp, pn, k: G.k || null, n, ko, ep, gs, ek, eo }));
     if ('CompressionStream' in window) {
       try {
         const z = new Uint8Array(await new Response(new Blob([roh]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer());
@@ -304,6 +309,18 @@
   }
   function fuehreZusammen(d) {
     const neu = [];
+    neu.eigene = 0;
+    for (const [id, x] of Object.entries(d.eo && typeof d.eo === 'object' ? d.eo : {})) {
+      if (!Array.isArray(x) || id.length > 20) continue;
+      const [n, k, y, lat, lon, notiz, von, t, weg, q, a, oh] = x;
+      const alt = G.eigene[id];
+      if (alt && (+t || 0) <= (alt.t || 0)) continue;
+      if (typeof n !== 'string' || !n.trim() || !(+lat > -90 && +lat < 90 && +lon > -180 && +lon < 180)) continue;
+      G.eigene[id] = { n: n.trim().slice(0, 80), k: EIGEN_KATS.some((e) => e[0] === k) ? k : EIGEN_KATS[0][0], y: TYP_NAME[y] ? y : '', lat: +lat, lon: +lon, x: String(notiz || '').slice(0, 300),
+        von: String(von || '').slice(0, 16), t: +t || 0, w: weg ? 1 : 0, q: String(q || '').slice(0, 40), a: String(a || '').slice(0, 120), oh: String(oh || '').slice(0, 200) };
+      neu.eigene += 1;
+    }
+    if (neu.eigene) eigeneEinbauen();
     for (const [id, p] of Object.entries(d.l || {})) {
       if (G.ich && id === G.ich.id) continue; // eigene Daten bleiben maßgeblich
       if (!Array.isArray(p)) continue;
@@ -404,6 +421,7 @@
     if (d.ep && typeof d.ep === 'object') for (const [id, x] of Object.entries(G.plaene)) { const y = d.ep[id]; if (!Array.isArray(y) || (+y[5] || 0) < (x.t || 0)) return true; }
     if (d.gs && typeof d.gs === 'object') for (const [id, x] of Object.entries(G.gesehen)) { const y = d.gs[id]; if (!Array.isArray(y) || (+y[1] || 0) < (x.t || 0)) return true; }
     if (d.ek && typeof d.ek === 'object') for (const [id, x] of Object.entries(G.einkauf)) { const y = d.ek[id]; if (!Array.isArray(y) || (+y[3] || 0) < (x.m || 0)) return true; }
+    if (d.eo && typeof d.eo === 'object') for (const [id, x] of Object.entries(G.eigene)) { const y = d.eo[id]; if (!Array.isArray(y) || (+y[7] || 0) < (x.t || 0)) return true; }
     return false;
   }
   const paketLink = async () => `${location.origin}${location.pathname}#g=${await packe()}`;
@@ -480,7 +498,8 @@
       } else if (neu.pin) toast(`Angepinnt von ${G.pin.n || 'jemandem'}: ${G.pin.x}`);
       const aktiv = aktiverEigenplan();
       if (aktiv && neu.plaene.includes(S.plan.slice(2)) && aktiv.e !== (G.ich && G.ich.id)) toast(aktiv.x ? `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ gelöscht.` : `${personName(aktiv.e)} hat den Plan „${aktiv.n}“ geändert.`);
-      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten || neu.plaene.length || neu.gesehen || neu.einkauf) neuZeichnen();
+      if (neu.length || neu.nachrichten.length || neu.pin !== undefined || neu.kosten || neu.plaene.length || neu.gesehen || neu.einkauf || neu.eigene) neuZeichnen();
+      if (neu.eigene && !S.ort) karteZeichnen();
       leisteZahl();
       return;
     }
@@ -491,7 +510,7 @@
       if (!(lat > -90 && lat < 90 && lon > -180 && lon < 180) || !(ts > Date.now() - 3 * 3600e3 && ts < Date.now() + 300e3)) return;
       const alt = F.leuteOrt.get(m.id);
       if (alt && alt.ts >= ts) return;
-      F.leuteOrt.set(m.id, { n: String(m.n || 'Jemand').slice(0, 40), lat, lon, acc: Math.min(+m.acc || 0, 2000), ts });
+      F.leuteOrt.set(m.id, { n: String(m.n || 'Jemand').slice(0, 40), lat, lon, acc: Math.min(+m.acc || 0, 2000), ts, r: Date.now() });
       zeichneLeute();
       if ((S.tab === 'gruppe' || S.tab === 'live') && !S.ort) neuZeichnen();
     }
@@ -623,6 +642,7 @@
   }
   function inPlaenen(o) {
     const out = [];
+    if (o.eigen) return out;
     for (const p of ['A', 'B', 'C']) for (const t of TAGE) {
       const st = schritte(p, t.id).filter((s) => s.ort);
       const i = st.findIndex((s) => s.ort === o.name || (s.alt || []).includes(o.name));
@@ -649,6 +669,7 @@
       if (S.extra.has('offen')) { const st = status(o); if (!st || !st.offen) return false; }
       if (S.extra.has('offenNicht') && m.fertig) return false;
       if (S.extra.has('gruppe') && !gruppenStimmen(o.id).ja.length) return false;
+      if (S.extra.has('eigen') && !o.eigen) return false;
       return true;
     });
   }
@@ -676,6 +697,8 @@
       else if (S.hoehe === 'mitte' || S.hoehe === 'gross') hoehe('klein');
     });
     karte.on('zoomend', () => namenZoom());
+    // Langes Drücken auf die Karte: hier einen eigenen Ort eintragen (sichtbarer Zwilling: „Eigenen Ort eintragen“ → „Auf der Karte wählen“)
+    karte.on('contextmenu', (e) => { if (N.aktiv) return; haptik(20); eigenNeu({ lat: e.latlng.lat, lon: e.latlng.lng }); });
     karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.tab === 'orte' || S.tab === 'live') hoehe(S.hoehe === 'mini' ? 'klein' : 'mini'); else if (S.hoehe !== 'klein') hoehe('klein'); });
   }
 
@@ -683,10 +706,11 @@
   function zeichneLeute() {
     if (!leuteEbene) return;
     leuteEbene.clearLayers();
+    if (!karte.getPane('leute')) { const pane = karte.createPane('leute'); pane.style.zIndex = 655; }
     for (const [, x] of F.leuteOrt) {
-      const alt = Date.now() - x.ts > 600000;
-      L.marker([x.lat, x.lon], { icon: L.divIcon({ className: 'punkt person-punkt' + (alt ? ' alt' : ''), html: `<span class="p">${initialen(x.n).replace(/[<>&"]/g, '')}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }), title: x.n, zIndexOffset: 800, keyboard: false })
-        .bindTooltip(`${x.n.replace(/[<>&"]/g, '')} · ${zeitHer(x.ts)}`, { permanent: true, direction: 'right', offset: [14, 0], className: 'name-label person-label', interactive: false })
+      const alt = Date.now() - (x.r || x.ts) > 600000;
+      L.marker([x.lat, x.lon], { pane: 'leute', icon: L.divIcon({ className: 'punkt person-punkt' + (alt ? ' alt' : ''), html: `<span class="p">${initialen(x.n).replace(/[<>&"]/g, '')}</span>`, iconSize: [44, 44], iconAnchor: [22, 22] }), title: x.n, zIndexOffset: 800, keyboard: false })
+        .bindTooltip(`${x.n.replace(/[<>&"]/g, '')} · ${zeitHer(x.r || x.ts)}`, { permanent: true, direction: 'right', offset: [14, 0], className: 'name-label person-label', interactive: false })
         .addTo(leuteEbene);
     }
   }
@@ -759,7 +783,15 @@
       });
       if (anpassen && l.length) passeAn(l.slice(0, 6).map((o) => [o.lat, o.lon]));
     }
-    if (anpassen && punkte.length && !S.follow && !S.ort && S.tab !== 'live') passeAn(punkte);
+    if (S.eigen && S.eigen.lat != null && S.tab === 'orte' && !S.ort) {
+      const nadel = L.marker([S.eigen.lat, S.eigen.lon], { draggable: true, autoPan: true, zIndexOffset: 1200, title: 'Neuer Ort, zum Verschieben ziehen', alt: 'Neuer Ort',
+        icon: L.divIcon({ className: 'eigen-nadel', html: '<span class="kopf"></span><span class="spitze"></span>', iconSize: [60, 60], iconAnchor: [30, 56] }) })
+        .on('dragend', (e) => { const ll = e.target.getLatLng(); S.eigen.lat = ll.lat; S.eigen.lon = ll.lng; haptik(); })
+        .addTo(ebene);
+      if (anpassen) zeigeAufKarte(S.eigen, Math.max(karte.getZoom(), 17));
+      void nadel;
+    }
+    if (anpassen && punkte.length && !S.follow && !S.ort && S.tab !== 'live' && !S.eigen) passeAn(punkte);
     namenZoom();
   }
   // Namen an den Punkten erst ab näherem Zoom, sonst wird es unübersichtlich
@@ -864,11 +896,11 @@
     if (S.letzteAnsicht && S.letzteAnsicht !== ansichtNeu) { box.classList.remove('neu'); void box.offsetWidth; box.classList.add('neu'); }
     S.letzteAnsicht = ansichtNeu;
     // Suchfeld nur, wo gesucht wird (Plan, Orte); unter Live, Gruppe und Mehr wäre es nur Ablenkung
-    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr'].includes(S.tab);
+    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr'].includes(S.tab) || (S.tab === 'orte' && !!S.eigen);
     if (S.ort) zeichneOrt(box);
     else if (S.tab === 'plan') zeichnePlan(box);
     else if (S.tab === 'live') (S.nah ? zeichneNah(box) : zeichneLive(box));
-    else if (S.tab === 'orte') (S.nah ? zeichneNah(box) : zeichneOrte(box));
+    else if (S.tab === 'orte') (S.eigen ? zeichneEigen(box) : S.nah ? zeichneNah(box) : zeichneOrte(box));
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
     else if (S.tab === 'gruppe') zeichneGruppe(box);
     else zeichneMehr(box);
@@ -884,6 +916,7 @@
     if (o.ort && o.ort !== 'Lisboa') unter.push(o.ort);
     if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(`${strecke(d)} · ${gehzeit(d)} Min.`); }
     if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
+    if (o.eigen) unter.push('eigener Ort');
     const gm = gruppeMark(o.id).fav.length;
     if (gm) unter.push(`♥ ${gm} in der Gruppe`);
     const gw = gesehenVon(o.id).length, ga = allePersonen().length;
@@ -1202,7 +1235,7 @@
       if (ico) b.append(ic(ico)); b.append(label); return b;
     };
     const extras = el('div', { class: 'filterpanel nur-voll', role: 'group', 'aria-label': 'Weitere Filter', hidden: !S.filterOffen },
-      ex('tipp', 'Geheimtipps', 'stern'), ex('offen', 'Jetzt offen'), ex('offenNicht', 'Noch nicht erledigt', 'haken'), ex('fav', 'Gemerkt', 'herz'), ex('gruppe', 'Gruppe will hin', 'gruppe'), ex('aus', 'Ausgeblendete zeigen', 'aus'));
+      ex('tipp', 'Geheimtipps', 'stern'), ex('offen', 'Jetzt offen'), ex('offenNicht', 'Noch nicht erledigt', 'haken'), ex('fav', 'Gemerkt', 'herz'), ex('gruppe', 'Gruppe will hin', 'gruppe'), ex('eigen', 'Eigene Orte', 'notiz'), ex('aus', 'Ausgeblendete zeigen', 'aus'));
     const nExtra = S.extra.size;
     const sortName = S.sort === 'naehe' ? 'Nähe' : 'Name';
     const zeile = el('div', { class: 'filterzeile' },
@@ -1214,8 +1247,11 @@
     const aktiv = S.gruppen.size + S.extra.size;
     const zuruecksetzen = aktiv ? el('button', { type: 'button', class: 'knopf flach', style: 'margin-top:4px', onclick: () => { S.gruppen.clear(); S.extra.clear(); speicher.set('gruppen', []); speicher.set('extra', []); zeichne({ anpassen: true }); } }, ic('x'), `Filter zurücksetzen (${aktiv})`) : null;
     const kopf = S.suche
-      ? el('p', { class: 'leise', style: 'margin:4px 0 0' }, `${liste.length} Treffer für „${S.suche}“`)
-      : el('div', {}, nahChips(), gruppen, zeile, extras, zuruecksetzen,
+      ? el('div', {}, el('p', { class: 'leise', style: 'margin:4px 0 0' }, `${liste.length} Treffer für „${S.suche}“ in euren Orten`),
+        el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:8px', onclick: () => eigenNeu({ q: S.suche, suchen: true }) }, ic('suche'), `Bei OpenStreetMap suchen`))
+      : el('div', {}, nahChips(), gruppen, zeile,
+        el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:8px', onclick: () => eigenNeu() }, ic('plus'), 'Eigenen Ort eintragen'),
+        extras, zuruecksetzen,
         el('p', { class: 'leise klein', style: 'margin:12px 0 0' }, `${liste.length} von ${ORTE.length} Orten${S.sort === 'naehe' && !S.me ? ' · Standort fehlt, sortiert nach Name' : ''}`));
     setze(box, kopf,
       liste.length ? el('ul', { class: 'liste' }, liste.map((o) => eintragOrt(o)))
@@ -1696,6 +1732,165 @@
         zeichne({ scroll: true, karte: false });
       } }, E.funk === false ? 'Live-Abgleich einschalten' : 'Live-Abgleich ausschalten'));
   }
+  // ---------- Eigene Orte (Wunsch 25.10.2026) ----------
+  // Eintragen über die Suche bei OpenStreetMap, am eigenen Standort oder auf der Karte (Nadel ziehen, langes Drücken).
+  // Suche: Nominatim der OSM Foundation, nur auf Knopfdruck, höchstens 1 Anfrage pro Sekunde, kein Vorschlagen beim Tippen,
+  // Namensnennung (operations.osmfoundation.org/policies/nominatim, abgerufen 25.10.2026). Die Adresse des Dienstes steht in
+  // dienste.json, damit er sich ohne App-Änderung abschalten lässt (verlangt die Richtlinie). Eigene Orte gleichen sich mit der Gruppe ab.
+  const EIGEN_KATS = [
+    ['Sehenswürdigkeit', 'denkmal', 'Sehenswürdigkeit'], ['Museum', 'museum', 'Museum'], ['Aussichtspunkt', 'aussicht', 'Aussicht'],
+    ['Strand', 'kueste', 'Strand'], ['Essen für alle', 'restaurant', 'Restaurant'], ['Vegetarisch', 'restaurant', 'Vegetarisch'],
+    ['Café', 'cafe', 'Café'], ['Bar', 'bar', 'Bar'], ['Shoppen', 'shop', 'Laden'], ['Foto', 'foto', 'Foto-Spot'], ['Verkehr', 'bahn', 'Verkehr'],
+  ];
+  function eigeneEinbauen() {
+    ORTE = ORTE.filter((o) => !o.eigen);
+    for (const [id, o] of [...NACH_ID]) if (o.eigen) NACH_ID.delete(id);
+    for (const [n, o] of [...NACH_NAME]) if (o.eigen) NACH_NAME.delete(n);
+    for (const [id, x] of Object.entries(G.eigene)) {
+      if (x.w) continue;
+      const k = EIGEN_KATS.find((e) => e[0] === x.k) || EIGEN_KATS[0];
+      const o = { id: 'e-' + id, name: x.n, kategorie: k[0], typ: x.y || k[1], lat: x.lat, lon: x.lon, adresse: x.a || '', notiz: '', ort: '',
+        eigen: { id, von: x.von, t: x.t, x: x.x || '', q: x.q || '' }, infos: x.oh ? { oeffnungszeiten: x.oh } : undefined };
+      ORTE.push(o); NACH_ID.set(o.id, o); if (!NACH_NAME.has(o.name)) NACH_NAME.set(o.name, o);
+    }
+  }
+  function eigenNeu(vorgabe = {}) {
+    S.tab = 'orte'; speicher.set('tab', 'orte'); S.ort = null; S.nah = null;
+    S.eigen = Object.assign({ n: '', k: '', x: '', lat: null, lon: null, q: '', treffer: null }, vorgabe);
+    if (vorgabe.lat != null) { hoehe('mitte'); zeichne({ anpassen: true }); setTimeout(() => { const f = $('#eigen-name'); if (f) f.focus({ preventScroll: true }); }, 350); return; }
+    hoehe('gross'); zeichne({ anpassen: false });
+    if (vorgabe.suchen && vorgabe.q) osmSuchen(vorgabe.q);
+  }
+  function eigenAbbrechen() { S.eigen = null; zeichne({ anpassen: true }); }
+  // Sichtbare Kartenmitte (über dem Blatt)
+  function sichtMitte() {
+    const h = innerWidth >= 760 ? innerHeight : innerHeight - blattPx() - $('#leiste').offsetHeight;
+    const ll = karte.containerPointToLatLng(L.point(innerWidth >= 760 ? (innerWidth - 440) / 2 : innerWidth / 2, Math.max(60, h / 2)));
+    return { lat: ll.lat, lon: ll.lng };
+  }
+  let osmZuletzt = 0;
+  function osmKategorie(t) {
+    const c = t.category, y = t.type;
+    if (c === 'tourism' && ['museum', 'gallery'].includes(y)) return 'Museum';
+    if (c === 'tourism' && y === 'viewpoint') return 'Aussichtspunkt';
+    if ((c === 'natural' && y === 'beach') || (c === 'leisure' && y === 'beach_resort')) return 'Strand';
+    if (c === 'amenity' && ['restaurant', 'fast_food', 'food_court'].includes(y)) return 'Essen für alle';
+    if (c === 'amenity' && y === 'cafe') return 'Café';
+    if (c === 'amenity' && ['bar', 'pub', 'biergarten', 'nightclub'].includes(y)) return 'Bar';
+    if (c === 'shop') return 'Shoppen';
+    if (['railway', 'public_transport', 'aeroway'].includes(c) || (c === 'amenity' && ['ferry_terminal', 'bus_station'].includes(y))) return 'Verkehr';
+    return 'Sehenswürdigkeit';
+  }
+  async function osmSuchen(q) {
+    q = (q || '').trim();
+    if (q.length < 2) { toast('Bitte mindestens zwei Zeichen.'); return; }
+    S.eigen.q = q; S.eigen.treffer = 'laedt'; zeichne({ scroll: true, karte: false });
+    try {
+      const cfg = await fetch('dienste.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+      const url = cfg.suche === undefined ? 'https://nominatim.openstreetmap.org/search' : cfg.suche;
+      if (!url) throw new Error('aus');
+      const warte = 1100 - (Date.now() - osmZuletzt);
+      if (warte > 0) await new Promise((r) => setTimeout(r, warte));
+      osmZuletzt = Date.now();
+      const p = new URLSearchParams({ q, format: 'jsonv2', limit: '8', extratags: '1', 'accept-language': 'de' });
+      if (karte) { const b = karte.getBounds(); p.set('viewbox', [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].map((v) => v.toFixed(4)).join(',')); }
+      const r = await fetch(`${url}?${p}`);
+      if (!r.ok) throw new Error('http ' + r.status);
+      const d = await r.json();
+      if (!S.eigen) return;
+      S.eigen.treffer = (Array.isArray(d) ? d : []).map((t) => ({
+        n: t.name || String(t.display_name || '').split(',')[0], lat: +t.lat, lon: +t.lon, k: osmKategorie(t),
+        a: String(t.display_name || '').split(',').slice(0, 3).join(',').trim(), q: t.osm_type && t.osm_id ? `osm:${t.osm_type}/${t.osm_id}` : 'osm',
+        oh: (t.extratags && t.extratags.opening_hours) || '', art: [t.category, t.type].filter(Boolean).join('=') }))
+        .filter((t) => t.n && Number.isFinite(t.lat) && Number.isFinite(t.lon));
+    } catch (e) {
+      if (!S.eigen) return;
+      S.eigen.treffer = { fehler: String(e.message) === 'aus' ? 'Die Suche ist gerade abgeschaltet.' : navigator.onLine === false ? 'Ohne Internet geht die Suche nicht. Setze den Punkt auf der Karte.' : 'Die Suche hat nicht geantwortet. Später noch einmal, oder den Punkt auf der Karte setzen.' };
+    }
+    zeichne({ scroll: true, karte: false });
+  }
+  function zeichneEigen(box) {
+    const f = S.eigen, bearbeiten = !!f.id;
+    const kopf = el('div', { class: 'nah-kopf' }, el('h3', {}, bearbeiten ? 'Ort bearbeiten' : 'Eigenen Ort eintragen'),
+      el('button', { type: 'button', class: 'knopf flach', onclick: eigenAbbrechen }, ic('x'), 'Abbrechen'));
+    if (f.lat == null) {
+      const feld = el('input', { id: 'eigen-suche', type: 'search', value: f.q || '', placeholder: 'Name oder Adresse', enterkeyhint: 'search', autocomplete: 'off', 'aria-label': 'Ort bei OpenStreetMap suchen' });
+      feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); feld.blur(); osmSuchen(feld.value); } });
+      const t = f.treffer;
+      const treffer = t === 'laedt' ? el('p', { class: 'leise' }, 'Sucht …')
+        : t && t.fehler ? el('p', { role: 'alert' }, t.fehler)
+          : Array.isArray(t) ? (t.length ? el('ul', { class: 'liste' }, t.map((x) => el('li', { class: 'eintrag' },
+            el('button', { type: 'button', class: 'auf', onclick: () => { Object.assign(S.eigen, { n: x.n, k: x.k, lat: x.lat, lon: x.lon, a: x.a, q: x.q, oh: x.oh, treffer: null }); haptik(); hoehe('mitte'); zeichne({ anpassen: true }); } },
+              el('span', { class: 'marker g-' + gruppeVon(x.k) }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL[(EIGEN_KATS.find((e) => e[0] === x.k) || EIGEN_KATS[0])[1]] || ''}</svg>`, style: 'display:contents' })),
+              el('span', { class: 'text' }, el('span', { class: 'titel' }, x.n), el('span', { class: 'unter' }, [x.a, S.me ? strecke(meter(S.me, x)) : null].filter(Boolean).join(' · '))))))) : el('p', {}, `Nichts gefunden für „${f.q}“. Setze den Punkt auf der Karte.`))
+            : null;
+      setze(box, kopf,
+        el('div', { class: 'feld' }, feld, el('button', { type: 'button', class: 'knopf haupt', onclick: () => { feld.blur(); osmSuchen(feld.value); } }, 'Suchen')),
+        treffer,
+        el('div', { style: 'display:grid;gap:8px;margin-top:12px' },
+          el('button', { type: 'button', class: 'knopf breit', onclick: () => {
+            if (!S.me) { starteGps(false); toast('Suche deinen Standort … dann nochmal tippen.'); return; }
+            Object.assign(S.eigen, { lat: S.me.lat, lon: S.me.lon }); hoehe('mitte'); zeichne({ anpassen: true });
+          } }, ic('standort'), 'Hier, wo ich gerade bin'),
+          el('button', { type: 'button', class: 'knopf breit', onclick: () => { hoehe('klein'); setTimeout(() => { Object.assign(S.eigen, sichtMitte()); zeichne({ anpassen: false }); }, 360); } }, ic('orte'), 'Auf der Karte wählen')),
+        el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Tipp: Lange auf die Karte drücken setzt den Punkt direkt.'),
+        el('p', { class: 'quelle', style: 'margin-top:8px' }, 'Suche: Nominatim, Daten © OpenStreetMap-Mitwirkende (ODbL). Deine Suchwörter gehen an die OpenStreetMap Foundation, dein Standort nicht.'));
+      return;
+    }
+    const name = el('input', { id: 'eigen-name', type: 'text', maxlength: '80', value: f.n || '', placeholder: 'Name des Ortes', autocomplete: 'off', 'aria-label': 'Name des Ortes' });
+    name.addEventListener('input', () => { S.eigen.n = name.value; });
+    const notiz = el('textarea', { class: 'notiz-feld', maxlength: '300', placeholder: 'Notiz für alle, zum Beispiel: „Toller Blick, Eingang hinten“', 'aria-label': 'Notiz' });
+    notiz.value = f.x || ''; notiz.addEventListener('input', () => { S.eigen.x = notiz.value; });
+    const kats = el('div', { class: 'chips wrap', role: 'group', 'aria-label': 'Art des Ortes' },
+      EIGEN_KATS.map(([k, , label]) => el('button', { type: 'button', class: 'chip g-' + gruppeVon(k), 'aria-pressed': String((f.k || 'Sehenswürdigkeit') === k), onclick: () => { S.eigen.k = k; haptik(); zeichne({ scroll: true, karte: false }); } },
+        el('span', { class: 'punktfarbe' }), label)));
+    const speichern = () => {
+      const n = (S.eigen.n || '').trim();
+      if (!n) { toast('Bitte einen Namen eingeben.'); name.focus(); return; }
+      const id = eigenSpeichern(S.eigen);
+      S.eigen = null; haptik(15);
+      oeffneOrt(id);
+      toast(G.ich && G.ich.name ? 'Gespeichert. Deine Gruppe sieht den Ort.' : 'Gespeichert, auf diesem Handy.');
+    };
+    // Gibt es den Ort schon? (gleicher Name oder näher als 25 m)
+    const schon = ORTE.find((o) => hatPos(o) && !(o.eigen && o.eigen.id === f.id) && ((f.n && falte(o.name) === falte(f.n)) || meter(o, f) < 25));
+    setze(box, kopf,
+      schon ? el('div', { class: 'hilfe', role: 'note', style: 'margin:0 0 10px' }, el('span', {}, `Gibt es schon: „${schon.name}“ (${strecke(meter(schon, f))} entfernt).`),
+        el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.eigen = null; oeffneOrt(schon.id); } }, 'Öffnen')) : null,
+      el('p', { class: 'hilfe', style: 'margin:0 0 10px' }, el('span', {}, 'Die Nadel auf der Karte zeigt den Ort. Zum Verschieben ziehen.')),
+      el('label', { class: 'klein leise', for: 'eigen-name' }, 'Name'), el('div', { class: 'feld' }, name),
+      el('p', { class: 'klein leise', style: 'margin:12px 0 6px' }, 'Art'), kats,
+      el('p', { class: 'klein leise', style: 'margin:12px 0 6px' }, 'Notiz (freiwillig)'), notiz,
+      f.a ? el('p', { class: 'leise klein', style: 'margin:8px 0 0' }, `Adresse laut OpenStreetMap: ${f.a}`) : null,
+      el('p', { class: 'leise klein', style: 'margin:8px 0 0' }, G.ich && G.ich.name ? 'Deine Gruppe sieht den Ort, deine Notiz und deinen Namen.' : 'Bleibt auf diesem Handy, bis du einer Gruppe beitrittst.'),
+      el('div', { class: 'reihe', style: 'margin-top:12px' },
+        el('button', { type: 'button', class: 'knopf', onclick: () => { Object.assign(S.eigen, { lat: null, lon: null }); hoehe('gross'); zeichne({ anpassen: false }); } }, 'Anderer Ort'),
+        el('button', { type: 'button', class: 'knopf haupt', style: 'flex:1', onclick: speichern }, ic('haken'), 'Speichern')));
+  }
+  function eigenSpeichern(f) {
+    const id = f.id || neueId();
+    const alt = G.eigene[id] || {};
+    const k = EIGEN_KATS.find((e) => e[0] === f.k) || EIGEN_KATS[0];
+    ich();
+    G.eigene[id] = { n: f.n.trim().slice(0, 80), k: k[0], y: k[1], lat: +(+f.lat).toFixed(6), lon: +(+f.lon).toFixed(6), x: (f.x || '').trim().slice(0, 300),
+      von: alt.von || G.ich.id, t: Date.now(), w: 0, q: (f.q || alt.q || 'hand').slice(0, 40), a: (f.a || alt.a || '').slice(0, 120), oh: (f.oh || alt.oh || '').slice(0, 200) };
+    speichereG(); eigeneEinbauen();
+    return 'e-' + id;
+  }
+  function eigenBlock(o) {
+    const e = o.eigen, x = G.eigene[e.id];
+    const quelle = /^osm:/.test(e.q) ? el('span', {}, 'Lage und Name aus ', el('a', { href: `https://www.openstreetmap.org/${e.q.slice(4)}`, target: '_blank', rel: 'noopener' }, 'OpenStreetMap'), ' (ODbL).') : 'Von Hand auf der Karte gesetzt.';
+    return el('section', { class: 'abschnitt' }, el('h3', {}, 'Eigener Ort'),
+      e.x ? el('p', { style: 'margin:0 0 6px' }, e.x) : null,
+      el('p', { class: 'quelle', style: 'margin:0' }, `Eingetragen von ${G.ich && e.von === G.ich.id ? 'dir' : personName(e.von)} · ${uhrzeit(e.t)}. `, quelle),
+      el('div', { class: 'reihe', style: 'margin-top:10px' },
+        el('button', { type: 'button', class: 'knopf', onclick: () => { schliesseOrt(); eigenNeu({ id: e.id, n: x.n, k: x.k, x: x.x, lat: x.lat, lon: x.lon, a: x.a, q: x.q, oh: x.oh }); } }, ic('notiz'), 'Bearbeiten'),
+        el('button', { type: 'button', class: 'knopf warn', onclick: () => {
+          x.w = 1; x.t = Date.now(); speichereG(); eigeneEinbauen(); schliesseOrt();
+          toast(`„${x.n}“ gelöscht.`, { aktion: 'Rückgängig', fn: () => { x.w = 0; x.t = Date.now(); speichereG(); eigeneEinbauen(); zeichne(); } });
+        } }, ic('aus'), 'Löschen')));
+  }
+
   // ---------- Live: frei laufen (Wunsch 24.10.2026) ----------
   // Eigene Ansicht zum Gehen, damit „Orte“ wieder zum Suchen da ist: Karte folgt dir, alle Orte und die Gruppe sind
   // sichtbar, das Blatt bleibt klein. Oben: Status, nächster Planstopp, wer gerade live ist.
@@ -1752,7 +1947,7 @@
     const imGruppe = !!(G.ich && G.ich.name);
     const leute = [...F.leuteOrt].sort((a, b) => (S.me ? meter(S.me, a[1]) - meter(S.me, b[1]) : b[1].ts - a[1].ts));
     const zeigeAlle = () => {
-      const pkt = leute.map(([, x]) => [x.lat, x.lon]); if (S.me) pkt.push([S.me.lat, S.me.lon]);
+      const pkt = leute.filter(([, x]) => Date.now() - (x.r || x.ts) < 600000).map(([, x]) => [x.lat, x.lon]); if (S.me) pkt.push([S.me.lat, S.me.lon]);
       S.follow = false; gpsKnopf(); if (pkt.length) passeAn(pkt); haptik();
       zeichne({ scroll: true, karte: false });
     };
@@ -1760,10 +1955,10 @@
       ? el('button', { type: 'button', class: 'live-hinweis', onclick: () => { S.tab = 'gruppe'; speicher.set('tab', 'gruppe'); hoehe('gross'); zeichne(); } },
         ic('gruppe'), el('span', {}, el('strong', {}, 'Gruppe live sehen'), el('small', {}, 'Unter „Gruppe“ beitreten, dann seht ihr euch hier')))
       : el('div', { class: 'live-leute', role: 'group', 'aria-label': 'Gruppe live' },
-        leute.map(([, x]) => el('button', { type: 'button', class: 'person-chip' + (Date.now() - x.ts > 600000 ? ' alt' : ''), 'aria-label': `${x.n}, ${S.me ? strecke(meter(S.me, x)) + ' entfernt, ' : ''}Stand ${zeitHer(x.ts)}. Auf der Karte zeigen`,
+        leute.map(([, x]) => el('button', { type: 'button', class: 'person-chip' + (Date.now() - (x.r || x.ts) > 600000 ? ' alt' : ''), 'aria-label': `${x.n}, ${S.me ? strecke(meter(S.me, x)) + ' entfernt, ' : ''}Stand ${zeitHer(x.r || x.ts)}. Auf der Karte zeigen`,
           onclick: () => { S.follow = false; gpsKnopf(); zeigeAufKarte(x, 17); haptik(); zeichne({ scroll: true, karte: false }); } },
-          el('span', { class: 'marker person' + (Date.now() - x.ts > 600000 ? ' alt' : '') }, initialen(x.n)),
-          el('span', { class: 'text' }, el('strong', {}, x.n), el('small', {}, [S.me ? strecke(meter(S.me, x)) : null, zeitHer(x.ts)].filter(Boolean).join(' · '))))),
+          el('span', { class: 'marker person' + (Date.now() - (x.r || x.ts) > 600000 ? ' alt' : '') }, initialen(x.n)),
+          el('span', { class: 'text' }, el('strong', {}, x.n), el('small', {}, [S.me ? strecke(meter(S.me, x)) : null, zeitHer(x.r || x.ts)].filter(Boolean).join(' · '))))),
         leute.length ? el('button', { type: 'button', class: 'chip', onclick: zeigeAlle }, ic('gruppe'), 'Alle zeigen') : null,
         teileOrt() ? el('span', { class: 'chip still' }, ic('standort'), `Du teilst bis ${uhrzeit(E.teilenBis)}`)
           : el('button', { type: 'button', class: 'chip', onclick: () => teilenStart(Date.now() + 3600e3) }, ic('standort'), 'Mich zeigen (1 Std.)'),
@@ -1783,7 +1978,8 @@
       el('h3', { class: 'live-h' }, 'Schnell finden'), schnell,
       el('h3', { class: 'live-h' }, 'Orte in der Nähe'),
       nah.length ? el('ul', { class: 'liste' }, nah.map(([o]) => eintragOrt(o)))
-        : el('p', { class: 'leise klein' }, S.me ? 'Im Umkreis von 1 km liegt keiner eurer Orte.' : 'Mit Standort siehst du hier, was um dich herum liegt.'));
+        : el('p', { class: 'leise klein' }, S.me ? 'Im Umkreis von 1 km liegt keiner eurer Orte.' : 'Mit Standort siehst du hier, was um dich herum liegt.'),
+      S.me ? el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:12px', onclick: () => eigenNeu({ lat: S.me.lat, lon: S.me.lon }) }, ic('plus'), 'Hier einen Ort eintragen') : null);
   }
   function nachrichtenTeil() {
     const eingabe = el('input', { id: 'nachricht', type: 'text', maxlength: '300', placeholder: 'Nachricht an alle', enterkeyhint: 'send', autocomplete: 'off', 'aria-label': 'Nachricht an die Gruppe' });
@@ -2482,7 +2678,7 @@
         : el('div', { class: `bild-ersatz g-${gruppeVon(o.kategorie)}` }, symbol(o), el('span', {}, TYP_NAME[o.typ] || o.kategorie)),
       el('h2', { class: 'ort-titel' }, o.name),
       el('div', { class: 'ort-unter' },
-        el('span', { class: 'marker g-' + g, style: 'width:28px;height:28px' }, ic(g)), o.kategorie,
+        el('span', { class: 'marker g-' + g, style: 'width:28px;height:28px' }, SVG[g] ? ic(g) : symbol(o)), o.kategorie,
         o.ort && o.ort !== 'Lisboa' ? el('span', {}, '· ' + o.ort) : null,
         d != null ? el('span', {}, `· ${strecke(d)}, etwa ${gehzeit(d)} Min. zu Fuß`) : null,
         o.dauer ? el('span', {}, `· vor Ort ${o.dauer} Min.`) : null),
@@ -2507,6 +2703,7 @@
       stimmBlock(o),
       gesehenBlock(o),
       gruppeMarkBlock(o),
+      o.eigen ? eigenBlock(o) : null,
       o.notiz ? el('section', { class: 'abschnitt' }, el('h3', {}, o.kategorie === 'Foto' ? 'Foto-Tipp' : 'Unser Tipp'), el('p', { style: 'margin:0' }, notizText(o)),
         el('p', { class: 'quelle', style: 'margin-top:4px' }, /Quelle|abgerufen|[Ll]aut |\d{2}\.\d{4}\)/.test(o.notiz) ? 'Preise und Zeiten können sich ändern.' : `Stand ${STAND_NOTIZEN}. Preise und Zeiten können sich ändern.`)) : null,
       o.foto ? el('section', { class: 'abschnitt' }, el('h3', {}, el('span', { class: 'marker g-foto', style: 'width:28px;height:28px;display:inline-grid;vertical-align:middle;margin-right:8px' }, symbol({ typ: 'foto' })), 'Foto-Tipp'), el('p', { style: 'margin:0' }, o.foto)) : null,
@@ -3113,6 +3310,7 @@
   Promise.all([lade('orte.json'), lade('plaene.json')]).then(([orte, plaene]) => {
     ORTE = orte; PLAENE = plaene;
     ORTE.forEach((o) => { NACH_NAME.set(o.name, o); NACH_ID.set(o.id, o); });
+    eigeneEinbauen();
     zeichne({ anpassen: true });
     if (!speicher.get('einfuehrung', false) && !/^#g=/.test(location.hash)) zeigeEinfuehrung(0);
     importiereAusHash();

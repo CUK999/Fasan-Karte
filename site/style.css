@@ -254,7 +254,7 @@ body[data-blatt="gross"] .kartenknopf { opacity: 0; pointer-events: none; }
 .abzeichen { display: inline-flex; align-items: center; gap: 4px; padding: 2px 10px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--raised); color: var(--text); }
 .abzeichen.tipp { background: color-mix(in srgb, var(--stern) 22%, transparent); }
 .abzeichen.warn { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); }
-.aktionen { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 12px; }
+.aktionen { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 12px; }
 .aktion {
   min-height: 76px; border-radius: var(--r); border: 1.5px solid var(--rand); background: var(--surface);
   display: grid; justify-items: center; align-content: center; gap: 4px; font-size: 14px; font-weight: 600; padding: 6px 2px;
@@ -724,7 +724,9 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .notfall .knopf.notruf { justify-content: space-between; text-align: left; min-height: var(--ziel-haupt); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
 .notfall .knopf.notruf strong, .notfall .knopf.notruf small { display: block; }
 .notfall .knopf.notruf small { font-weight: 500; font-size: var(--fs-k); color: var(--muted); }
-.notfall .knopf.notruf b { color: var(--danger); white-space: nowrap; }
+.notfall .knopf.notruf b { color: var(--danger); white-space: nowrap; flex: none; }
+.notfall .knopf.notruf { display: flex; width: 100%; max-width: 100%; box-sizing: border-box; padding: 8px 14px; gap: 10px; }
+.notfall .knopf.notruf > span { flex: 1; min-width: 0; }
 .notfall .feld input { flex: 1; min-width: 0; min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--rand); background: var(--surface); }
 .foto-voll.gross-text { background: #fff; color: #000; padding: 24px; place-items: center; text-align: center; }
 .foto-voll.gross-text p { font-size: clamp(28px, 8vw, 56px); font-weight: 700; margin: 0; overflow-wrap: anywhere; }
@@ -840,3 +842,12 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .strecke-werte span { display: grid; }
 .strecke-werte small { color: var(--muted); font-size: var(--fs-k); }
 .strecke-werte strong { font-size: calc(var(--fs-l) + 2px); }
+
+/* 320 px: nichts darf seitlich überstehen (Fehlersuche 25.10.2026) */
+.aktion { min-width: 0; overflow-wrap: anywhere; hyphens: auto; }
+.blick { min-width: 0; hyphens: auto; overflow-wrap: break-word; }
+.blick-raster { grid-template-columns: repeat(auto-fill, minmax(min(128px, 100%), 1fr)); }
+.blick small { letter-spacing: .02em; }
+.notfall > div { grid-template-columns: minmax(0, 1fr); }
+.notfall .knopf { white-space: normal; max-width: 100%; }
+.notfall .reihe > * { min-width: 0; }

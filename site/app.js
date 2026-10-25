@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.5';
+  const VERSION = '2.6';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -917,6 +917,11 @@
     if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(`${strecke(d)} · ${gehzeit(d)} Min.`); }
     if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
     if (o.eigen) unter.push('eigener Ort');
+    // Essen laut „Über dich“: vegetarische/vegane Angebote laut OpenStreetMap hervorheben
+    if ((E.essen === 'vegetarisch' || E.essen === 'vegan') && o.infos && ['essen', 'veggie'].includes(gruppeVon(o.kategorie))) {
+      const vg = E.essen === 'vegan' ? o.infos.vegan : o.infos.vegetarisch || o.infos.vegan;
+      if (vg === 'yes' || vg === 'only') unter.push(E.essen === 'vegan' ? 'vegan möglich (OSM)' : 'vegetarisch möglich (OSM)');
+    }
     const gm = gruppeMark(o.id).fav.length;
     if (gm) unter.push(`♥ ${gm} in der Gruppe`);
     const gw = gesehenVon(o.id).length, ga = allePersonen().length;
@@ -1460,13 +1465,10 @@
         el('div', {}, el('strong', { style: 'font-size:var(--fs-t)' }, 'Fasan Karte'), el('div', { class: 'leise klein' }, `Lissabon · Version ${VERSION}`))),
       notfallTeil(),
       el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:14px', onclick: () => zeigeEinfuehrung(0) }, ic('plan'), 'Einführung ansehen'),
+      el('section', { class: 'abschnitt' }, el('h3', {}, 'Über dich'), profilTeil('alles', () => zeichne({ scroll: true }))),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Profil'), wahl(PROFILE, E.profil, (id) => { E.profil = id; speichereE(); wendeAn(); hoehe(S.hoehe); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Aussehen'), wahl(THEMES, E.theme, (id) => { E.theme = id; speichereE(); wendeAn(); zeichne({ scroll: true }); })),
-      el('section', { class: 'abschnitt' }, el('h3', {}, 'Zu Fuß'),
-        wahl([['normal', 'Normales Tempo', 'etwa 5 km/h'], ['gemuetlich', 'Gemütlich', 'etwa 4 km/h, mehr Zeit eingeplant']], E.tempo, (id) => { E.tempo = id; speichereE(); zeichne({ scroll: true }); }),
-        el('div', { style: 'height:8px' }),
-        wahl([['nein', 'Kürzester Weg', 'auch steil und mit Treppen'], ['ja', 'Steigungen und Treppen meiden', 'etwas länger, dafür bequemer']], E.steigung ? 'ja' : 'nein', (id) => { E.steigung = id === 'ja'; speichereE(); zeichne({ scroll: true }); }),
-        el('div', { style: 'height:8px' }),
+      el('section', { class: 'abschnitt' }, el('h3', {}, 'Navigation'),
         wahl([['an', 'Sprachansage an', 'sagt die Abbiegungen an'], ['aus', 'Sprachansage aus', null]], E.ansage ? 'an' : 'aus', (id) => { E.ansage = id === 'an'; speichereE(); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Stadtführer beim Gehen'),
         wahl([['an', 'Hinweise an', 'Kommt ihr an einem Ort mit Wikipedia-Text vorbei, blinkt er auf der Karte. Antippen zeigt den Text mit Quelle und Stand.'], ['aus', 'Hinweise aus', null]], E.fuehrer === false ? 'aus' : 'an', (id) => { E.fuehrer = id === 'an'; speichereE(); if (!E.fuehrer) naeheEntfernen(); zeichne({ scroll: true }); }),
@@ -3022,6 +3024,45 @@
   }
 
 
+  // ---------- Über dich (Wunsch 25.10.2026) ----------
+  // Herkunft (für Strom, Geld, Zeit und Recht im Vergleich), Gehtempo, Steigungen, Sprachen, Essen. Bleibt auf diesem Handy.
+  // Ländercodes ISO 3166-1 alpha-2; Namen liefert der Browser (Intl.DisplayNames, Unicode CLDR).
+  const LAENDER = ('AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ '
+    + 'EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT '
+    + 'LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL '
+    + 'SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW').split(' ');
+  const landName = (c) => { try { return new Intl.DisplayNames(['de'], { type: 'region' }).of(c) || c; } catch (e) { return c; } };
+  function herkunftRaten() {
+    for (const l of navigator.languages || [navigator.language || '']) { const m = /-([A-Z]{2})$/i.exec(l || ''); if (m && LAENDER.includes(m[1].toUpperCase())) return m[1].toUpperCase(); }
+    return 'DE';
+  }
+  if (!E.sprachen) E.sprachen = {};
+  // teil: 'herkunft' (Herkunft, zu Fuß), 'sprache' (Sprachen, Essen) oder 'alles'
+  function profilTeil(teil, neu) {
+    if (!E.herkunft) { E.herkunft = herkunftRaten(); speichereE(); }
+    const seg = (label, opts, wert, fn) => el('div', { class: 'profil-frage' }, el('span', { class: 'profil-label' }, label),
+      el('div', { class: 'segmente', role: 'group', 'aria-label': label }, opts.map(([id, n]) => el('button', { type: 'button', 'aria-pressed': String(wert === id),
+        onclick: () => { fn(id); speichereE(); haptik(); neu(); } }, n))));
+    const oben = ['DE', 'AT', 'CH'];
+    const sortiert = LAENDER.filter((c) => !oben.includes(c)).map((c) => [c, landName(c)]).sort((a, b) => a[1].localeCompare(b[1], 'de'));
+    const land = el('select', { class: 'auswahl', 'aria-label': 'Woher kommst du?' },
+      oben.map((c) => el('option', { value: c }, landName(c))), el('option', { disabled: '' }, '──────────'), sortiert.map(([c, n]) => el('option', { value: c }, n)));
+    land.value = E.herkunft;
+    land.addEventListener('change', () => { E.herkunft = land.value; speichereE(); haptik(); neu(); });
+    const teile = [];
+    if (teil !== 'sprache') teile.push(
+      el('div', { class: 'profil-frage' }, el('span', { class: 'profil-label' }, 'Woher kommst du?'), land,
+        el('span', { class: 'leise klein' }, 'Danach richten sich Hinweise zu Strom, Geld, Zeit und Recht.')),
+      seg('Wie bist du zu Fuß?', [['gemuetlich', 'Gemütlich'], ['normal', 'Normal']], E.tempo, (id) => { E.tempo = id; }),
+      seg('Steigungen und Treppen', [['ja', 'Lieber meiden'], ['nein', 'Kein Problem']], E.steigung ? 'ja' : 'nein', (id) => { E.steigung = id === 'ja'; }),
+      el('span', { class: 'leise klein' }, 'Gemütlich heißt etwa 4 km/h, normal etwa 5 km/h. „Meiden“ wählt etwas längere, bequemere Wege.'));
+    if (teil !== 'herkunft') teile.push(
+      seg('Portugiesisch', [['nein', 'Gar nicht'], ['wenig', 'Ein paar Worte'], ['gut', 'Gut']], E.sprachen.pt || 'nein', (id) => { E.sprachen.pt = id; }),
+      seg('Englisch', [['nein', 'Kaum'], ['wenig', 'Etwas'], ['gut', 'Gut']], E.sprachen.en || 'wenig', (id) => { E.sprachen.en = id; }),
+      seg('Essen', [['alles', 'Alles'], ['vegetarisch', 'Vegetarisch'], ['vegan', 'Vegan']], E.essen || 'alles', (id) => { E.essen = id; }));
+    return el('div', { class: 'profil' }, teile);
+  }
+
   // ---------- Einführung beim ersten Start ----------
   // Kurz (6 Karten), jederzeit überspringbar, unter „Mehr“ wieder abrufbar. Der Fasan tritt hier auf (ruhiger Bereich).
   // Einführung: vier kurze Seiten, „Weiter“ immer sichtbar unten, Standort erst im Zusammenhang (Recherche: natives-gefuehl.md)
@@ -3036,6 +3077,10 @@
     const seiten = [
       { titel: 'Willkommen in Lissabon', text: 'Eure Karte für die Reise: Tagespläne, alle Orte und der Weg zu Fuß. Ohne Konto, ohne Werbung.',
         bild: () => el('div', { style: 'display:grid;gap:18px;justify-items:center;width:100%' }, fasan('einf-fasan'), schrift()) },
+      { oben: true, titel: 'Über dich', text: 'Damit Wege, Zeiten und Hinweise zu dir passen. Alles bleibt auf diesem Handy und lässt sich unter „Mehr“ ändern.',
+        bild: () => profilTeil('herkunft', () => zeigeEinfuehrung(seite, 0)) },
+      { oben: true, titel: 'Sprache und Essen', text: 'Danach zeigt die App passende Sätze und vegetarische Orte zuerst.',
+        bild: () => profilTeil('sprache', () => zeigeEinfuehrung(seite, 0)) },
       { titel: 'Unten ist alles', text: 'Fünf Bereiche, immer im Daumenbereich.', bild: () => el('ul', { class: 'einf-liste' }, leiste.map(([i, n, t]) => el('li', {}, el('span', { class: 'einf-icon' }, ic(i)), el('span', {}, el('strong', {}, n), el('small', {}, t))))) },
       { titel: 'Karte und Symbole', text: 'Tippe auf einen Punkt. „Hinführen“ zeigt den Weg und sagt jede Abbiegung an. Das Blatt unten ziehst du mit dem Finger größer oder kleiner.',
         bild: () => el('div', { class: 'einf-legende' }, legende.map(([typ, g, n]) => el('span', {}, el('span', { class: `marker ${g}` }, symbol({ typ, kategorie: '' })), n))) },
@@ -3050,7 +3095,7 @@
       el('div', { class: 'einf-oben' },
         el('div', { class: 'einf-punkte', 'aria-label': `Seite ${seite + 1} von ${seiten.length}`, role: 'img' }, seiten.map((_, i) => el('span', { class: i === seite ? 'an' : i < seite ? 'war' : '' }))),
         letzte ? el('span') : el('button', { type: 'button', class: 'knopf flach einf-ueber', onclick: ende }, 'Überspringen')),
-      el('div', { class: 'einf-inhalt ' + (richtung > 0 ? 'von-rechts' : richtung < 0 ? 'von-links' : '') }, s2.bild(), el('h2', { id: 'einf-titel' }, s2.titel), el('p', {}, s2.text)),
+      el('div', { class: 'einf-inhalt ' + (richtung > 0 ? 'von-rechts' : richtung < 0 ? 'von-links' : '') }, s2.oben ? [el('h2', { id: 'einf-titel' }, s2.titel), el('p', {}, s2.text), s2.bild()] : [s2.bild(), el('h2', { id: 'einf-titel' }, s2.titel), el('p', {}, s2.text)]),
       el('div', { class: 'einf-knoepfe' },
         seite ? el('button', { type: 'button', class: 'knopf', 'aria-label': 'Zurück', onclick: () => { haptik(); zeigeEinfuehrung(seite - 1, -1); } }, ic('zurueck')) : null,
         el('button', { type: 'button', class: 'knopf haupt', onclick: weiter }, letzte ? 'Los geht’s' : 'Weiter', letzte ? null : el('span', { class: 'pfeil-weiter', 'aria-hidden': 'true' }, '→')))));

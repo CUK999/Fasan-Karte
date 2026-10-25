@@ -794,3 +794,9 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 :root { --g-strand: #0E7490; }
 :root[data-theme="dunkel"], :root[data-theme="glas"] { --g-strand: #22A9C9; }
 :root[data-theme="kontrast"] { --g-strand: #000; }
+/* Über dich */
+.profil { display: grid; gap: 14px; width: 100%; text-align: left; }
+.profil-frage { display: grid; gap: 6px; }
+.profil-label { font-weight: 700; font-size: var(--fs-l); }
+.profil .segmente button { min-height: var(--ziel); white-space: normal; line-height: 1.15; padding: 4px 6px; }
+.auswahl { min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: var(--fs-l); width: 100%; }

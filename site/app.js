@@ -3357,7 +3357,12 @@
     ORTE.forEach((o) => { NACH_NAME.set(o.name, o); NACH_ID.set(o.id, o); });
     eigeneEinbauen();
     zeichne({ anpassen: true });
-    if (!speicher.get('einfuehrung', false) && !/^#g=/.test(location.hash)) zeigeEinfuehrung(0);
+    if (!speicher.get('einfuehrung', false) && !/^#g=/.test(location.hash)) { zeigeEinfuehrung(0); E.profilGefragt = 1; speichereE(); }
+    else if (!E.profilGefragt) {
+      // Wer die Einführung schon kannte: einmal auf die neuen Fragen „Über dich“ hinweisen
+      E.profilGefragt = 1; speichereE();
+      setTimeout(() => toast('Neu: Erzähl kurz über dich (Herkunft, Tempo, Sprache, Essen).', { aktion: 'Öffnen', fn: () => { S.tab = 'mehr'; S.ort = null; hoehe('gross'); zeichne(); } }), 2500);
+    }
     importiereAusHash();
     funkStart(); leisteZahl(); teileMarkierungen();
     if (E.teilenBis && !teileOrt()) { E.teilenBis = 0; speichereE(); }

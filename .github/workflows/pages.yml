@@ -37,6 +37,14 @@ jobs:
       - name: Stadtführer aus Wikipedia (Artikel mit Koordinaten; höchstens alle 6 Tage)
         run: python3 tools/stadtfuehrer.py 2>&1 | tee stadtfuehrer.txt || true
 
+      - name: Höhenraster (Copernicus DEM GLO-30, AWS Open Data; höchstens alle 30 Tage)
+        run: |
+          pip install --quiet rasterio numpy 2>&1 | tail -2 || true
+          python3 tools/hoehe.py 2>&1 | tee hoehe.txt || true
+
+      - name: Länder-Grundinfos (Wikidata, CC0; höchstens alle 30 Tage)
+        run: python3 tools/laender.py 2>&1 | tee laender.txt || true
+
       - name: Leaflet einbinden (einmalig ins Repo)
         run: |
           if [ ! -f site/vendor/leaflet/leaflet.js ]; then
@@ -104,6 +112,7 @@ jobs:
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor
           if [ -f site/umgebung.json ]; then git add site/umgebung.json; fi
           if [ -f site/stadtfuehrer.json ]; then git add site/stadtfuehrer.json; fi
+          for f in site/hoehe.json site/hoehe.bin site/laender.json; do if [ -f "$f" ]; then git add "$f"; fi; done
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
@@ -116,7 +125,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          bash tools/ci-log.sh wetter.txt site/wetter.json umgebung.txt stadtfuehrer.txt
+          bash tools/ci-log.sh wetter.txt site/wetter.json umgebung.txt stadtfuehrer.txt hoehe.txt laender.txt
 
       - uses: actions/configure-pages@v5
 

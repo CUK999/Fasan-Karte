@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.7';
+  const VERSION = '2.8';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -1057,11 +1057,14 @@
       el('button', { type: 'button', class: 'knopf', onclick: () => { S.planEdit = S.plan.slice(2); zeichne({ scroll: true, karte: false }); } }, ic('notiz'), 'Plan bearbeiten')) : null;
 
     const liste = el('ol', { class: 'liste' });
-    let nr = 0;
+    let nr = 0, vorher = null;
     for (const s of schritte()) {
       if (s.hinweis) { liste.append(el('li', { class: 'hinweis' }, el('span', { class: 'pfeil' }, '↓'), s.hinweis)); continue; }
       const o = NACH_NAME.get(s.ort);
       if (!o) continue;
+      const w = vorher ? wegInfo(vorher, o) : null;
+      if (w) liste.append(el('li', { class: 'weg-zeile' + (w.art === 'weg' ? '' : ' geschaetzt') }, el('span', { class: 'pfeil' }, '↓'), wegText(w)));
+      vorher = o;
       nr += 1;
       liste.append(eintragOrt(o, { nr, zeit: s.zeit, text: s.text, haken: true }));
       for (const a of (s.alt || []).map((n) => NACH_NAME.get(n)).filter(Boolean)) {
@@ -1081,8 +1084,118 @@
       stopps.length ? el('div', { class: 'fortschritt', style: 'margin-top:10px', 'aria-label': `${nFertig} von ${stopps.length} erledigt` }, el('span', { style: `width:${(nFertig / stopps.length) * 100}%` })) : null,
       stopps.length ? el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Die App führt euch Stopp für Stopp. Am Ziel geht es mit einem Tipp zum nächsten.') : null,
       stopps.length ? zeitleisteTeil(stopps) : null,
+      streckeTeil(stopps),
       el('div', { class: 'reihe', style: 'margin-top:12px' }, heimKnopf()),
       liste);
+  }
+
+  // ---------- Strecke und Höhenmeter (Wunsch 24.10.2026) ----------
+  // Feste Pläne: Fußwege, Länge, Zeit, Anstieg und Abstieg rechnet der Bauprozess (wege.json, tools/wege.py).
+  // Sonst: Luftlinie × 1,3 als Schätzung und nur der Höhenunterschied Start–Ziel, denn Anstieg und Abstieg brauchen
+  // den echten Weg (Recherche hoehendaten.md, Abschnitt 3). „Genaue Wege berechnen“ holt Fußwege bei Valhalla (FOSSGIS)
+  // und rechnet die Höhenmeter hier aus dem Raster (Copernicus GLO-30): alle 15 m abtasten, Hysterese 5 m (BRouter).
+  let WEGE = null, wegeLaedt = false, RASTER = null, rasterLaedt = null;
+  const TEMPO_KMH = () => (E.tempo === 'gemuetlich' ? 4 : 5.1);
+  function ladeWege() {
+    if (WEGE || wegeLaedt) return;
+    wegeLaedt = true;
+    fetch('wege.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).then((d) => { WEGE = d && d.wege ? d : { wege: {}, h: {} }; })
+      .catch(() => { WEGE = { wege: {}, h: {} }; })
+      .finally(() => { wegeLaedt = false; if ((S.tab === 'plan' || S.tab === 'live') && !S.ort) zeichne({ scroll: true, karte: false }); });
+  }
+  function ladeRaster() {
+    if (RASTER) return Promise.resolve(RASTER);
+    if (!rasterLaedt) rasterLaedt = (async () => {
+      const k = await fetch('hoehe.json').then((r) => r.json());
+      const gz = await fetch('hoehe.bin').then((r) => r.arrayBuffer());
+      const roh = await new Response(new Blob([gz]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+      const a = new Int16Array(roh);
+      for (let r = 0; r < k.hoehe; r++) { const o = r * k.breite; for (let c = 1; c < k.breite; c++) a[o + c] += a[o + c - 1]; }
+      RASTER = { k, a }; return RASTER;
+    })().catch((e) => { rasterLaedt = null; throw e; });
+    return rasterLaedt;
+  }
+  function hoeheAn(R, lat, lon) {
+    const k = R.k, x = (lon - k.west) / k.dx - 0.5, y = (k.nord - lat) / k.dy - 0.5;
+    const x0 = Math.floor(x), y0 = Math.floor(y);
+    if (x0 < 0 || y0 < 0 || x0 + 1 >= k.breite || y0 + 1 >= k.hoehe) return null;
+    const fx = x - x0, fy = y - y0, g = (r, c) => R.a[r * k.breite + c] * k.skala;
+    return g(y0, x0) * (1 - fx) * (1 - fy) + g(y0, x0 + 1) * fx * (1 - fy) + g(y0 + 1, x0) * (1 - fx) * fy + g(y0 + 1, x0 + 1) * fx * fy;
+  }
+  function hoehenmeter(R, pts) {
+    const hs = []; let rest = 0;
+    hs.push(hoeheAn(R, pts[0][0], pts[0][1]));
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i], d = meter({ lat: a[0], lon: a[1] }, { lat: b[0], lon: b[1] });
+      let t = 15 - rest;
+      while (t <= d) { const f = t / d; hs.push(hoeheAn(R, a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f)); t += 15; }
+      rest = d - (t - 15);
+    }
+    hs.push(hoeheAn(R, pts[pts.length - 1][0], pts[pts.length - 1][1]));
+    const h = hs.filter((x) => x != null);
+    let auf = 0, ab = 0, ref = h[0];
+    for (const x of h.slice(1)) { if (x - ref >= 5) { auf += x - ref; ref = x; } else if (ref - x >= 5) { ab += ref - x; ref = x; } }
+    return { auf: Math.round(auf), ab: Math.round(ab) };
+  }
+  const wegCache = () => speicher.get('wege', {});
+  function hoeheVon(o) { const h = WEGE && WEGE.h && WEGE.h[o.id]; return h != null ? h : RASTER ? hoeheAn(RASTER, o.lat, o.lon) : null; }
+  function wegInfo(a, b) {
+    if (!hatPos(a) || !hatPos(b) || a.id === b.id) return null;
+    const key = `${a.id}>${b.id}`, luft = meter(a, b);
+    const w = (WEGE && WEGE.wege[key]) || wegCache()[key];
+    if (w) return { art: 'weg', m: w[0], min: Math.max(1, Math.round((w[1] / 60) * (5.1 / TEMPO_KMH()))), auf: w[2], ab: w[3], key };
+    if (luft > 2500) return { art: 'bahn', m: luft, key };
+    const ha = hoeheVon(a), hb = hoeheVon(b);
+    return { art: 'luft', m: luft * 1.3, min: gehzeit(luft), dh: ha != null && hb != null ? Math.round(hb - ha) : null, key, a, b };
+  }
+  function wegText(w) {
+    if (w.art === 'weg') return `${w.min} Min. · ${strecke(w.m)} · ↑ ${w.auf} m ↓ ${w.ab} m`;
+    if (w.art === 'bahn') return `${strecke(w.m)} Luftlinie · besser mit Bahn oder Bus`;
+    return `etwa ${strecke(w.m)} · ${w.min} Min. (geschätzt)${w.dh != null ? ` · Höhe ${w.dh >= 0 ? '+' : '−'}${Math.abs(w.dh)} m` : ''}`;
+  }
+  function tagesStrecke(stopps) {
+    let m = 0, auf = 0, ab = 0, geschaetzt = [], bahn = 0;
+    for (let i = 1; i < stopps.length; i++) {
+      const w = wegInfo(stopps[i - 1].o, stopps[i].o); if (!w) continue;
+      if (w.art === 'weg') { m += w.m; auf += w.auf; ab += w.ab; } else if (w.art === 'luft') { m += w.m; geschaetzt.push(w); } else bahn += 1;
+    }
+    return { m, auf, ab, geschaetzt, bahn };
+  }
+  async function wegeBerechnen(liste) {
+    if (!liste.length) return;
+    S.wegeRechnen = { fertig: 0, gesamt: liste.length }; zeichne({ scroll: true, karte: false });
+    try {
+      const R = await ladeRaster();
+      const c = wegCache();
+      for (const w of liste) {
+        try {
+          const r = await holeRoute(w.a, w.b);
+          const hm2 = hoehenmeter(R, r.pts);
+          c[w.key] = [Math.round(r.laenge), Math.round(r.zeit * (TEMPO_KMH() / 5.1)), hm2.auf, hm2.ab];
+          speicher.set('wege', c);
+        } catch (e) { /* einzelner Weg fehlt: bleibt geschätzt */ }
+        S.wegeRechnen.fertig += 1; zeichne({ scroll: true, karte: false });
+      }
+    } catch (e) { toast('Die Höhendaten konnten nicht geladen werden.'); }
+    S.wegeRechnen = null; zeichne({ scroll: true, karte: false });
+  }
+  function streckeTeil(stopps) {
+    ladeWege();
+    if (stopps.length < 2) return null;
+    const t = tagesStrecke(stopps);
+    const rechnet = S.wegeRechnen;
+    return el('div', { class: 'strecke-teil' },
+      el('div', { class: 'strecke-werte' },
+        el('span', {}, el('small', {}, 'Zu Fuß'), el('strong', {}, strecke(t.m))),
+        el('span', {}, el('small', {}, 'Anstieg'), el('strong', {}, `↑ ${t.auf} m`)),
+        el('span', {}, el('small', {}, 'Abstieg'), el('strong', {}, `↓ ${t.ab} m`))),
+      el('p', { class: 'leise klein', style: 'margin:6px 0 0' },
+        [t.geschaetzt.length ? `${t.geschaetzt.length} ${t.geschaetzt.length === 1 ? 'Weg ist' : 'Wege sind'} nur geschätzt (Luftlinie), ohne Höhenmeter.` : 'Alle Wege berechnet.',
+          t.bahn ? `${t.bahn}× besser mit Bahn oder Bus, nicht mitgezählt.` : null].filter(Boolean).join(' ')),
+      rechnet ? el('p', { class: 'leise klein', role: 'status' }, `Berechne Wege … ${rechnet.fertig} von ${rechnet.gesamt}`)
+        : t.geschaetzt.length ? el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:8px', onclick: () => wegeBerechnen(t.geschaetzt) }, ic('route'), 'Genaue Wege berechnen') : null,
+      t.geschaetzt.length && !rechnet ? el('p', { class: 'quelle', style: 'margin-top:4px' }, 'Schickt nur die Lage der Stopps an Valhalla (FOSSGIS e.V.), nicht deinen Standort.') : null,
+      el('p', { class: 'quelle', style: 'margin-top:6px' }, 'Höhe: Copernicus DEM GLO-30, Oberflächenmodell (Gebäude enthalten), Genauigkeit grob ±20–30 % je Weg. Produced using Copernicus WorldDEM-30 © DLR e.V. 2010-2014 and © Airbus Defence and Space GmbH 2014-2018 provided under COPERNICUS by the European Union and ESA; all rights reserved.'));
   }
 
   // ---------- Zeitleiste: was ist noch machbar, auch wenn ihr trödelt ----------
@@ -1113,7 +1226,8 @@
     for (const { o } of stopps) {
       if (fertig(o)) continue;
       const d = pos && hatPos(o) ? meter(pos, o) : 0;
-      const weg = (d > 2500 ? 35 : gehzeit(d)) * (1 + troedel);
+      const wi = pos && pos.id ? wegInfo(pos, o) : null;
+      const weg = (wi && wi.art === 'weg' ? wi.min : d > 2500 ? 35 : gehzeit(d)) * (1 + troedel);
       const ankunft = t + weg, bleibe = dauerMin(o) * (1 + troedel);
       const of = offenAm(o, S.tag, ankunft);
       let status = 'ok', info = '';
@@ -2891,6 +3005,8 @@
     try {
       N.route = await holeRoute(S.me, N.ziel);
       N.idx = 0; N.abseit = null; N.gesagt = new Set(); N.luft = false;
+      const route = N.route;
+      ladeRaster().then((R) => { route.hm = hoehenmeter(R, route.pts); if (N.route === route && N.aktiv) naviUpdate(true); }).catch(() => {});
       zeichneRoute();
       naviUpdate(true);
       sage(N.route.schritte[0] && N.route.schritte[0].sag);
@@ -2990,7 +3106,8 @@
     setze(box, kopf,
       el('div', { class: 'navi-info' },
         el('strong', {}, `${Math.max(1, Math.round(info.rest / ((E.tempo === 'gemuetlich' ? 4 : 5.1) / 0.06)))} Min.`),
-        el('span', {}, `${strecke(info.rest)} · Ankunft ${String(info.an.getHours()).padStart(2, '0')}:${String(info.an.getMinutes()).padStart(2, '0')}`)),
+        el('span', {}, `${strecke(info.rest)} · Ankunft ${String(info.an.getHours()).padStart(2, '0')}:${String(info.an.getMinutes()).padStart(2, '0')}`),
+        N.route && N.route.hm ? el('span', { class: 'leise klein' }, `Ganze Strecke ↑ ${N.route.hm.auf} m ↓ ${N.route.hm.ab} m (Copernicus, grob)`) : null),
       el('div', { class: 'reihe' }, ansage,
         el('button', { type: 'button', class: 'knopf', 'aria-expanded': String(!!N.zeigeSchritte), onclick: () => { N.zeigeSchritte = !N.zeigeSchritte; naviPanel(null, false, info); } }, ic('plan'), 'Schritte'),
         beenden),

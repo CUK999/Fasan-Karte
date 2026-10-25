@@ -831,3 +831,12 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .satz-text strong { font-size: calc(var(--fs-l) + 2px); }
 .aussprache { color: var(--muted); font-size: var(--fs-k); letter-spacing: .02em; }
 .blick small.info-q { text-transform: none; letter-spacing: 0; font-weight: 400; }
+/* Strecke und Höhenmeter */
+.weg-zeile { display: flex; align-items: center; gap: 10px; padding: 4px 0 4px 6px; color: var(--muted); font-size: var(--fs-k); }
+.weg-zeile .pfeil { width: 28px; text-align: center; flex: none; }
+.weg-zeile.geschaetzt { font-style: italic; }
+.strecke-teil { margin-top: 12px; padding: 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); }
+.strecke-werte { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.strecke-werte span { display: grid; }
+.strecke-werte small { color: var(--muted); font-size: var(--fs-k); }
+.strecke-werte strong { font-size: calc(var(--fs-l) + 2px); }

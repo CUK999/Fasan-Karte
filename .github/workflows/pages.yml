@@ -45,6 +45,9 @@ jobs:
       - name: Länder-Grundinfos (Wikidata, CC0; höchstens alle 30 Tage)
         run: python3 tools/laender.py 2>&1 | tee laender.txt || true
 
+      - name: Fußwege der Pläne mit Höhenmetern (Valhalla FOSSGIS, 1 Anfrage/s, Cache; Copernicus-Raster)
+        run: python3 tools/wege.py 2>&1 | tee wege.txt || true
+
       - name: Leaflet einbinden (einmalig ins Repo)
         run: |
           if [ ! -f site/vendor/leaflet/leaflet.js ]; then
@@ -112,7 +115,7 @@ jobs:
           git add site/orte.json site/bilder data/cache.json data/pruefbericht.md site/vendor
           if [ -f site/umgebung.json ]; then git add site/umgebung.json; fi
           if [ -f site/stadtfuehrer.json ]; then git add site/stadtfuehrer.json; fi
-          for f in site/hoehe.json site/hoehe.bin site/laender.json; do if [ -f "$f" ]; then git add "$f"; fi; done
+          for f in site/hoehe.json site/hoehe.bin site/laender.json site/wege.json data/wege-cache.json; do if [ -f "$f" ]; then git add "$f"; fi; done
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
@@ -125,7 +128,7 @@ jobs:
         if: always()
         continue-on-error: true
         run: |
-          bash tools/ci-log.sh wetter.txt site/wetter.json umgebung.txt stadtfuehrer.txt hoehe.txt laender.txt
+          bash tools/ci-log.sh wetter.txt site/wetter.json umgebung.txt stadtfuehrer.txt hoehe.txt laender.txt wege.txt
 
       - uses: actions/configure-pages@v5
 

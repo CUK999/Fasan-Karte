@@ -856,3 +856,29 @@ body.zieht .griff span { width: 56px; opacity: .9; }
   -webkit-mask: radial-gradient(circle, #000 0 55%, transparent 56%); mask: radial-gradient(circle, #000 0 55%, transparent 56%); }
 .ich-punkt.mit-richtung .kegel { display: block; }
 .live-status .knopf[aria-pressed="true"] { border-color: var(--accent); }
+
+/* Planer (25.10.2026) */
+.unterkopf { margin: 14px 0 6px; font-size: var(--fs-k); color: var(--muted); font-weight: 700; }
+.plus-badge { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.plus-badge svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+.pl-arten { margin: 10px 0 0; }
+
+/* Kompass neben dem Standortknopf: Rose dreht sich, oben bleibt die Blickrichtung */
+.kartenknopf.kompass {
+  width: auto; min-width: var(--ziel); border-radius: 999px; padding: 0 14px 0 8px; gap: 6px; display: flex; align-items: center; justify-content: center;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + var(--blatt-h, 260px) + 12px + var(--ziel) + 10px);
+}
+.kompass .rose { width: 44px; height: 44px; flex: none; }
+.kompass .scheibe { transform-origin: 20px 20px; transition: transform 120ms linear; }
+.kompass .ring { fill: color-mix(in srgb, var(--surface) 90%, transparent); stroke: var(--text); stroke-width: 1.6; }
+.kompass .nord { fill: var(--danger); }
+.kompass .sued { fill: var(--muted); }
+.kompass .n { font: 800 9px/1 system-ui, sans-serif; fill: #fff; }
+.kompass .blick { fill: var(--accent); stroke: var(--surface); stroke-width: 1; }
+.kompass-text { font-weight: 800; font-size: var(--fs-k); font-variant-numeric: tabular-nums; min-width: 4.2ch; text-align: left; white-space: nowrap; }
+.kartenknopf.kompass[data-zustand="aus"] { color: var(--muted); }
+.kartenknopf.kompass[data-zustand="aus"] .rose { opacity: .55; }
+.kartenknopf.kompass[data-zustand="warte"] .rose { animation: puls 1s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .kompass .scheibe { transition: none; } .kartenknopf.kompass[data-zustand="warte"] .rose { animation: none; } }
+@media (min-width: 760px) { .kartenknopf.kompass { bottom: calc(var(--nav-h) + 32px + var(--ziel) + 10px); } }
+body[data-navi="an"] .kartenknopf.kompass { bottom: calc(var(--navi-h, 220px) + 12px + var(--ziel) + 10px); }

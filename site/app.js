@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.1';
+  const VERSION = '3.2';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -698,7 +698,7 @@
     });
     karte.on('zoomend', () => namenZoom());
     // Langes Drücken auf die Karte: hier einen eigenen Ort eintragen (sichtbarer Zwilling: „Eigenen Ort eintragen“ → „Auf der Karte wählen“)
-    karte.on('contextmenu', (e) => { if (N.aktiv) return; haptik(20); eigenNeu({ lat: e.latlng.lat, lon: e.latlng.lng }); });
+    karte.on('contextmenu', (e) => { if (N.aktiv) return; haptik(20); eigenNeu({ lat: e.latlng.lat, lon: e.latlng.lng, plan: S.tab === 'plan' && planerOffen() ? S.planEdit : undefined }); });
     karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.tab === 'orte' || S.tab === 'live') hoehe(S.hoehe === 'mini' ? 'klein' : 'mini'); else if (S.hoehe !== 'klein') hoehe('klein'); });
   }
 
@@ -783,7 +783,7 @@
       });
       if (anpassen && l.length) passeAn(l.slice(0, 6).map((o) => [o.lat, o.lon]));
     }
-    if (S.eigen && S.eigen.lat != null && S.tab === 'orte' && !S.ort) {
+    if (eigenAktiv() && S.eigen.lat != null && !S.ort) {
       const nadel = L.marker([S.eigen.lat, S.eigen.lon], { draggable: true, autoPan: true, zIndexOffset: 1200, title: 'Neuer Ort, zum Verschieben ziehen', alt: 'Neuer Ort',
         icon: L.divIcon({ className: 'eigen-nadel', html: '<span class="kopf"></span><span class="spitze"></span>', iconSize: [60, 60], iconAnchor: [30, 56] }) })
         .on('dragend', (e) => { const ll = e.target.getLatLng(); S.eigen.lat = ll.lat; S.eigen.lon = ll.lng; haptik(); })
@@ -892,16 +892,16 @@
     $$('#leiste [data-tab]').forEach((b) => { if (b.dataset.tab === leisteTab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     const box = $('#ansicht');
     const scroll = opt.scroll ? box.scrollTop : 0;
-    const ansichtNeu = `${S.tab}|${S.ort || ''}|${S.nah || ''}`;
+    const ansichtNeu = `${S.tab}|${S.ort || ''}|${S.nah || ''}|${planerOffen() ? 'pl' + PL.modus : ''}|${eigenAktiv() ? 'e' : ''}`;
     if (S.letzteAnsicht && S.letzteAnsicht !== ansichtNeu) { box.classList.remove('neu'); void box.offsetWidth; box.classList.add('neu'); }
     S.letzteAnsicht = ansichtNeu;
     // Suchfeld nur, wo gesucht wird (Plan, Orte); unter Live, Gruppe und Mehr wäre es nur Ablenkung
-    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr', 'info'].includes(S.tab) || (S.tab === 'orte' && !!S.eigen);
+    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr', 'info'].includes(S.tab) || eigenAktiv() || (S.tab === 'plan' && planerOffen());
     if (S.ort) zeichneOrt(box);
-    else if (S.tab === 'plan') zeichnePlan(box);
+    else if (S.tab === 'plan') (eigenAktiv() ? zeichneEigen(box) : planerOffen() ? zeichnePlaner(box) : zeichnePlan(box));
     else if (S.tab === 'live') (S.nah ? zeichneNah(box) : zeichneLive(box));
     else if (S.tab === 'info') zeichneInfo(box);
-    else if (S.tab === 'orte') (S.eigen ? zeichneEigen(box) : S.nah ? zeichneNah(box) : zeichneOrte(box));
+    else if (S.tab === 'orte') (eigenAktiv() ? zeichneEigen(box) : S.nah ? zeichneNah(box) : zeichneOrte(box));
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
     else if (S.tab === 'gruppe') zeichneGruppe(box);
     else zeichneMehr(box);
@@ -1053,8 +1053,8 @@
       ['A', 'B', 'C', 'G'].map((p) => el('button', { type: 'button', class: 'chip', 'aria-pressed': String(p === S.plan), onclick: () => waehle(p) }, p === 'G' ? 'Gruppenplan' : 'Plan ' + p)),
       eigene.map(([id, x]) => el('button', { type: 'button', class: 'chip eigen', 'aria-pressed': String(S.plan === 'P:' + id), onclick: () => waehle('P:' + id) }, el('span', { class: 'marker person mini' }, initialen(personName(x.von))), x.n)),
       el('button', { type: 'button', class: 'chip', onclick: () => neuerPlan() }, '+ Eigener Plan'));
-    const editor = ep && S.planEdit === S.plan.slice(2) ? planEditor(S.plan.slice(2)) : ep ? el('div', { class: 'reihe', style: 'margin-top:8px' },
-      el('button', { type: 'button', class: 'knopf', onclick: () => { S.planEdit = S.plan.slice(2); zeichne({ scroll: true, karte: false }); } }, ic('notiz'), 'Plan bearbeiten')) : null;
+    const editor = ep ? el('div', { class: 'reihe', style: 'margin-top:8px' },
+      el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => { S.planEdit = S.plan.slice(2); PL.modus = 'liste'; hoehe('mitte'); zeichne({ karte: false }); } }, ic('notiz'), 'Plan bearbeiten')) : null;
 
     const liste = el('ol', { class: 'liste' });
     let nr = 0, vorher = null;
@@ -1272,48 +1272,149 @@
     const id = neueId();
     G.plaene[id] = { n: `Plan von ${meinName()}`, von: G.ich.id, tag: S.tag, s: mitOrt ? [mitOrt] : [], d: [], t: Date.now(), e: G.ich.id, x: 0 };
     speichereG();
-    S.plan = 'P:' + id; S.planEdit = id; speicher.set('plan', S.plan);
+    S.plan = 'P:' + id; S.planEdit = id; PL.modus = 'liste'; speicher.set('plan', S.plan);
     if (!mitOrt) { S.tab = 'plan'; S.ort = null; hoehe('gross'); }
     zeichne({ anpassen: true });
     return id;
   }
-  function planEditor(id) {
-    const p = G.plaene[id];
-    const name = el('input', { type: 'text', maxlength: '40', value: p.n, 'aria-label': 'Name des Plans' });
+  // ---------- Planer (Überarbeitung 25.10.2026) ----------
+  // Zwei Schritte statt eines vollgepackten Blatts: „liste“ zeigt Name, Stopps mit Wegen und Summen; „suche“ ist eine eigene
+  // Ansicht zum Hinzufügen (eigene Liste nach Nähe zum letzten Stopp, Suche, Art, OpenStreetMap, Punkt auf der Karte).
+  // Mehrere Orte nacheinander hinzufügen geht, ohne die Ansicht zu verlassen. Neue Orte werden dabei gleich gespeichert.
+  const PL = { modus: 'liste', q: '', art: '', osm: null };
+  const planerOffen = () => !!S.planEdit && !!aktiverEigenplan() && S.plan === 'P:' + S.planEdit;
+  function planerStopps(p) { return p.s.map((oid) => NACH_ID.get(oid)).filter(Boolean); }
+  function planFuegeHinzu(p, o) {
+    if (p.s.includes(o.id)) return;
+    p.s.push(o.id); planSpeichern(p); haptik(15);
+    PL.osm = null;
+    toast(`${o.name} ist jetzt Stopp ${p.s.length}.`, { aktion: 'Rückgängig', fn: () => { p.s = p.s.filter((x) => x !== o.id); planSpeichern(p); zeichne({ scroll: true }); } });
+    zeichne({ scroll: true });
+  }
+  function planNeuerOrt(p, t) {
+    const schon = ORTE.find((o) => hatPos(o) && (falte(o.name) === falte(t.n) || meter(o, t) < 25));
+    if (schon) { planFuegeHinzu(p, schon); return; }
+    const id = eigenSpeichern({ n: t.n, k: t.k, lat: t.lat, lon: t.lon, a: t.a, q: t.q, oh: t.oh, x: '' });
+    const o = NACH_ID.get(id);
+    if (o) planFuegeHinzu(p, o);
+  }
+  function planerListe(box, p) {
+    const stopps = planerStopps(p);
+    const name = el('input', { id: 'pl-name', type: 'text', maxlength: '40', value: p.n, 'aria-label': 'Name des Plans', autocomplete: 'off' });
     name.addEventListener('change', () => { p.n = name.value.trim() || p.n; planSpeichern(p); });
     const schiebe = (i, d) => { const j = i + d; if (j < 0 || j >= p.s.length) return; [p.s[i], p.s[j]] = [p.s[j], p.s[i]]; planSpeichern(p); haptik(); zeichne({ scroll: true }); };
-    const stopps = el('ol', { class: 'liste plan-edit' }, p.s.map((oid, i) => {
+    const liste = el('ol', { class: 'liste plan-edit' });
+    let vorher = null;
+    p.s.forEach((oid, i) => {
       const o = NACH_ID.get(oid);
-      return el('li', { class: 'eintrag' },
+      if (!o) return;
+      const w = vorher ? wegInfo(vorher, o) : null;
+      if (w) liste.append(el('li', { class: 'weg-zeile' + (w.art === 'weg' ? '' : ' geschaetzt') }, el('span', { class: 'pfeil' }, '↓'), wegText(w)));
+      vorher = o;
+      liste.append(el('li', { class: 'eintrag' },
         el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o), el('span', { class: 'nummer' }, String(i + 1))),
-        el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), o.dauer ? el('span', { class: 'unter' }, `vor Ort ${o.dauer} Min.`) : null),
+        el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), el('span', { class: 'unter' }, [TYP_NAME[o.typ] || o.kategorie, o.dauer ? `vor Ort ${o.dauer} Min.` : null].filter(Boolean).join(' · '))),
         el('span', { class: 'plan-knoepfe' },
           el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} nach oben`, disabled: i === 0 ? true : null, onclick: () => schiebe(i, -1) }, '↑'),
           el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} nach unten`, disabled: i === p.s.length - 1 ? true : null, onclick: () => schiebe(i, 1) }, '↓'),
-          el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} entfernen`, onclick: () => { p.s.splice(i, 1); planSpeichern(p); haptik(); zeichne({ scroll: true }); } }, ic('x'))));
-    }));
-    const treffer = el('div', { class: 'plan-treffer' });
-    const suche2 = el('input', { type: 'search', placeholder: 'Ort hinzufügen: Name eingeben', 'aria-label': 'Ort zum Plan hinzufügen', autocomplete: 'off' });
-    const zeigeTreffer = () => {
-      const q = falte(suche2.value.trim());
-      const l = q ? ORTE.filter((o) => !p.s.includes(o.id) && falte(`${o.name} ${o.kategorie} ${TYP_NAME[o.typ] || ''}`).includes(q)).slice(0, 8) : [];
-      setze(treffer, l.map((o) => el('button', { type: 'button', class: 'chip', onclick: () => { p.s.push(o.id); planSpeichern(p); haptik(); suche2.value = ''; F.warteZeichnen = false; zeichne({ scroll: true }); toast(`${o.name} hinzugefügt.`); } }, el('span', { class: 'marker mini g-' + gruppeVon(o.kategorie) }, symbol(o)), o.name)));
+          el('button', { type: 'button', class: 'haken', 'aria-label': `${o.name} entfernen`, onclick: () => {
+            const pos = i; p.s.splice(i, 1); planSpeichern(p); haptik(); zeichne({ scroll: true });
+            toast(`${o.name} entfernt.`, { aktion: 'Rückgängig', fn: () => { p.s.splice(pos, 0, oid); planSpeichern(p); zeichne({ scroll: true }); } });
+          } }, ic('x')))));
+    });
+    const hinzu = (extra) => el('button', { type: 'button', class: 'knopf haupt breit', style: 'min-height:60px;font-size:var(--fs-l)', onclick: () => { PL.modus = 'suche'; PL.q = ''; PL.art = ''; PL.osm = null; hoehe('gross'); zeichne({ karte: false }); } }, ic('plus'), extra);
+    const start = !stopps.length ? el('div', { class: 'leer', style: 'padding:12px 0' }, fasan(),
+      el('strong', {}, 'Noch keine Stopps.'),
+      el('span', {}, 'Füge Orte hinzu oder starte mit einem fertigen Plan und ändere ihn.'),
+      el('div', { class: 'chips', style: 'justify-content:center' }, ['A', 'B', 'C', 'G'].map((q) => el('button', { type: 'button', class: 'chip', onclick: () => {
+        p.s = schritte(q, S.tag).filter((x) => x.ort && NACH_NAME.has(x.ort)).map((x) => NACH_NAME.get(x.ort).id); planSpeichern(p); haptik(); zeichne({ scroll: true, anpassen: true });
+      } }, (q === 'G' ? 'Gruppenplan' : 'Plan ' + q) + ` · ${TAGE.find((t) => t.id === S.tag).kurz}`)))) : null;
+    setze(box,
+      el('div', { class: 'nah-kopf' }, el('h3', {}, 'Plan bearbeiten'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: () => { S.planEdit = null; haptik(); hoehe('mitte'); zeichne({ anpassen: true }); } }, ic('haken'), 'Fertig')),
+      el('label', { class: 'klein leise', for: 'pl-name' }, 'Name'), el('div', { class: 'feld' }, name),
+      el('p', { class: 'leise klein', style: 'margin:6px 0 10px' }, `Reiseführer: ${personName(p.von)}. Alle mit offener App sehen jede Änderung und können folgen.`),
+      start,
+      stopps.length ? liste : null,
+      hinzu(stopps.length ? 'Weiteren Ort hinzufügen' : 'Ort hinzufügen'),
+      stopps.length > 1 ? streckeTeil(stopps.map((o) => ({ o }))) : null,
+      el('div', { class: 'reihe', style: 'margin-top:14px' },
+        el('button', { type: 'button', class: 'knopf warn', onclick: () => {
+          S.planAlt = S.planEdit; p.x = 1; planSpeichern(p); S.plan = 'A'; S.planEdit = null; speicher.set('plan', 'A'); hoehe('mitte'); zeichne({ anpassen: true });
+          toast('Plan gelöscht.', { aktion: 'Rückgängig', fn: () => { p.x = 0; planSpeichern(p); S.plan = 'P:' + S.planAlt; zeichne({ anpassen: true }); } });
+        } }, ic('aus'), 'Plan löschen')));
+  }
+  function planerSuche(box, p) {
+    const stopps = planerStopps(p), letzter = stopps[stopps.length - 1] || null;
+    const ref = letzter && hatPos(letzter) ? letzter : S.me || null;
+    const refName = letzter ? `vom letzten Stopp` : S.me ? 'von dir' : '';
+    const feld = el('input', { id: 'pl-suche', type: 'search', value: PL.q, placeholder: 'Ort suchen: Name oder Art', enterkeyhint: 'search', autocomplete: 'off', 'aria-label': 'Ort für den Plan suchen' });
+    const treffer = el('div', { id: 'pl-treffer', 'aria-live': 'polite' });
+    const fuelle = () => {
+      const q = falte(PL.q.trim());
+      let l = ORTE.filter((o) => hatPos(o) && !p.s.includes(o.id) && (!PL.art || (PL.art === 'eigen' ? !!o.eigen : gruppeVon(o.kategorie) === PL.art))
+        && (!q || falte(`${o.name} ${o.kategorie} ${TYP_NAME[o.typ] || ''} ${o.ort || ''}`).includes(q)));
+      const dist = (o) => (ref ? meter(ref, o) : 0);
+      l = ref ? l.sort((a, b) => dist(a) - dist(b)) : l.sort((a, b) => a.name.localeCompare(b.name, 'de'));
+      const n = l.length;
+      l = l.slice(0, 10);
+      const zeile = (o) => el('li', { class: 'eintrag' }, el('button', { type: 'button', class: 'auf', 'aria-label': `${o.name} zum Plan hinzufügen`, onclick: () => planFuegeHinzu(p, o) },
+        el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o)),
+        el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name),
+          el('span', { class: 'unter' }, [ref ? `${strecke(meter(ref, o))} ${refName}` : null, TYP_NAME[o.typ] || o.kategorie, o.eigen ? 'eigener Ort' : null].filter(Boolean).join(' · '))),
+        el('span', { class: 'plus-badge', 'aria-hidden': 'true' }, ic('plus'))));
+      const o = PL.osm;
+      const osmTeil = !PL.q.trim() ? null
+        : o === 'laedt' ? el('p', { class: 'leise', role: 'status' }, 'Sucht bei OpenStreetMap …')
+          : o && o.fehler ? el('p', { role: 'alert' }, o.fehler)
+            : Array.isArray(o) ? (o.length ? el('div', {}, el('h4', { class: 'unterkopf' }, 'Neu von OpenStreetMap'),
+              el('ul', { class: 'liste' }, o.map((t) => el('li', { class: 'eintrag' }, el('button', { type: 'button', class: 'auf', 'aria-label': `${t.n} anlegen und zum Plan hinzufügen`, onclick: () => planNeuerOrt(p, t) },
+                el('span', { class: 'marker g-' + gruppeVon(t.k) }, ic('plus')),
+                el('span', { class: 'text' }, el('span', { class: 'titel' }, t.n), el('span', { class: 'unter' }, [t.a, ref ? strecke(meter(ref, t)) + ' ' + refName : null].filter(Boolean).join(' · '))),
+                el('span', { class: 'plus-badge', 'aria-hidden': 'true' }, ic('plus')))))),
+              el('p', { class: 'quelle' }, 'Suche: Nominatim, Daten © OpenStreetMap-Mitwirkende (ODbL). Nur deine Suchwörter gehen an die OpenStreetMap Foundation, nicht dein Standort. Angelegte Orte sehen alle in der Gruppe.'))
+              : el('p', {}, `Bei OpenStreetMap nichts gefunden für „${PL.q}“. Setze den Punkt auf der Karte.`)) : null;
+      setze(treffer,
+        el('h4', { class: 'unterkopf' }, PL.q.trim() || PL.art ? `${n} ${n === 1 ? 'Treffer' : 'Treffer'} in euren Orten` : ref ? `Nah ${letzter ? 'am letzten Stopp' : 'bei dir'}` : 'Alle Orte'),
+        l.length ? el('ul', { class: 'liste' }, l.map(zeile)) : el('p', { class: 'leise' }, PL.q.trim() ? `Kein Ort in euren Daten heißt so.` : 'Keine weiteren Orte in dieser Auswahl.'),
+        n > l.length ? el('p', { class: 'leise klein' }, `${n - l.length} weitere. Tippe mehr Buchstaben oder wähle eine Art.`) : null,
+        PL.q.trim().length >= 2 && !Array.isArray(PL.osm) && PL.osm !== 'laedt' ? el('button', { type: 'button', class: 'knopf breit', onclick: async () => {
+          const q = PL.q.trim(); PL.osm = 'laedt'; fuelle();
+          try { PL.osm = await osmAbfrage(q); } catch (e) { PL.osm = osmFehler(e); }
+          if (planerOffen() && PL.modus === 'suche') fuelle();
+        } }, ic('suche'), `„${PL.q.trim()}“ bei OpenStreetMap suchen`) : null,
+        osmTeil);
     };
-    suche2.addEventListener('input', zeigeTreffer);
-    const uebernehmen = !p.s.length ? el('div', { style: 'display:grid;gap:6px' }, el('span', { class: 'klein leise' }, `Schnell starten: Stopps übernehmen für ${TAGE.find((t) => t.id === S.tag).kurz}`),
-      el('div', { class: 'chips' }, ['A', 'B', 'C', 'G'].map((q) => el('button', { type: 'button', class: 'chip', onclick: () => {
-        p.s = schritte(q, S.tag).filter((x) => x.ort && NACH_NAME.has(x.ort)).map((x) => NACH_NAME.get(x.ort).id); planSpeichern(p); zeichne({ scroll: true, anpassen: true });
-      } }, q === 'G' ? 'Gruppenplan' : 'Plan ' + q)))) : null;
-    return el('section', { class: 'karte-box', style: 'display:grid;gap:10px;margin-top:10px' },
-      el('strong', {}, 'Plan bearbeiten'),
-      el('div', { class: 'feld' }, name),
-      el('p', { class: 'leise klein', style: 'margin:0' }, `Reiseführer: ${personName(p.von)}. Alle mit offener App sehen jede Änderung sofort und können folgen.`),
-      uebernehmen,
-      p.s.length ? stopps : null,
-      el('div', { class: 'suche', style: 'min-height:56px' }, ic('suche'), suche2), treffer,
-      el('div', { class: 'reihe' },
-        el('button', { type: 'button', class: 'knopf warn', onclick: () => { p.x = 1; planSpeichern(p); S.plan = 'A'; S.planEdit = null; speicher.set('plan', 'A'); zeichne({ anpassen: true }); toast('Plan gelöscht.', { aktion: 'Rückgängig', fn: () => { p.x = 0; planSpeichern(p); S.plan = 'P:' + id; zeichne({ anpassen: true }); } }); } }, 'Löschen'),
-        el('button', { type: 'button', class: 'knopf haupt', onclick: () => { S.planEdit = null; haptik(); zeichne({ scroll: true, anpassen: true }); } }, 'Fertig')));
+    feld.addEventListener('input', () => { PL.q = feld.value; PL.osm = null; fuelle(); });
+    feld.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); feld.blur(); } });
+    const artChip = (id, label, grp) => {
+      const b = el('button', { type: 'button', class: 'chip' + (grp ? ' g-' + grp : ''), 'aria-pressed': String(PL.art === id), onclick: () => { PL.art = PL.art === id ? '' : id; $$('.pl-arten .chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.id === PL.art))); fuelle(); } });
+      b.dataset.id = id; if (grp) b.append(el('span', { class: 'punktfarbe' })); b.append(label); return b;
+    };
+    setze(box,
+      el('div', { class: 'nah-kopf' }, el('h3', {}, 'Ort hinzufügen'),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: () => { PL.modus = 'liste'; haptik(); hoehe('mitte'); zeichne({ karte: false }); } }, ic('haken'), `Zum Plan (${stopps.length})`)),
+      el('div', { class: 'suche', style: 'min-height:56px' }, ic('suche'), feld),
+      el('div', { class: 'chips pl-arten', role: 'group', 'aria-label': 'Art' }, GRUPPEN.map((g) => artChip(g.id, g.label, g.id)), artChip('eigen', 'Eigene Orte')),
+      treffer,
+      el('div', { style: 'display:grid;gap:8px;margin-top:14px' },
+        el('strong', {}, 'Nicht dabei?'),
+        el('button', { type: 'button', class: 'knopf breit', onclick: () => {
+          eigenNeu({ plan: S.planEdit, q: PL.q.trim() }); hoehe('klein');
+          setTimeout(() => { if (S.eigen && S.eigen.lat == null) { Object.assign(S.eigen, sichtMitte()); hoehe('mitte'); zeichne({ anpassen: true }); } }, 360);
+        } }, ic('orte'), 'Punkt auf der Karte setzen'),
+        el('button', { type: 'button', class: 'knopf breit', onclick: () => {
+          if (!S.me) { starteGps(false); toast('Suche deinen Standort … dann nochmal tippen.'); return; }
+          eigenNeu({ plan: S.planEdit, lat: S.me.lat, lon: S.me.lon });
+        } }, ic('standort'), 'Dort, wo ich gerade bin'),
+        el('p', { class: 'leise klein', style: 'margin:0' }, 'Tipp: Lange auf die Karte drücken setzt den Punkt direkt.')));
+    fuelle();
+    if (!PL.q) setTimeout(() => { try { feld.focus({ preventScroll: true }); } catch (e) { /* egal */ } }, 250);
+  }
+  function zeichnePlaner(box) {
+    const p = G.plaene[S.planEdit];
+    if (!p || p.x) { S.planEdit = null; zeichnePlan(box); return; }
+    if (PL.modus === 'suche') planerSuche(box, p); else planerListe(box, p);
   }
   function inPlanBox(o) {
     const eigene = Object.entries(G.plaene).filter(([, x]) => !x.x);
@@ -1874,13 +1975,15 @@
     }
   }
   function eigenNeu(vorgabe = {}) {
-    S.tab = 'orte'; speicher.set('tab', 'orte'); S.ort = null; S.nah = null;
+    if (!vorgabe.plan) { S.tab = 'orte'; speicher.set('tab', 'orte'); }
+    S.ort = null; S.nah = null;
     S.eigen = Object.assign({ n: '', k: '', x: '', lat: null, lon: null, q: '', treffer: null }, vorgabe);
     if (vorgabe.lat != null) { hoehe('mitte'); zeichne({ anpassen: true }); setTimeout(() => { const f = $('#eigen-name'); if (f) f.focus({ preventScroll: true }); }, 350); return; }
     hoehe('gross'); zeichne({ anpassen: false });
     if (vorgabe.suchen && vorgabe.q) osmSuchen(vorgabe.q);
   }
-  function eigenAbbrechen() { S.eigen = null; zeichne({ anpassen: true }); }
+  function eigenAbbrechen() { const zumPlan = S.eigen && S.eigen.plan; S.eigen = null; if (zumPlan) hoehe('gross'); zeichne({ anpassen: true }); }
+  const eigenAktiv = () => !!S.eigen && (S.eigen.plan ? S.tab === 'plan' : S.tab === 'orte');
   // Sichtbare Kartenmitte (über dem Blatt)
   function sichtMitte() {
     const h = innerWidth >= 760 ? innerHeight : innerHeight - blattPx() - $('#leiste').offsetHeight;
@@ -1900,37 +2003,43 @@
     if (['railway', 'public_transport', 'aeroway'].includes(c) || (c === 'amenity' && ['ferry_terminal', 'bus_station'].includes(y))) return 'Verkehr';
     return 'Sehenswürdigkeit';
   }
+  // Abfrage bei Nominatim; wirft Error('aus'), wenn der Dienst in dienste.json abgeschaltet ist
+  async function osmAbfrage(q) {
+    const cfg = await fetch('dienste.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+    const url = cfg.suche === undefined ? 'https://nominatim.openstreetmap.org/search' : cfg.suche;
+    if (!url) throw new Error('aus');
+    const warte = 1100 - (Date.now() - osmZuletzt);
+    if (warte > 0) await new Promise((r) => setTimeout(r, warte));
+    osmZuletzt = Date.now();
+    const p = new URLSearchParams({ q, format: 'jsonv2', limit: '8', extratags: '1', 'accept-language': 'de' });
+    if (karte) { const b = karte.getBounds(); p.set('viewbox', [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].map((v) => v.toFixed(4)).join(',')); }
+    const r = await fetch(`${url}?${p}`);
+    if (!r.ok) throw new Error('http ' + r.status);
+    const d = await r.json();
+    return (Array.isArray(d) ? d : []).map((t) => ({
+      n: t.name || String(t.display_name || '').split(',')[0], lat: +t.lat, lon: +t.lon, k: osmKategorie(t),
+      a: String(t.display_name || '').split(',').slice(0, 3).join(',').trim(), q: t.osm_type && t.osm_id ? `osm:${t.osm_type}/${t.osm_id}` : 'osm',
+      oh: (t.extratags && t.extratags.opening_hours) || '', art: [t.category, t.type].filter(Boolean).join('=') }))
+      .filter((t) => t.n && Number.isFinite(t.lat) && Number.isFinite(t.lon));
+  }
+  const osmFehler = (e) => ({ fehler: String(e.message) === 'aus' ? 'Die Suche ist gerade abgeschaltet.' : navigator.onLine === false ? 'Ohne Internet geht die Suche nicht. Setze den Punkt auf der Karte.' : 'Die Suche hat nicht geantwortet. Später noch einmal, oder den Punkt auf der Karte setzen.' });
   async function osmSuchen(q) {
     q = (q || '').trim();
     if (q.length < 2) { toast('Bitte mindestens zwei Zeichen.'); return; }
     S.eigen.q = q; S.eigen.treffer = 'laedt'; zeichne({ scroll: true, karte: false });
     try {
-      const cfg = await fetch('dienste.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
-      const url = cfg.suche === undefined ? 'https://nominatim.openstreetmap.org/search' : cfg.suche;
-      if (!url) throw new Error('aus');
-      const warte = 1100 - (Date.now() - osmZuletzt);
-      if (warte > 0) await new Promise((r) => setTimeout(r, warte));
-      osmZuletzt = Date.now();
-      const p = new URLSearchParams({ q, format: 'jsonv2', limit: '8', extratags: '1', 'accept-language': 'de' });
-      if (karte) { const b = karte.getBounds(); p.set('viewbox', [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].map((v) => v.toFixed(4)).join(',')); }
-      const r = await fetch(`${url}?${p}`);
-      if (!r.ok) throw new Error('http ' + r.status);
-      const d = await r.json();
+      const t = await osmAbfrage(q);
       if (!S.eigen) return;
-      S.eigen.treffer = (Array.isArray(d) ? d : []).map((t) => ({
-        n: t.name || String(t.display_name || '').split(',')[0], lat: +t.lat, lon: +t.lon, k: osmKategorie(t),
-        a: String(t.display_name || '').split(',').slice(0, 3).join(',').trim(), q: t.osm_type && t.osm_id ? `osm:${t.osm_type}/${t.osm_id}` : 'osm',
-        oh: (t.extratags && t.extratags.opening_hours) || '', art: [t.category, t.type].filter(Boolean).join('=') }))
-        .filter((t) => t.n && Number.isFinite(t.lat) && Number.isFinite(t.lon));
+      S.eigen.treffer = t;
     } catch (e) {
       if (!S.eigen) return;
-      S.eigen.treffer = { fehler: String(e.message) === 'aus' ? 'Die Suche ist gerade abgeschaltet.' : navigator.onLine === false ? 'Ohne Internet geht die Suche nicht. Setze den Punkt auf der Karte.' : 'Die Suche hat nicht geantwortet. Später noch einmal, oder den Punkt auf der Karte setzen.' };
+      S.eigen.treffer = osmFehler(e);
     }
     zeichne({ scroll: true, karte: false });
   }
   function zeichneEigen(box) {
     const f = S.eigen, bearbeiten = !!f.id;
-    const kopf = el('div', { class: 'nah-kopf' }, el('h3', {}, bearbeiten ? 'Ort bearbeiten' : 'Eigenen Ort eintragen'),
+    const kopf = el('div', { class: 'nah-kopf' }, el('h3', {}, bearbeiten ? 'Ort bearbeiten' : f.plan ? 'Neuer Ort' : 'Eigenen Ort eintragen'),
       el('button', { type: 'button', class: 'knopf flach', onclick: eigenAbbrechen }, ic('x'), 'Abbrechen'));
     if (f.lat == null) {
       const feld = el('input', { id: 'eigen-suche', type: 'search', value: f.q || '', placeholder: 'Name oder Adresse', enterkeyhint: 'search', autocomplete: 'off', 'aria-label': 'Ort bei OpenStreetMap suchen' });
@@ -1966,14 +2075,26 @@
     const speichern = () => {
       const n = (S.eigen.n || '').trim();
       if (!n) { toast('Bitte einen Namen eingeben.'); name.focus(); return; }
+      const planId = S.eigen.plan;
       const id = eigenSpeichern(S.eigen);
       S.eigen = null; haptik(15);
+      const pl = planId && G.plaene[planId];
+      if (pl && !pl.x) {
+        if (!pl.s.includes(id)) { pl.s.push(id); planSpeichern(pl); }
+        PL.modus = 'liste'; hoehe('mitte'); zeichne({ anpassen: true });
+        toast(`${n} ist jetzt Stopp ${pl.s.length} in „${pl.n}“.`);
+        return;
+      }
       oeffneOrt(id);
       toast(G.ich && G.ich.name ? 'Gespeichert. Deine Gruppe sieht den Ort.' : 'Gespeichert, auf diesem Handy.');
     };
     // Gibt es den Ort schon? (gleicher Name oder näher als 25 m)
     const schon = ORTE.find((o) => hatPos(o) && !(o.eigen && o.eigen.id === f.id) && ((f.n && falte(o.name) === falte(f.n)) || meter(o, f) < 25));
-    setze(box, kopf,
+    const kopf2 = el('div', { class: 'nah-kopf' }, el('h3', {}, bearbeiten ? 'Ort bearbeiten' : f.plan ? 'Neuer Ort' : 'Eigenen Ort eintragen'),
+      el('span', { class: 'reihe', style: 'flex-wrap:nowrap' },
+        el('button', { type: 'button', class: 'knopf flach', 'aria-label': 'Abbrechen', onclick: eigenAbbrechen }, ic('x')),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: speichern }, ic('haken'), 'Speichern')));
+    setze(box, kopf2,
       schon ? el('div', { class: 'hilfe', role: 'note', style: 'margin:0 0 10px' }, el('span', {}, `Gibt es schon: „${schon.name}“ (${strecke(meter(schon, f))} entfernt).`),
         el('button', { type: 'button', class: 'knopf flach', onclick: () => { S.eigen = null; oeffneOrt(schon.id); } }, 'Öffnen')) : null,
       el('p', { class: 'hilfe', style: 'margin:0 0 10px' }, el('span', {}, 'Die Nadel auf der Karte zeigt den Ort. Zum Verschieben ziehen.')),
@@ -1984,7 +2105,7 @@
       el('p', { class: 'leise klein', style: 'margin:8px 0 0' }, G.ich && G.ich.name ? 'Deine Gruppe sieht den Ort, deine Notiz und deinen Namen.' : 'Bleibt auf diesem Handy, bis du einer Gruppe beitrittst.'),
       el('div', { class: 'reihe', style: 'margin-top:12px' },
         el('button', { type: 'button', class: 'knopf', onclick: () => { Object.assign(S.eigen, { lat: null, lon: null }); hoehe('gross'); zeichne({ anpassen: false }); } }, 'Anderer Ort'),
-        el('button', { type: 'button', class: 'knopf haupt', style: 'flex:1', onclick: speichern }, ic('haken'), 'Speichern')));
+        el('button', { type: 'button', class: 'knopf haupt', style: 'flex:1', onclick: speichern }, ic('haken'), f.plan ? 'Speichern und zum Plan' : 'Speichern')));
   }
   function eigenSpeichern(f) {
     const id = f.id || neueId();
@@ -2023,10 +2144,29 @@
     if (vy < 0) h += Math.PI; else if (vx < 0) h += 2 * Math.PI;
     return h / d;
   }
+  const WIND = ['N', 'NO', 'O', 'SO', 'S', 'SW', 'W', 'NW'];
+  const windName = (g) => WIND[Math.round(g / 45) % 8];
+  let rosePos = 0;
+  // Anzeige neben dem Standortknopf: Rose dreht sich entgegen der Blickrichtung (N zeigt nach Norden), Text „NO 42°“
+  function kompassZeichnen() {
+    const b = $('#btn-kompass'); if (!b) return;
+    const g = BLICK.grad, t = $('.kompass-text', b);
+    b.dataset.zustand = !BLICK.an ? 'aus' : g == null ? 'warte' : 'an';
+    b.setAttribute('aria-pressed', String(BLICK.an));
+    b.setAttribute('aria-label', !BLICK.an ? 'Kompass und Blickrichtung einschalten' : g == null ? 'Kompass sucht Richtung. Zum Ausschalten tippen.' : `Blickrichtung ${windName(g)} ${Math.round(g)} Grad. Zum Ausschalten tippen.`);
+    const txt = !BLICK.an ? 'Kompass' : g == null ? 'sucht …' : `${windName(g)} ${Math.round(g) % 360}°`;
+    if (t.textContent !== txt) t.textContent = txt;
+    if (g != null) { // kürzesten Weg drehen, nicht über 360° zurückspulen
+      const d = ((-g - rosePos) % 360 + 540) % 360 - 180; rosePos += d;
+      $('.scheibe', b).style.transform = `rotate(${rosePos.toFixed(1)}deg)`;
+    }
+  }
   function richtungSetzen(g) {
+    if (g != null && BLICK.grad != null) { const d = ((g - BLICK.grad + 540) % 360) - 180; g = (BLICK.grad + 0.35 * d + 360) % 360; } // Zittern glätten
     BLICK.grad = g; BLICK.zeit = Date.now();
     const e = ichPunkt && ichPunkt.getElement();
     if (e) { e.classList.toggle('mit-richtung', g != null); if (g != null) e.style.setProperty('--richtung', `${Math.round(g)}deg`); }
+    kompassZeichnen();
   }
   function aufIos(ev) {
     if (typeof ev.webkitCompassHeading !== 'number' || ev.webkitCompassAccuracy < 0 || ev.webkitCompassAccuracy > 45) { richtungSetzen(null); return; }
@@ -2037,23 +2177,28 @@
     // Flach oder leicht geneigt (Karte lesen): Oberkante zeigt nach 360 − alpha; steil gehalten: Rückseite nach W3C-Beispiel
     richtungSetzen(Math.abs(ev.beta) < 60 && Math.abs(ev.gamma) < 30 ? (360 - ev.alpha) % 360 : kompass(ev.alpha, ev.beta, ev.gamma));
   }
-  async function richtungUmschalten() {
+  // leise: automatischer Start mit dem Standort, ohne Meldungen bei Fehlern
+  async function richtungUmschalten(leise) {
+    leise = leise === true;
     if (BLICK.an) {
       removeEventListener('deviceorientation', aufIos); removeEventListener('deviceorientationabsolute', aufAndroid);
-      BLICK.an = false; richtungSetzen(null); zeichne({ scroll: true, karte: false }); return;
+      BLICK.an = false; BLICK.grad = null; E.richtungAus = true; speichereE(); richtungSetzen(null); zeichne({ scroll: true, karte: false }); return;
     }
+    if (BLICK.startet) return;
+    if (!leise) { E.richtungAus = false; speichereE(); }
+    BLICK.startet = true;
     try {
       // Android braucht keine Erlaubnis und hat „deviceorientationabsolute“; iOS fragt per requestPermission() nach
       if ('ondeviceorientationabsolute' in window) addEventListener('deviceorientationabsolute', aufAndroid);
       else if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
         const r = await DeviceOrientationEvent.requestPermission();
-        if (r !== 'granted') { toast('Ohne Erlaubnis keine Blickrichtung.'); return; }
+        if (r !== 'granted') { if (!leise) toast('Ohne Erlaubnis keine Blickrichtung.'); return; }
         addEventListener('deviceorientation', aufIos);
       } else if ('ondeviceorientation' in window) addEventListener('deviceorientation', aufIos);
-      else { toast('Dieses Handy liefert keine Blickrichtung.'); return; }
-      BLICK.an = true; haptik();
+      else { if (!leise) toast('Dieses Handy liefert keine Blickrichtung.'); return; }
+      BLICK.an = true; if (!leise) haptik(); kompassZeichnen();
       setTimeout(() => { if (BLICK.an && BLICK.grad == null) toast('Keine Kompassdaten. Handy einmal in Form einer 8 bewegen.'); }, 4000);
-    } catch (e) { toast('Blickrichtung nicht verfügbar.'); }
+    } catch (e) { if (!leise) toast('Blickrichtung nicht verfügbar.'); } finally { BLICK.startet = false; }
     zeichne({ scroll: true, karte: false });
   }
 
@@ -3499,6 +3644,8 @@
     S.follow = N.aktiv && folgen;
     S.watchId = navigator.geolocation.watchPosition(aufPosition, aufFehler, { enableHighAccuracy: true, maximumAge: 10000, timeout: 30000 });
     gpsKnopf();
+    // Kompass und Blickrichtung laufen mit dem Standort; iOS fragt dabei einmal um Erlaubnis (Geste = dieser Tipp)
+    if (!BLICK.an && !E.richtungAus) richtungUmschalten(true);
   }
   function aufPosition(p) {
     const neu = { lat: p.coords.latitude, lon: p.coords.longitude, acc: Math.min(p.coords.accuracy || 0, 2000) };
@@ -3612,6 +3759,8 @@
   suche.addEventListener('keydown', (e) => { if (e.key === 'Enter') suche.blur(); });
   $('#suche-leeren').addEventListener('click', () => { suche.value = ''; S.suche = ''; $('#suche-leeren').hidden = true; zeichne({ anpassen: true }); suche.focus(); });
   $('#btn-standort').addEventListener('click', () => starteGps(true));
+  $('#btn-kompass').addEventListener('click', () => { haptik(); if (!BLICK.an && S.watchId == null) { E.richtungAus = false; speichereE(); starteGps(false); return; } richtungUmschalten(); });
+  kompassZeichnen();
   addEventListener('resize', () => { hoehe(S.hoehe); if (karte) karte.invalidateSize(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && S.ort) schliesseOrt(); });
 

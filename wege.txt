@@ -1,0 +1,6 @@
+Paare 41 neu angefragt 41 mit Weg 41 Orte mit Höhe 110
+  funicular-da-graca-talstation>miradouro-da-graca 276 m, 6 Min., auf 28 m, ab 0 m
+  miradouro-da-graca>feira-da-ladra 648 m, 7 Min., auf 22 m, ab 31 m
+  feira-da-ladra>santa-clara-dos-cogumelos 70 m, 0 Min., auf 0 m, ab 0 m
+  santa-clara-dos-cogumelos>miradouro-das-portas-do-sol 845 m, 10 Min., auf 30 m, ab 36 m
+  miradouro-das-portas-do-sol>miradouro-de-santa-luzia 152 m, 1 Min., auf 6 m, ab 6 m

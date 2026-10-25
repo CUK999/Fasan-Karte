@@ -800,3 +800,34 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .profil-label { font-weight: 700; font-size: var(--fs-l); }
 .profil .segmente button { min-height: var(--ziel); white-space: normal; line-height: 1.15; padding: 4px 6px; }
 .auswahl { min-height: var(--ziel); padding: 0 14px; border-radius: var(--r); border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: inherit; font-size: var(--fs-l); width: 100%; }
+/* Reiseinfos */
+.info-einstieg { display: flex; align-items: center; gap: 14px; width: 100%; min-height: var(--ziel-haupt); margin-top: 14px; padding: 12px 14px; border-radius: var(--r-gross);
+  border: 1.5px solid var(--line); background: color-mix(in srgb, var(--g-sehen) 8%, var(--surface)); color: var(--text); text-align: left; font: inherit; }
+.info-einstieg > span:nth-child(2) { flex: 1; display: grid; gap: 2px; }
+.info-einstieg strong { font-size: var(--fs-l); }
+.info-einstieg small { color: var(--muted); font-size: var(--fs-k); }
+.info-einstieg svg.pfeil-rechts { width: 22px; height: 22px; transform: rotate(180deg); fill: none; stroke: currentColor; stroke-width: 2; flex: none; }
+.blick-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+.blick { display: grid; align-content: start; gap: 4px; padding: 12px; border-radius: var(--r); border: 1px solid var(--line); background: var(--surface); color: var(--text); text-decoration: none; }
+.blick small { color: var(--muted); font-size: var(--fs-k); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.blick strong { font-size: calc(var(--fs-l) + 2px); line-height: 1.2; }
+.blick > span { font-size: var(--fs-k); line-height: 1.35; }
+.notruf-blick strong { color: var(--warn, #B3261E); font-size: calc(var(--fs-t) + 4px); }
+.info-q { display: block; margin-top: 4px; }
+.info-q a { color: inherit; }
+.info-teil { border-top: 1px solid var(--line); }
+.info-teil > summary { min-height: var(--ziel); display: flex; align-items: center; font-weight: 700; font-size: var(--fs-l); cursor: pointer; list-style: none; }
+.info-teil > summary::-webkit-details-marker { display: none; }
+.info-teil > summary::after { content: '›'; margin-left: auto; font-size: 26px; color: var(--muted); transition: transform var(--t-kurz); }
+.info-teil[open] > summary::after { transform: rotate(90deg); }
+.info-eintrag { padding: 4px 0 14px; }
+.info-eintrag p { margin: 2px 0 0; }
+.info-dank { margin: 6px 0; font-weight: 600; }
+.info-regeln { margin: 0 0 8px; padding-left: 20px; display: grid; gap: 4px; }
+.satz-gruppe h4 { margin: 14px 0 4px; font-size: var(--fs-k); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.satz { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.satz-text { flex: 1; display: grid; gap: 1px; min-width: 0; }
+.satz-text small { color: var(--muted); font-size: var(--fs-k); }
+.satz-text strong { font-size: calc(var(--fs-l) + 2px); }
+.aussprache { color: var(--muted); font-size: var(--fs-k); letter-spacing: .02em; }
+.blick small.info-q { text-transform: none; letter-spacing: 0; font-weight: 400; }

@@ -18,7 +18,7 @@ from datetime import datetime, timezone, timedelta
 UA = 'Fasan-Karte/2.6 (+https://github.com/CUK999/Fasan-Karte)'
 ZIEL = 'site/laender.json'
 ABFRAGE = """
-SELECT ?iso ?stecker ?steckerLabel ?alias ?spannung ?frequenz ?waehrung ?notrufLabel ?seite ?sprache WHERE {
+SELECT ?iso ?stecker ?steckerLabel ?alias ?spannung ?frequenz ?waehrung ?notrufLabel ?seiteLabel ?sprache WHERE {
   ?land wdt:P31 wd:Q3624078; wdt:P297 ?iso .
   OPTIONAL { ?land wdt:P2853 ?stecker . OPTIONAL { ?stecker skos:altLabel ?alias . FILTER(LANG(?alias) = "en") } }
   OPTIONAL { ?land wdt:P2884 ?spannung . }
@@ -30,8 +30,8 @@ SELECT ?iso ?stecker ?steckerLabel ?alias ?spannung ?frequenz ?waehrung ?notrufL
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }
 """
-# Fahrseite: Wikidata-Objekte für „Rechtsverkehr“ und „Linksverkehr“
-SEITE = {'Q14565199': 'links', 'Q13196750': 'rechts'}
+# Fahrseite aus der englischen Bezeichnung des Werts („right-hand traffic“, „left-hand traffic“), nicht aus geratenen Kennungen
+VERSION = 2
 # Steckertyp-Buchstabe aus Bezeichnung oder Alias („Type F“, „Schuko“ …)
 NAMEN = {'europlug': 'C', 'schuko': 'F', 'bs 1363': 'G', 'nema 1-15': 'A', 'nema 5-15': 'B'}
 
@@ -39,7 +39,7 @@ NAMEN = {'europlug': 'C', 'schuko': 'F', 'bs 1363': 'G', 'nema 1-15': 'A', 'nema
 def frisch():
     try:
         d = json.load(open(ZIEL, encoding='utf-8'))
-        return datetime.now(timezone.utc) - datetime.fromisoformat(d['stand']) < timedelta(days=30)
+        return d.get('v') == VERSION and datetime.now(timezone.utc) - datetime.fromisoformat(d['stand']) < timedelta(days=30)
     except Exception:  # noqa: BLE001
         return False
 
@@ -95,14 +95,16 @@ def main():
             x['waehrung'].add(g('waehrung'))
         if g('notrufLabel') and re.fullmatch(r'[0-9 ]{2,6}', g('notrufLabel')):
             x['notruf'].add(g('notrufLabel').replace(' ', ''))
-        s = (g('seite') or '').rsplit('/', 1)[-1]
-        if s in SEITE:
-            x['seite'].add(SEITE[s])
+        s = (g('seiteLabel') or '').lower()
+        if 'left' in s:
+            x['seite'].add('links')
+        elif 'right' in s:
+            x['seite'].add('rechts')
         if g('sprache'):
             x['sprachen'].add(g('sprache'))
     aus = {k: {f: sorted(v) for f, v in x.items()} for k, x in sorted(laender.items())}
     with open(ZIEL, 'w', encoding='utf-8') as f:
-        json.dump({'stand': datetime.now(timezone.utc).isoformat(timespec='minutes'), 'quelle': 'Wikidata (query.wikidata.org)', 'lizenz': 'CC0',
+        json.dump({'v': VERSION, 'stand': datetime.now(timezone.utc).isoformat(timespec='minutes'), 'quelle': 'Wikidata (query.wikidata.org)', 'lizenz': 'CC0',
                    'laender': aus}, f, ensure_ascii=False, separators=(',', ':'))
     print('Länder:', len(aus))
     for k in ('PT', 'DE', 'AT', 'CH', 'GB', 'US'):

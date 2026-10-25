@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.6';
+  const VERSION = '2.7';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -139,7 +139,7 @@
     const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true');
     if (cls) s.setAttribute('class', cls);
-    s.innerHTML = SVG[name] || '';
+    s.innerHTML = SVG[name] || SYMBOL[name] || '';
     return s;
   };
   const fasan = (cls) => { const t = $('#tpl-fasan').content.firstElementChild.cloneNode(true); t.classList.add('fasan'); if (cls) t.classList.add(cls); return t; };
@@ -179,7 +179,7 @@
   const heuteTag = TAGE.find((t) => t.datum === iso);
   if (heuteTag) S.tag = heuteTag.id;
   if (!['A', 'B', 'C', 'G'].includes(S.plan) && !String(S.plan).startsWith('P:')) S.plan = 'A';
-  if (!['live', 'plan', 'orte', 'gruppe', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
+  if (!['live', 'plan', 'orte', 'gruppe', 'gemerkt', 'mehr', 'info'].includes(S.tab)) S.tab = 'plan';
 
   let M = speicher.get('markierungen', {});
   const mk = (id) => M[id] || {};
@@ -888,7 +888,7 @@
 
   // ---------- Ansichten ----------
   function zeichne(opt = {}) {
-    const leisteTab = S.tab === 'gemerkt' ? 'orte' : S.tab;
+    const leisteTab = S.tab === 'gemerkt' ? 'orte' : S.tab === 'info' ? 'mehr' : S.tab;
     $$('#leiste [data-tab]').forEach((b) => { if (b.dataset.tab === leisteTab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     const box = $('#ansicht');
     const scroll = opt.scroll ? box.scrollTop : 0;
@@ -896,10 +896,11 @@
     if (S.letzteAnsicht && S.letzteAnsicht !== ansichtNeu) { box.classList.remove('neu'); void box.offsetWidth; box.classList.add('neu'); }
     S.letzteAnsicht = ansichtNeu;
     // Suchfeld nur, wo gesucht wird (Plan, Orte); unter Live, Gruppe und Mehr wäre es nur Ablenkung
-    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr'].includes(S.tab) || (S.tab === 'orte' && !!S.eigen);
+    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr', 'info'].includes(S.tab) || (S.tab === 'orte' && !!S.eigen);
     if (S.ort) zeichneOrt(box);
     else if (S.tab === 'plan') zeichnePlan(box);
     else if (S.tab === 'live') (S.nah ? zeichneNah(box) : zeichneLive(box));
+    else if (S.tab === 'info') zeichneInfo(box);
     else if (S.tab === 'orte') (S.eigen ? zeichneEigen(box) : S.nah ? zeichneNah(box) : zeichneOrte(box));
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
     else if (S.tab === 'gruppe') zeichneGruppe(box);
@@ -1463,6 +1464,8 @@
     setze(box,
       el('div', { style: 'display:flex;align-items:center;gap:12px;padding-top:4px' }, fasan('klein-fasan'),
         el('div', {}, el('strong', { style: 'font-size:var(--fs-t)' }, 'Fasan Karte'), el('div', { class: 'leise klein' }, `Lissabon · Version ${VERSION}`))),
+      el('button', { type: 'button', class: 'info-einstieg', onclick: () => { S.tab = 'info'; speicher.set('tab', 'info'); hoehe('gross'); haptik(); zeichne(); } },
+        el('span', { class: 'marker g-sehen' }, ic('buch')), el('span', {}, el('strong', {}, 'Reiseinfos Portugal'), el('small', {}, 'Strom, Geld, Gesundheit, Regeln, Strände, Sprache')), ic('zurueck', 'pfeil-rechts')),
       notfallTeil(),
       el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:14px', onclick: () => zeigeEinfuehrung(0) }, ic('plan'), 'Einführung ansehen'),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Über dich'), profilTeil('alles', () => zeichne({ scroll: true }))),
@@ -1981,7 +1984,8 @@
       el('h3', { class: 'live-h' }, 'Orte in der Nähe'),
       nah.length ? el('ul', { class: 'liste' }, nah.map(([o]) => eintragOrt(o)))
         : el('p', { class: 'leise klein' }, S.me ? 'Im Umkreis von 1 km liegt keiner eurer Orte.' : 'Mit Standort siehst du hier, was um dich herum liegt.'),
-      S.me ? el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:12px', onclick: () => eigenNeu({ lat: S.me.lat, lon: S.me.lon }) }, ic('plus'), 'Hier einen Ort eintragen') : null);
+      S.me ? el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:12px', onclick: () => eigenNeu({ lat: S.me.lat, lon: S.me.lon }) }, ic('plus'), 'Hier einen Ort eintragen') : null,
+      el('button', { type: 'button', class: 'knopf breit flach', style: 'margin-top:8px', onclick: () => { S.tab = 'info'; speicher.set('tab', 'info'); hoehe('gross'); zeichne(); } }, ic('buch'), 'Reiseinfos: Sprache, Regeln, Gesundheit'));
   }
   function nachrichtenTeil() {
     const eingabe = el('input', { id: 'nachricht', type: 'text', maxlength: '300', placeholder: 'Nachricht an alle', enterkeyhint: 'send', autocomplete: 'off', 'aria-label': 'Nachricht an die Gruppe' });
@@ -3023,6 +3027,106 @@
     hoehe(S.hoehe); zeichne({ anpassen: true });
   }
 
+
+  // ---------- Reiseinfos (Wunsch 25.10.2026) ----------
+  // Inhalte mit Quelle und Stand aus info-pt.json (Recherchen docs/recherche/2026-10-25-*.md). Ungeklärtes steht nicht drin.
+  // „Auf einen Blick“ vergleicht mit dem Herkunftsland aus „Über dich“: Stecker und Spannung (laender.json aus Wikidata, CC0),
+  // Währung, Zeit (Zeitzonen des Browsers, IANA), Roaming (EU-Mitglied laut Liste unten).
+  let INFO = null, LAENDER_D = null, infoLaedt = false;
+  const EU = 'AT BE BG HR CY CZ DK EE FI FR DE GR HU IE IT LV LT LU MT NL PL PT RO SK SI ES SE'.split(' ');
+  const ZONE = { DE: 'Europe/Berlin', AT: 'Europe/Vienna', CH: 'Europe/Zurich', NL: 'Europe/Amsterdam', BE: 'Europe/Brussels', LU: 'Europe/Luxembourg', FR: 'Europe/Paris',
+    IT: 'Europe/Rome', PL: 'Europe/Warsaw', CZ: 'Europe/Prague', DK: 'Europe/Copenhagen', SE: 'Europe/Stockholm', NO: 'Europe/Oslo', FI: 'Europe/Helsinki', GB: 'Europe/London', IE: 'Europe/Dublin', PT: 'Europe/Lisbon' };
+  const WAEHRUNG_FEST = { DE: 'EUR', AT: 'EUR', CH: 'CHF' };
+  function ladeInfo() {
+    if (INFO || infoLaedt) return;
+    infoLaedt = true;
+    Promise.all([fetch('info-pt.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null),
+      fetch('laender.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null)).catch(() => null)])
+      .then(([i, l]) => { INFO = i || { fehler: true }; LAENDER_D = l && l.laender ? l : null; })
+      .finally(() => { infoLaedt = false; if (S.tab === 'info' && !S.ort) zeichne({ scroll: true, karte: false }); });
+  }
+  function zoneVersatz(zone, t = new Date()) {
+    try {
+      const teil = new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' }).formatToParts(t).find((x) => x.type === 'timeZoneName').value;
+      const m = /GMT([+-])(\d{2}):(\d{2})/.exec(teil); return m ? (m[1] === '-' ? -1 : 1) * (+m[2] * 60 + +m[3]) : 0;
+    } catch (e) { return null; }
+  }
+  function infoQuelle(keys, kurz) {
+    const q = (keys || []).map((k) => INFO.quellen[k]).filter(Boolean);
+    if (!q.length) return null;
+    const name = (x) => (kurz ? x.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] : x.titel);
+    return el('small', { class: 'quelle info-q' }, q.length > 1 ? 'Quellen: ' : 'Quelle: ',
+      q.map((x, i) => [i ? '; ' : '', el('a', { href: x.url, target: '_blank', rel: 'noopener' }, name(x)), `, ${x.stand}`]));
+  }
+  function blickKacheln() {
+    const k = INFO.kurz, her = E.herkunft || 'DE', ld = LAENDER_D && LAENDER_D.laender, heimat = landName(her), ziel = landName(INFO.land);
+    const kachel = (titel, wert, text, q) => el('div', { class: 'blick' }, el('small', {}, titel), el('strong', {}, wert), text ? el('span', {}, text) : null, q ? infoQuelle([q], true) : null);
+    // Strom
+    let strom;
+    const st = k.strom, hs = ld && ld[her];
+    if (her === INFO.land) strom = kachel('Strom', `Typ ${st.stecker.join(', ')}`, `${st.spannung} V, ${st.frequenz} Hz`, st.q);
+    else if (st.passtVon && st.passtVon[her]) strom = kachel('Strom', 'Kein Adapter nötig', `Typ ${st.stecker.join(', ')}, ${st.spannung} V. Stecker aus ${heimat} passen.`, st.q);
+    else if (hs && hs.stecker && hs.stecker.length) {
+      const fehlt = hs.stecker.filter((x) => !st.stecker.includes(x));
+      const volt = hs.spannung && hs.spannung.length && !hs.spannung.includes(st.spannung);
+      strom = kachel('Strom', fehlt.length ? 'Adapter nötig' : 'Stecker passen', `Hier Typ ${st.stecker.join(', ')}, ${st.spannung} V. ${fehlt.length ? `Stecker Typ ${fehlt.join(', ')} von zu Hause passen nicht.` : ''}${volt ? ` Bei dir ${hs.spannung.join('/')} V: prüfe, ob deine Geräte ${st.spannung} V vertragen.` : ''}`.trim(), st.q);
+    } else strom = kachel('Strom', `Typ ${st.stecker.join(', ')}`, `${st.spannung} V, ${st.frequenz} Hz. Vergleiche mit deinen Steckern.`, st.q);
+    // Geld
+    const hw = (ld && ld[her] && ld[her].waehrung && ld[her].waehrung[0]) || WAEHRUNG_FEST[her];
+    const geld = kachel('Geld', k.waehrung.name, hw ? (hw === k.waehrung.code ? 'Wie zu Hause.' : `Bei dir: ${hw}. Umrechnung am Automaten ablehnen, wenn sie angeboten wird.`) : null, k.waehrung.q);
+    // Zeit
+    const zh = ZONE[her], dz = zh ? zoneVersatz(INFO.zeitzone) - zoneVersatz(zh) : null;
+    const zeit = kachel('Uhrzeit', dz == null || Number.isNaN(dz) ? new Intl.DateTimeFormat('de-DE', { timeZone: INFO.zeitzone, hour: '2-digit', minute: '2-digit' }).format(new Date()) + ' Uhr'
+      : dz === 0 ? 'Gleiche Zeit' : `${Math.abs(dz / 60).toString().replace('.', ',')} Std. ${dz < 0 ? 'früher' : 'später'}`, dz ? `Als in ${heimat}. Hier jetzt ${new Intl.DateTimeFormat('de-DE', { timeZone: INFO.zeitzone, hour: '2-digit', minute: '2-digit' }).format(new Date())} Uhr.` : null);
+    const notruf = el('a', { class: 'blick notruf-blick', href: 'tel:' + k.notruf.nummer }, el('small', {}, 'Notruf'), el('strong', {}, k.notruf.nummer), el('span', {}, k.notruf.text), infoQuelle([k.notruf.q], true));
+    const handy = kachel('Handy', k.eu && EU.includes(her) ? 'EU-Roaming' : 'Tarif prüfen', k.eu && EU.includes(her) ? 'Keine Aufschläge auf den Inlandspreis.' : `Roaming-Kosten aus ${heimat} beim Anbieter klären.`, k.eu && EU.includes(her) ? 'ROAM' : null);
+    const wasser = kachel('Leitungswasser', 'Vom Versorger geprüft', k.wasser.text, k.wasser.q);
+    void ziel;
+    return el('div', { class: 'blick-raster' }, strom, geld, zeit, notruf, handy, wasser);
+  }
+  function sprich(text) {
+    try {
+      const st = window.speechSynthesis; if (!st) return;
+      const v = st.getVoices().find((x) => /^pt[-_]PT/i.test(x.lang)) || st.getVoices().find((x) => /^pt/i.test(x.lang));
+      if (!v) { toast('Auf diesem Handy ist keine portugiesische Stimme installiert.'); return; }
+      st.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/\s*\/.*$/, '').replace(/…/g, '')); u.voice = v; u.lang = v.lang; u.rate = 0.85; st.speak(u); haptik();
+    } catch (e) { /* egal */ }
+  }
+  function zeichneInfo(box) {
+    ladeInfo();
+    const zurueck = el('button', { type: 'button', class: 'knopf flach', style: 'margin:0 0 4px -8px', onclick: () => { S.tab = 'mehr'; speicher.set('tab', 'mehr'); zeichne(); } }, ic('zurueck'), 'Mehr');
+    if (!INFO) { setze(box, zurueck, el('p', { class: 'leise' }, 'Lädt …')); return; }
+    if (INFO.fehler) { setze(box, zurueck, el('p', {}, 'Die Reiseinfos konnten nicht geladen werden. Ohne Netz geht es erst, wenn sie einmal geladen wurden.')); return; }
+    const her = E.herkunft || 'DE';
+    const teil = (t, offen) => {
+      const d = el('details', { class: 'info-teil' }, el('summary', {}, t.titel),
+        t.eintraege.map((x) => el('div', { class: 'info-eintrag' }, el('strong', {}, x.t), el('p', {}, x.x), infoQuelle(x.q))));
+      if (offen) d.open = true;
+      return d;
+    };
+    const sp = INFO.sprache, kann = E.sprachen && E.sprachen[INFO.sprache];
+    const gruppen = [];
+    for (const z of sp.saetze) { let g = gruppen.find((x) => x[0] === z[0]); if (!g) gruppen.push(g = [z[0], []]); g[1].push(z); }
+    if (E.essen === 'vegetarisch' || E.essen === 'vegan') { const r = gruppen.find((x) => x[0] === 'Restaurant'); if (r) r[1].sort((a, b) => (/[Vv]egetari/.test(b[1]) ? 1 : 0) - (/[Vv]egetari/.test(a[1]) ? 1 : 0)); }
+    const stimme = 'speechSynthesis' in window;
+    const sprache = el('details', { class: 'info-teil sprache' }, el('summary', {}, sp.titel),
+      el('p', { class: 'leise klein' }, sp.hinweis),
+      el('p', { class: 'info-dank' }, sp.dank),
+      el('ul', { class: 'info-regeln' }, sp.regeln.map((r) => el('li', {}, r))),
+      gruppen.map(([g, l]) => el('div', { class: 'satz-gruppe' }, el('h4', {}, g),
+        l.map(([, de, pt, aus, einQ]) => el('div', { class: 'satz' },
+          el('div', { class: 'satz-text' }, el('small', {}, de, einQ ? ' · nicht doppelt geprüft' : ''), el('strong', { lang: 'pt-PT' }, pt), el('span', { class: 'aussprache' }, aus)),
+          stimme ? el('button', { type: 'button', class: 'haken', 'aria-label': `„${pt}“ vorlesen`, onclick: () => sprich(pt) }, ic('ton')) : null)))),
+      infoQuelle(sp.q));
+    if (!kann || kann === 'nein' || kann === 'wenig') sprache.open = true;
+    setze(box, zurueck,
+      el('h2', { class: 'ort-titel', style: 'margin-top:0' }, `${landName(INFO.land)} · ${INFO.ort}`),
+      el('p', { class: 'leise klein', style: 'margin:2px 0 12px' }, `Stand ${datumDe(INFO.stand)} · für dich aus ${landName(her)} `,
+        el('button', { type: 'button', class: 'knopf flach', style: 'min-height:44px;padding:0 6px', onclick: () => { S.tab = 'mehr'; zeichne(); } }, 'ändern')),
+      el('h3', { class: 'live-h', style: 'margin-top:0' }, 'Auf einen Blick'), blickKacheln(),
+      INFO.teile.map((t) => teil(t, t.id === 'regeln')), sprache,
+      el('p', { class: 'quelle', style: 'margin-top:12px' }, 'Nur belegte Angaben, jede mit Quelle und Stand. Was wir nicht sicher belegen konnten, steht nicht hier. Stecker und Währung anderer Länder: Wikidata (CC0)', LAENDER_D ? `, abgerufen ${uhrzeit(Date.parse(LAENDER_D.stand))}.` : '.'));
+  }
 
   // ---------- Über dich (Wunsch 25.10.2026) ----------
   // Herkunft (für Strom, Geld, Zeit und Recht im Vergleich), Gehtempo, Steigungen, Sprachen, Essen. Bleibt auf diesem Handy.

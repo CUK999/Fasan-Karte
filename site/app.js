@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.2';
+  const VERSION = '3.3';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -1086,6 +1086,7 @@
       stopps.length ? zeitleisteTeil(stopps) : null,
       streckeTeil(stopps),
       el('div', { class: 'reihe', style: 'margin-top:12px' }, heimKnopf()),
+      bonKnopf({ klein: true, titel: 'Kassenzettel scannen und teilen' }),
       liste);
   }
 
@@ -2287,6 +2288,7 @@
     const nah = S.me ? ORTE.filter((o) => hatPos(o) && !mk(o.id).aus).map((o) => [o, meter(S.me, o)]).filter(([, d]) => d < 1000).sort((a, b) => a[1] - b[1]).slice(0, 8) : [];
     setze(box,
       el('div', { class: 'live-mini' }, status, ziel, gruppe),
+      bonKnopf({ klein: true, titel: 'Kassenzettel scannen und teilen' }),
       el('h3', { class: 'live-h' }, 'Schnell finden'), schnell,
       el('h3', { class: 'live-h' }, 'Orte in der Nähe'),
       nah.length ? el('ul', { class: 'liste' }, nah.map(([o]) => eintragOrt(o)))
@@ -2508,6 +2510,39 @@
     document.body.append(box);
   }
 
+  // ---------- Kassenzettel scannen: Einstieg überall (Wunsch 25.10.2026) ----------
+  // Ein Tipp öffnet die Kamera (oder die Fotos), danach landet der Bon direkt in „Gruppe → Kosten → Posten“ und wird gelesen.
+  // Das Foto bleibt auf dem Handy, die Erkennung läuft im Handy (bon.js, tesseract.js).
+  async function bonStart(datei, zweck) {
+    if (!datei) return;
+    if (!G.ich || !G.ich.name) { toast('Tritt zuerst unter „Gruppe“ bei, dann kannst du Rechnungen teilen.'); S.tab = 'gruppe'; hoehe('gross'); zeichne(); return; }
+    let foto;
+    try { foto = await fotoEinlesen(datei, 2400); } catch (e) { toast('Das Foto konnte nicht gelesen werden.'); return; }
+    S.ort = null; S.nah = null; S.tab = 'gruppe'; S.gTeil = 'kosten'; speicher.set('tab', 'gruppe'); speicher.set('gTeil', 'kosten');
+    const f = leerForm(); f.art = 'posten'; f.foto = foto; f.bon = null; if (zweck) f.z = zweck;
+    S.kostenForm = f; haptik(12); hoehe('gross'); zeichne({ karte: false });
+    bonLesen(f);
+  }
+  // Ein einziges Dateifeld für alle Einstiege, außerhalb der Ansichten: Wird die Ansicht neu gezeichnet, während die Kamera offen ist
+  // (z. B. durch eine neue GPS-Position), geht die Auswahl sonst verloren.
+  let bonFeld = null, bonZweck = '';
+  function bonWaehle(zweck, kamera) {
+    if (!bonFeld) {
+      bonFeld = el('input', { type: 'file', accept: 'image/*', hidden: true, 'aria-hidden': 'true', tabindex: '-1', id: 'bon-datei' });
+      bonFeld.addEventListener('change', () => { const d = bonFeld.files && bonFeld.files[0]; bonFeld.value = ''; bonStart(d, bonZweck); });
+      document.body.append(bonFeld);
+    }
+    bonZweck = zweck || '';
+    if (kamera) bonFeld.setAttribute('capture', 'environment'); else bonFeld.removeAttribute('capture');
+    bonFeld.click();
+  }
+  function bonKnopf(opt = {}) {
+    return el('div', { class: 'bon-karte' + (opt.klein ? ' klein' : '') },
+      el('button', { type: 'button', class: 'knopf haupt breit bon-gross', onclick: () => bonWaehle(opt.zweck, true) }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.foto}</svg>`, style: 'display:contents' }),
+        el('span', { class: 'bon-titel' }, el('strong', {}, opt.titel || 'Kassenzettel scannen'), opt.klein ? null : el('small', {}, 'Foto machen, antippen wer was hatte, fertig'))),
+      opt.klein ? null : el('button', { type: 'button', class: 'knopf flach', style: 'justify-self:start', onclick: () => bonWaehle(opt.zweck, false) }, 'Foto aus der Galerie wählen'));
+  }
+
   // ---------- Kassenzettel erkennen und im Bild korrigieren (bon.js) ----------
   async function bonLesen(f) {
     const neu = () => { if (S.kostenForm === f) zeichne({ scroll: true, karte: false }); };
@@ -2529,6 +2564,8 @@
       S.bonStatus = 'Erkennung nicht möglich. Posten bitte von Hand eintragen.';
     }
     neu();
+    // Ergebnis ins Bild holen: Das Foto steht weiter oben, die erkannten Posten sind das, was jetzt zählt
+    setTimeout(() => { const e = $('.bon'); if (e && S.kostenForm === f) e.scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); }, 80);
   }
   function bonAnsicht(f, neu) {
     const r = f.bon, zoom = f.bonZoom || 1;
@@ -2679,6 +2716,7 @@
       teil = [
         el('div', { class: 'reihe' }, datei,
           el('button', { type: 'button', class: 'knopf', onclick: () => datei.click() }, el('span', { html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL.foto}</svg>`, style: 'display:contents' }), f.foto ? 'Neues Foto' : 'Kassenzettel fotografieren'),
+          el('button', { type: 'button', class: 'knopf flach', onclick: () => { datei.removeAttribute('capture'); datei.click(); datei.setAttribute('capture', 'environment'); } }, 'Aus Galerie'),
           f.foto ? el('button', { type: 'button', class: 'k-foto', 'aria-label': 'Kassenzettel groß ansehen', onclick: () => zeigeFoto(f.foto) }, el('img', { src: f.foto, alt: '' })) : null),
         f.foto ? el('p', { class: 'leise klein', style: 'margin:0' }, 'Das Foto bleibt nur auf diesem Handy. Die Erkennung läuft im Handy.') : null,
         S.bonStatus ? el('p', { class: 'bon-status', 'aria-live': 'polite' }, S.bonStatus) : null,
@@ -2771,7 +2809,7 @@
         el('small', {}, 'Dein Stand'),
         el('strong', {}, mein > 0 ? `Du bekommst ${euro(mein)}` : mein < 0 ? `Du schuldest ${euro(mein)}` : 'Ausgeglichen'),
         el('small', {}, `Ausgaben der Gruppe: ${euro(summe)}`)),
-      S.kostenForm ? kostenForm() : el('button', { type: 'button', class: 'knopf haupt breit', style: 'margin-top:10px', onclick: neu }, '+ Ausgabe eintragen'),
+      S.kostenForm ? kostenForm() : el('div', { style: 'display:grid;gap:8px;margin-top:10px' }, bonKnopf(), el('button', { type: 'button', class: 'knopf breit', onclick: neu }, '+ Ausgabe ohne Kassenzettel eintragen')),
       S.personNeu ? personOhneApp() : null,
       wege.length ? el('div', { class: 'abschnitt' }, el('h3', {}, 'So gleicht ihr aus'),
         el('ul', { class: 'liste' }, wege.map((w) => el('li', { class: 'eintrag kosten-weg' },
@@ -2855,8 +2893,9 @@
       [['unterwegs', 'Unterwegs'], ['abstimmen', 'Abstimmen'], ['kosten', 'Kosten'], ['einkauf', 'Einkauf']].map(([id, n]) => el('button', { type: 'button', role: 'tab', 'aria-selected': String(teil === id), 'aria-pressed': String(teil === id), onclick: () => { S.gTeil = id; speicher.set('gTeil', id); S.kostenForm = null; haptik(); zeichne({ karte: false }); } }, n)));
     // Ohne bekannte Mitreisende zuerst der Abgleich per QR/Link: darüber kommt auch der Gruppenschlüssel
     const inhalt = teil === 'kosten' ? kostenTeil() : teil === 'einkauf' ? einkaufTeil() : teil === 'abstimmen' ? [umfrageTeil, rang, strittigTeil] : null;
-    if (!leute.length) setze(box, pinKarte(), abgleich, reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil]);
-    else setze(box, pinKarte(), reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil, abgleich]);
+    const bonTeil = teil === 'kosten' ? null : bonKnopf({ klein: true, titel: 'Kassenzettel scannen und teilen' });
+    if (!leute.length) setze(box, pinKarte(), abgleich, bonTeil, reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil]);
+    else setze(box, pinKarte(), bonTeil, reiter, inhalt || [liveTeil(), nachrichtenTeil(), treffTeil, abgleich]);
   }
 
   function formUmfrage() {
@@ -3001,7 +3040,7 @@
         o.quelle === 'pruefen' ? el('span', { class: 'abzeichen warn' }, 'Kartenpunkt ungefähr') : null),
       el('div', { style: 'display:grid;gap:8px;margin-top:14px' },
         el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => starteNavi(o) }, ic('route'), 'Hinführen'),
-        null),
+        ['essen', 'veggie', 'abends'].includes(gruppeVon(o.kategorie)) ? bonKnopf({ klein: true, titel: 'Rechnung hier scannen und teilen', zweck: o.name.slice(0, 60) }) : null),
       el('div', { class: 'aktionen' },
         aktion('fav', 'herz', m.fav ? 'Gemerkt' : 'Merken', m.fav, () => { markiere(o.id, { fav: !m.fav }); zeichne({ scroll: true }); }),
         aktion('fertig', 'haken', 'Erledigt', m.fertig, () => { schalteErledigt(o); }),

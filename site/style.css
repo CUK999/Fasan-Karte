@@ -882,3 +882,11 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 @media (prefers-reduced-motion: reduce) { .kompass .scheibe { transition: none; } .kartenknopf.kompass[data-zustand="warte"] .rose { animation: none; } }
 @media (min-width: 760px) { .kartenknopf.kompass { bottom: calc(var(--nav-h) + 32px + var(--ziel) + 10px); } }
 body[data-navi="an"] .kartenknopf.kompass { bottom: calc(var(--navi-h, 220px) + 12px + var(--ziel) + 10px); }
+
+/* Kassenzettel-Einstieg */
+.bon-karte { display: grid; gap: 4px; margin: 10px 0; }
+.bon-gross { min-height: 64px; justify-content: flex-start; gap: 14px; text-align: left; }
+.bon-gross svg { width: 30px; height: 30px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bon-titel { display: grid; gap: 2px; }
+.bon-titel small { font-size: var(--fs-k); font-weight: 500; opacity: .95; }
+.bon-karte.klein .bon-gross { min-height: 56px; }

@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.8';
+  const VERSION = '2.9';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -915,7 +915,7 @@
     const m = mk(o.id), g = gruppeVon(o.kategorie), st = status(o);
     const unter = [o.kategorie];
     if (o.ort && o.ort !== 'Lisboa') unter.push(o.ort);
-    if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(`${strecke(d)} · ${gehzeit(d)} Min.`); }
+    if (S.me && hatPos(o)) { const d = meter(S.me, o); unter.push(d > 2500 ? `${strecke(d)} · Bahn oder Bus` : `${strecke(d)} · ${gehzeit(d)} Min.`); }
     if (o.dauer) unter.push(`vor Ort ${o.dauer} Min.`);
     if (o.eigen) unter.push('eigener Ort');
     // Essen laut „Über dich“: vegetarische/vegane Angebote laut OpenStreetMap hervorheben
@@ -1034,7 +1034,7 @@
             el('small', {}, `Nächster Stopp ${nr} von ${stopps.length}${s.zeit ? ` · ${s.zeit} Uhr` : ''}`),
             el('strong', {}, o.name),
             el('span', { class: 'naechst-art' }, el('span', { class: 'marker g-' + gruppeVon(o.kategorie) }, symbol(o)), TYP_NAME[o.typ] || o.kategorie,
-              d != null ? ` · ${gehzeit(d)} Min. zu Fuß` : ''))),
+              d != null ? (d > 2500 ? ` · ${strecke(d)}, besser mit Bahn oder Bus` : ` · ${gehzeit(d)} Min. zu Fuß`) : ''))),
         el('button', { type: 'button', class: 'knopf haupt breit', onclick: () => starteNavi(o) }, ic('route'), 'Hinführen'),
         hilfe('hinfuehren', '„Hinführen“ zeigt den Fußweg auf der Karte und sagt jede Abbiegung an. Am Ziel hakst du den Stopp ab.'));
     } else if (S.plan === 'G' && !stopps.length) {

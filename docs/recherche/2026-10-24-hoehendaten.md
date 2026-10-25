@@ -32,7 +32,7 @@ Schreibweise: **Beleg** = steht in der genannten Quelle. **Folgerung** = mein Sc
 - STAC: https://copernicus-dem-30m-stac.s3.amazonaws.com/
 - Produkthandbuch: https://dataspace.copernicus.eu/sites/default/files/media/files/2024-06/geo1988-copernicusdem-spe-002_producthandbook_i5.0.pdf
 
-**Ausschnitt schneiden (Folgerung, nicht getestet).** Als COG lässt sich per HTTP-Bereichsanfrage nur der Ausschnitt lesen, wenn GDAL im Runner verfügbar ist (`apt-get install gdal-bin`, nicht geprüft):
+**Ausschnitt schneiden (Folgerung, nicht getestet).** Als COG lässt sich per HTTP-Bereichsanfrage nur der Ausschnitt lesen. `tools/hoehe.py` macht das mit rasterio. Gleichwertig mit GDAL-Kommandozeile (`apt-get install gdal-bin`, nicht geprüft):
 ```
 gdal_translate -projwin -9.45 38.80 -9.08 38.66 \
   /vsicurl/https://copernicus-dem-30m.s3.eu-central-1.amazonaws.com/Copernicus_DSM_COG_10_N38_00_W010_00_DEM/Copernicus_DSM_COG_10_N38_00_W010_00_DEM.tif \
@@ -280,7 +280,7 @@ Rechnung mit Python (WGS84-Standardformeln), Mittelbreite 38,73 °N: 1° Breite 
 | 1,0 m | 0,5 m | 479 kB | 390 kB | 0,71 |
 | 1,0 m | 1 m | 365 kB | 293 kB | 0,54 |
 
-**Folgerung:** Die Größe ist kein Hindernis. 0,5 m als Einheit (Int16, ±16 km Wertebereich reicht für 0–250 m) ist ein guter Kompromiss: halb so groß wie in Dezimetern, Rundungsfehler ±0,25 m, klein gegen den DEM-Fehler. Das Raster liegt als eine Datei in `site/`. Im Service Worker mit zwischenspeichern. Ob der Browser `DecompressionStream('gzip')` für die Entpackung bietet, ist nicht geprüft; sonst reicht ein kleiner eigener Inflate-Block oder die Auslieferung als ungepackte Datei (1,3 MB).
+**Folgerung:** Die Größe ist kein Hindernis. `tools/hoehe.py` speichert 0,1 m (rund 0,7 MB nach der Rechenprobe). Optional: 0,5 m als Einheit (Int16, ±16 km Wertebereich reicht für 0–250 m) wäre etwa halb so groß, mit Rundungsfehler ±0,25 m, klein gegen den DEM-Fehler. Nötig ist das nicht. Das Raster liegt als eine Datei in `site/`. Im Service Worker mit zwischenspeichern. Ob der Browser `DecompressionStream('gzip')` für die Entpackung bietet, ist nicht geprüft; sonst reicht ein kleiner eigener Inflate-Block oder die Auslieferung als ungepackte Datei (1,3 MB).
 
 ---
 
@@ -288,7 +288,7 @@ Rechnung mit Python (WGS84-Standardformeln), Mittelbreite 38,73 °N: 1° Breite 
 
 ### 5.1 Aufbau
 
-1. **Bauprozess** (`tools/hoehen.py`, GitHub Actions): GLO-30-Kachel `N38_00_W010_00` per `gdal_translate /vsicurl/…` auf 38,66–38,80 °N, −9,45 bis −9,08 °E zuschneiden. In Einheiten von 0,5 m als Int16 speichern, mit Kopf (Ecke, Zellgröße, Zahl der Spalten/Zeilen, Einheit) und Differenzbildung je Zeile. Als `site/hoehen-lissabon.bin` ablegen. Selten ändern (Quelle ändert sich praktisch nicht: „Update Frequency: None“). Nicht bei jedem Lauf neu holen, nur wenn die Datei fehlt.
+1. **Bauprozess** (GitHub Actions): GLO-30-Kachel `N38_00_W010_00` per HTTP-Bereichsanfrage auf 38,66–38,80 °N, −9,45 bis −9,08 °E zuschneiden, als Int16 mit Kopf (Ecke, Zellgröße, Spalten/Zeilen, Einheit) und Zeilen-Differenzen speichern. **Das setzt `tools/hoehe.py` schon so um** (rasterio über GDAL `/vsicurl/`, Einheit 0,1 m, `site/hoehe.bin` und `site/hoehe.json`, höchstens alle 30 Tage; in `pages.yml` eingebunden). Die Quelle ändert sich praktisch nicht („Update Frequency: None“), 30 Tage sind reichlich. Der Abruf aus Actions ist nicht geprüft; das Skript fängt Fehler ab und behält die alte Datei.
 2. **Quellenangabe in der App** unter „Quellen“: Hinweis 6(b), Haftungssatz 6(c), AWS-Zitat mit Abrufdatum.
 3. **Auf dem Gerät:** Polylinie der Valhalla-Route (Genauigkeit 6 Stellen) dekodieren → entlang des Wegs alle ~15 m bilinear aus dem Raster lesen → ~60 m glätten → Anstieg/Abstieg mit Hysterese 2–3 m. Die Konstanten (15 m, 60 m, 2–3 m) sind Vorschläge.
 4. **Anzeige:** „ca. 45 m hoch, 12 m runter“, gerundet auf 5 m, mit Hinweis „grob, 30-m-Raster“. Bei sehr kurzen Wegen (< 100 m) nur den Höhenunterschied.

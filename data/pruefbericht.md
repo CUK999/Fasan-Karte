@@ -1,6 +1,6 @@
 # Prüfbericht der Orte
 
-104 von 104 mit Koordinate, 58 mit Wikipedia-Text, 62 mit Bild.
+111 von 111 mit Koordinate, 62 mit Wikipedia-Text, 67 mit Bild.
 
 | Ort | Quelle | Position | Hinweise | OSM-Treffer |
 | --- | --- | --- | --- | --- |
@@ -107,4 +107,11 @@
 | Museu Nacional do Azulejo | name | 38.72472, -9.11391 | ok | Museu Nacional do Azulejo, 4, Rua da Madre de Deus, São João, Penha de França, Lissabon, 1900-455, Portugal |
 | Elevador de Santa Justa | name | 38.71212, -9.13937 | ok | Elevador de Santa Justa, Rua de Santa Justa, Santa Maria Maior, Madalena, Lissabon, 1100-062, Portugal |
 | Tram 28E Start Martim Moniz | adresse | 38.71600, -9.13635 | ok | Praça Martim Moniz, Mouraria, Santa Maria Maior, Madalena, Lissabon, 1100-341, Portugal |
-| Praia de Carcavelos | name | 38.67922, -9.33524 | ok | Praia de Carcavelos, Carcavelos e Parede, Cascais, Lissabon, 2775-604, Portugal |
+| Praia de Carcavelos | manuell | 38.67924, -9.33481 | ok | Praia de Carcavelos, Carcavelos e Parede, Cascais, Lissabon, 2775-604, Portugal |
+| Praia da Torre | manuell | 38.67589, -9.32293 | ok | Praia da Torre, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal |
+| Praia de Santo Amaro | manuell | 38.68482, -9.31185 | ok | Praia de Santo Amaro, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal |
+| Praia da Conceição | manuell | 38.70034, -9.41654 | ok | Praia da Conceição, Cascais e Estoril, Cascais, Lissabon, Portugal |
+| Praia da Rainha | manuell | 38.69916, -9.41816 | ok | Praia da Rainha, Cascais e Estoril, Cascais, Lissabon, Portugal |
+| Praia do Tamariz | manuell | 38.70278, -9.39942 | ok | Praia do Tamariz, São João do Estoril, Cascais e Estoril, Cascais, Lissabon, Portugal |
+| Praia de São João da Caparica | manuell | 38.66075, -9.25565 | ok | Praia de São João, Costa de Caparica, Almada, Setúbal, Portugal |
+| Praia do Guincho | manuell | 38.73315, -9.47270 | ok | Praia do Guincho, Cascais e Estoril, Cascais, Lissabon, Portugal |

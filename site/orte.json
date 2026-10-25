@@ -2648,13 +2648,13 @@
   "name": "Praia de Carcavelos",
   "adresse": "Praia de Carcavelos, Cascais",
   "ort": "Cascais",
-  "kategorie": "Sehenswürdigkeit",
-  "notiz": "Aus eurer Google-Liste: Sandstrand an der Bahnlinie Cais do Sodré–Cascais",
+  "kategorie": "Strand",
+  "notiz": "Aus eurer Google-Liste: langer, breiter Sandstrand mit großen Wellen, bei Surfern beliebt. Zug ab Cais do Sodré bis Carcavelos, etwa 27 Min. „Praia Acessível“ mit angepassten WC (Cascais, 2026). Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026), CP-Fahrplan (29.03.2026)",
   "typ": "kueste",
   "stand": "2026-10-24",
-  "lat": 38.679223,
-  "lon": -9.335236,
-  "quelle": "name",
+  "lat": 38.67924,
+  "lon": -9.33481,
+  "quelle": "manuell",
   "infos": {},
   "wiki": {
    "text": "A Praia de Carcavelos é primeira praia oceânica após a foz do rio Tejo, formando com outras a Costa do Estoril.\nA Praia de Carcavelos está situada na União das Freguesias de Carcavelos e Parede, entre a Parede e Santo Amaro de Oeiras. No inverno tem ondas de classe nacional onde já vários surfistas despontaram para o desporto. A praia forma uma onda tubular e rápida[carece de fontes]?.",
@@ -2670,6 +2670,173 @@
    "quelle": "https://commons.wikimedia.org/wiki/File:Praia_de_Carcavelos.jpg",
    "breite": 720,
    "hoehe": 540
+  }
+ },
+ {
+  "id": "praia-da-torre",
+  "name": "Praia da Torre",
+  "adresse": "Praia da Torre, Oeiras",
+  "ort": "Oeiras",
+  "kategorie": "Strand",
+  "notiz": "Breiter Sandstrand hinter dem Forte de São Julião da Barra. Zug bis Oeiras (etwa 24 Min.), dann 20–30 Min. zu Fuß, für Ältere lang. Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026), Time Out (08.06.2026), CP-Fahrplan (29.03.2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.67589,
+  "lon": -9.32293,
+  "quelle": "manuell",
+  "infos": {},
+  "wiki": {
+   "text": "Praia da Torre é uma praia situada em São Julião da Barra, na freguesia de Oeiras e São Julião da Barra, Paço de Arcos e Caxias, em Oeiras, Grande Lisboa.\nA Instituto da Água realiza análises periódicas no local, uma vez que a praia é utilizada por banhistas.",
+   "url": "https://pt.wikipedia.org/wiki/Praia_da_Torre",
+   "lang": "pt",
+   "titel": "Praia da Torre"
+  },
+  "bild": {
+   "src": "bilder/praia-da-torre.jpg",
+   "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Praia_da_Torre_-_Portugal_(141940514).jpg",
+   "breite": 720,
+   "hoehe": 515
+  }
+ },
+ {
+  "id": "praia-de-santo-amaro",
+  "name": "Praia de Santo Amaro",
+  "adresse": "Praia de Santo Amaro, Oeiras",
+  "ort": "Oeiras",
+  "kategorie": "Strand",
+  "notiz": "Größter Strand von Oeiras, bewegtes Wasser (Surfen, Kitesurfen laut Time Out). Zug bis Santo Amaro, etwa 23 Min. Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: Time Out (08.06.2026), playocean.net (2026), CP-Fahrplan (29.03.2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.68482,
+  "lon": -9.31185,
+  "quelle": "manuell",
+  "infos": {},
+  "wiki": {
+   "text": "A praia de Santo Amaro de Oeiras situa-se na freguesia de Oeiras e São Julião da Barra, Paço de Arcos e Caxias, na Grande Lisboa. A praia, de tipologia urbana e afluência alta, é a maior do concelho de Oeiras, e localiza-se entre a foz da ribeira da Laje e o Forte de São Julião das Maias. O seu areal, de 700 m e declive suave, é atravessado pelo Passeio Marítimo de Oeiras e possui iluminação noturna, para além de apoios de praia e espaços de restauração. Dispõe também de sanitários, chuveiros com passadiços, estruturas de deposição seletiva de resíduos e eco-cinzeiros de praia.",
+   "url": "https://pt.wikipedia.org/wiki/Praia_de_Santo_Amaro_de_Oeiras",
+   "lang": "pt",
+   "titel": "Praia de Santo Amaro de Oeiras"
+  },
+  "bild": {
+   "src": "bilder/praia-de-santo-amaro.jpg",
+   "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Praia_de_Santo_Amaro_de_Oeiras_-_Portugal_(5910051000).jpg",
+   "breite": 720,
+   "hoehe": 540
+  }
+ },
+ {
+  "id": "praia-da-conceicao",
+  "name": "Praia da Conceição",
+  "adresse": "Praia da Conceição, Cascais",
+  "ort": "Cascais",
+  "kategorie": "Strand",
+  "notiz": "Breiter Sand, ruhiges Wasser in der Bucht von Cascais, laut Echo Boomer barrierefrei zugänglich (01.05.2026). Zug bis Cascais, etwa 40 Min. Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026), CP-Fahrplan (29.03.2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.70034,
+  "lon": -9.41654,
+  "quelle": "manuell",
+  "infos": {}
+ },
+ {
+  "id": "praia-da-rainha",
+  "name": "Praia da Rainha",
+  "adresse": "Praia da Rainha, Cascais",
+  "ort": "Cascais",
+  "kategorie": "Strand",
+  "notiz": "Kleiner Sandstrand zwischen Häusern, ruhiges Wasser in der Bucht. Zug bis Cascais, etwa 40 Min. Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026), CP-Fahrplan (29.03.2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.69916,
+  "lon": -9.41816,
+  "quelle": "manuell",
+  "infos": {},
+  "bild": {
+   "src": "bilder/praia-da-rainha.jpg",
+   "autor": "牛糞",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:%E5%8D%A1%E6%96%AF%E5%8D%A1%E4%BC%8A%E6%96%AF_-_panoramio.jpg",
+   "breite": 720,
+   "hoehe": 249
+  }
+ },
+ {
+  "id": "praia-do-tamariz",
+  "name": "Praia do Tamariz",
+  "adresse": "Praia do Tamariz, Estoril",
+  "ort": "Estoril",
+  "kategorie": "Strand",
+  "notiz": "Sandstrand zwischen zwei Molen, laut playocean versteckte Felsen im Wasser. Laut Echo Boomer barrierefrei zugänglich (01.05.2026). Zug bis Estoril, etwa 36 Min. Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026), CP-Fahrplan (29.03.2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.70278,
+  "lon": -9.39942,
+  "quelle": "manuell",
+  "infos": {},
+  "wiki": {
+   "text": "A praia do Tamariz é uma praia marítima, de tipologia urbana e uso intensivo, localizada no Estoril, em Cascais. Considerada a praia por excelência da Costa do Estoril, possui um areal de declive suave e 190 metros de extensão, bem como uma piscina oceânica no seu extremo nascente. De afluência média a muito alta, conta com um posto médico e de primeiros socorros e está classificada como acessível a pessoas de mobilidade reduzida, sendo vigiada e sinalizada durante a época balnear. Para além disto, possui também apoios de praia, bares e restaurantes.",
+   "url": "https://pt.wikipedia.org/wiki/Praia_do_Tamariz",
+   "lang": "pt",
+   "titel": "Praia do Tamariz"
+  },
+  "bild": {
+   "src": "bilder/praia-do-tamariz.jpg",
+   "autor": "Alain Rouiller",
+   "lizenz": "CC BY-SA 2.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Costa_do_Estoril_ao%C3%BBt_2017_80_(36808840222).jpg",
+   "breite": 720,
+   "hoehe": 480
+  }
+ },
+ {
+  "id": "praia-de-sao-joao-da-caparica",
+  "name": "Praia de São João da Caparica",
+  "adresse": "Praia de São João da Caparica, Almada",
+  "ort": "Almada",
+  "kategorie": "Strand",
+  "notiz": "Sehr langer Sandstrand an der offenen Atlantikküste, Strandbars. Fähre nach Cacilhas, dann Bus (Linie nicht geprüft). Badesaison 2026 endete am 30.09. (Portaria 204-A/2026, 30.04.2026); Rettungsschwimmer Ende Oktober nicht belegt. Quellen: playocean.net (2026)",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.66075,
+  "lon": -9.25565,
+  "quelle": "manuell",
+  "infos": {}
+ },
+ {
+  "id": "praia-do-guincho",
+  "name": "Praia do Guincho",
+  "adresse": "Praia do Guincho, Cascais",
+  "ort": "Cascais",
+  "kategorie": "Strand",
+  "notiz": "Nicht zum Baden: starke Strömungen und kräftige Brandung, Surf- und Windstrand (Wikipedia, ohne Datum). Kein Zug. Zum Anschauen.",
+  "typ": "kueste",
+  "stand": "2026-10-25",
+  "lat": 38.73315,
+  "lon": -9.4727,
+  "quelle": "manuell",
+  "infos": {},
+  "wiki": {
+   "text": "Praia do Guincho ist ein Strand im Kreis von Cascais in Portugal. Er liegt an der Strand-Straße zwischen Cascais und Sintra. Der Dünenstrand ist auf Grund der vorherrschenden starken Winde ein bei Surfern beliebter Surfspot und auch immer wieder Austragungsort verschiedener internationaler Wettbewerbe. Die starken vorherrschenden Strömungen lassen hier keinen ausgedehnten Badebetrieb zu, während die Lage des Strandes oft fotografierte Sonnenuntergänge bietet.",
+   "url": "https://de.wikipedia.org/wiki/Praia_do_Guincho",
+   "lang": "de",
+   "titel": "Praia do Guincho"
+  },
+  "bild": {
+   "src": "bilder/praia-do-guincho.jpg",
+   "autor": "Alvesgaspar",
+   "lizenz": "CC BY-SA 3.0",
+   "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+   "quelle": "https://commons.wikimedia.org/wiki/File:Guincho_June_2013-4.jpg",
+   "breite": 720,
+   "hoehe": 505
   }
  }
 ]

@@ -5807,6 +5807,363 @@
      "hoehe": 540
     }
    }
+  },
+  "Praia da Torre|Praia da Torre, Oeiras": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.67526,
+    "lon": -9.323377,
+    "anzeige": "Praia da Torre, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal",
+    "osm": "way/531918708",
+    "art": "natural:beach",
+    "name": "Praia da Torre",
+    "tags": {
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q48861163",
+     "wikimedia_commons": "Category:Praia da Torre (Oeiras)"
+    }
+   },
+   "n": {
+    "lat": 38.67526,
+    "lon": -9.323377,
+    "anzeige": "Praia da Torre, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal",
+    "osm": "way/531918708",
+    "art": "natural:beach",
+    "name": "Praia da Torre",
+    "tags": {
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q48861163",
+     "wikimedia_commons": "Category:Praia da Torre (Oeiras)"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": {
+     "qid": "Q48861163",
+     "bild": "Praia da Torre - Portugal (141940514).jpg",
+     "koord": [
+      38.67566,
+      -9.32277
+     ],
+     "titel": {
+      "pt": "Praia da Torre"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praia da Torre",
+     "text": "Praia da Torre é uma praia situada em São Julião da Barra, na freguesia de Oeiras e São Julião da Barra, Paço de Arcos e Caxias, em Oeiras, Grande Lisboa.\nA Instituto da Água realiza análises periódicas no local, uma vez que a praia é utilizada por banhistas.",
+     "url": "https://pt.wikipedia.org/wiki/Praia_da_Torre",
+     "seitenbild": "Praia_da_Torre_-_Portugal_(141940514).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ce/Praia_da_Torre_-_Portugal_%28141940514%29.jpg/960px-Praia_da_Torre_-_Portugal_%28141940514%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Praia_da_Torre_-_Portugal_(141940514).jpg",
+     "breite": 720,
+     "hoehe": 515
+    }
+   }
+  },
+  "Praia de Santo Amaro|Praia de Santo Amaro, Oeiras": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.684455,
+    "lon": -9.31227,
+    "anzeige": "Praia de Santo Amaro, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal",
+    "osm": "way/180126358",
+    "art": "natural:beach",
+    "name": "Praia de Santo Amaro",
+    "tags": {
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q10352882",
+     "wikipedia": "pt:Praia de Santo Amaro de Oeiras",
+     "wikimedia_commons": "Category:Praia de Santo Amaro"
+    }
+   },
+   "n": {
+    "lat": 38.684455,
+    "lon": -9.31227,
+    "anzeige": "Praia de Santo Amaro, Oeiras e São Julião da Barra, Paço de Arcos e Caxias, Oeiras, Lissabon, Portugal",
+    "osm": "way/180126358",
+    "art": "natural:beach",
+    "name": "Praia de Santo Amaro",
+    "tags": {
+     "access": "yes",
+     "surface": "sand",
+     "wikidata": "Q10352882",
+     "wikipedia": "pt:Praia de Santo Amaro de Oeiras",
+     "wikimedia_commons": "Category:Praia de Santo Amaro"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": {
+     "qid": "Q10352882",
+     "bild": "Praia de Santo Amaro de Oeiras - Portugal (5910051000).jpg",
+     "koord": [
+      38.685065,
+      -9.31096
+     ],
+     "titel": {
+      "pt": "Praia de Santo Amaro de Oeiras"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praia de Santo Amaro de Oeiras",
+     "text": "A praia de Santo Amaro de Oeiras situa-se na freguesia de Oeiras e São Julião da Barra, Paço de Arcos e Caxias, na Grande Lisboa. A praia, de tipologia urbana e afluência alta, é a maior do concelho de Oeiras, e localiza-se entre a foz da ribeira da Laje e o Forte de São Julião das Maias. O seu areal, de 700 m e declive suave, é atravessado pelo Passeio Marítimo de Oeiras e possui iluminação noturna, para além de apoios de praia e espaços de restauração. Dispõe também de sanitários, chuveiros com passadiços, estruturas de deposição seletiva de resíduos e eco-cinzeiros de praia.",
+     "url": "https://pt.wikipedia.org/wiki/Praia_de_Santo_Amaro_de_Oeiras",
+     "seitenbild": "Santo_Amaro_de_Oeiras,_costa._Outubro_2017.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Praia_de_Santo_Amaro_de_Oeiras_-_Portugal_%285910051000%29.jpg/960px-Praia_de_Santo_Amaro_de_Oeiras_-_Portugal_%285910051000%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Vitor Oliveira from Torres Vedras, PORTUGAL",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Praia_de_Santo_Amaro_de_Oeiras_-_Portugal_(5910051000).jpg",
+     "breite": 720,
+     "hoehe": 540
+    }
+   }
+  },
+  "Praia da Conceição|Praia da Conceição, Cascais": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.700094,
+    "lon": -9.416565,
+    "anzeige": "Praia da Conceição, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/544205149",
+    "art": "natural:beach",
+    "name": "Praia da Conceição",
+    "tags": {}
+   },
+   "n": {
+    "lat": 38.700094,
+    "lon": -9.416565,
+    "anzeige": "Praia da Conceição, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/544205149",
+    "art": "natural:beach",
+    "name": "Praia da Conceição",
+    "tags": {}
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Praia da Rainha|Praia da Rainha, Cascais": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.698948,
+    "lon": -9.418142,
+    "anzeige": "Praia da Rainha, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "relation/19868610",
+    "art": "natural:beach",
+    "name": "Praia da Rainha",
+    "tags": {
+     "surface": "sand",
+     "wikidata": "Q49323776",
+     "wikimedia_commons": "Category:Praia da Rainha"
+    }
+   },
+   "n": {
+    "lat": 38.698948,
+    "lon": -9.418142,
+    "anzeige": "Praia da Rainha, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "relation/19868610",
+    "art": "natural:beach",
+    "name": "Praia da Rainha",
+    "tags": {
+     "surface": "sand",
+     "wikidata": "Q49323776",
+     "wikimedia_commons": "Category:Praia da Rainha"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": {
+     "qid": "Q49323776",
+     "bild": "卡斯卡伊斯 - panoramio.jpg",
+     "koord": [
+      38.7,
+      -9.4166666666667
+     ],
+     "titel": {}
+    },
+    "text": null,
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/1f/%E5%8D%A1%E6%96%AF%E5%8D%A1%E4%BC%8A%E6%96%AF_-_panoramio.jpg/960px-%E5%8D%A1%E6%96%AF%E5%8D%A1%E4%BC%8A%E6%96%AF_-_panoramio.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "牛糞",
+     "lizenz": "CC BY-SA 3.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:%E5%8D%A1%E6%96%AF%E5%8D%A1%E4%BC%8A%E6%96%AF_-_panoramio.jpg",
+     "breite": 720,
+     "hoehe": 249
+    }
+   }
+  },
+  "Praia do Tamariz|Praia do Tamariz, Estoril": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.702665,
+    "lon": -9.399284,
+    "anzeige": "Praia do Tamariz, São João do Estoril, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/23847961",
+    "art": "natural:beach",
+    "name": "Praia do Tamariz",
+    "tags": {
+     "surface": "sand",
+     "wikidata": "Q48873277",
+     "wikimedia_commons": "Category:Praia do Tamariz"
+    }
+   },
+   "n": {
+    "lat": 38.702665,
+    "lon": -9.399284,
+    "anzeige": "Praia do Tamariz, São João do Estoril, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/23847961",
+    "art": "natural:beach",
+    "name": "Praia do Tamariz",
+    "tags": {
+     "surface": "sand",
+     "wikidata": "Q48873277",
+     "wikimedia_commons": "Category:Praia do Tamariz"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": {
+     "qid": "Q48873277",
+     "bild": "Costa do Estoril août 2017 80 (36808840222).jpg",
+     "koord": [
+      38.70264,
+      -9.40016
+     ],
+     "titel": {
+      "pt": "Praia do Tamariz"
+     }
+    },
+    "text": {
+     "lang": "pt",
+     "titel": "Praia do Tamariz",
+     "text": "A praia do Tamariz é uma praia marítima, de tipologia urbana e uso intensivo, localizada no Estoril, em Cascais. Considerada a praia por excelência da Costa do Estoril, possui um areal de declive suave e 190 metros de extensão, bem como uma piscina oceânica no seu extremo nascente. De afluência média a muito alta, conta com um posto médico e de primeiros socorros e está classificada como acessível a pessoas de mobilidade reduzida, sendo vigiada e sinalizada durante a época balnear. Para além disto, possui também apoios de praia, bares e restaurantes.",
+     "url": "https://pt.wikipedia.org/wiki/Praia_do_Tamariz",
+     "seitenbild": "Costa_do_Estoril_août_2017_80_(36808840222).jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/66/Costa_do_Estoril_ao%C3%BBt_2017_80_%2836808840222%29.jpg/960px-Costa_do_Estoril_ao%C3%BBt_2017_80_%2836808840222%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Alain Rouiller",
+     "lizenz": "CC BY-SA 2.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/2.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Costa_do_Estoril_ao%C3%BBt_2017_80_(36808840222).jpg",
+     "breite": 720,
+     "hoehe": 480
+    }
+   }
+  },
+  "Praia de São João da Caparica|Praia de São João da Caparica, Almada": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.656584,
+    "lon": -9.250967,
+    "anzeige": "Praia de São João, Costa de Caparica, Almada, Setúbal, Portugal",
+    "osm": "way/222122956",
+    "art": "natural:beach",
+    "name": "Praia de São João",
+    "tags": {
+     "access": "yes",
+     "surface": "sand"
+    }
+   },
+   "n": {
+    "lat": 38.656584,
+    "lon": -9.250967,
+    "anzeige": "Praia de São João, Costa de Caparica, Almada, Setúbal, Portugal",
+    "osm": "way/222122956",
+    "art": "natural:beach",
+    "name": "Praia de São João",
+    "tags": {
+     "access": "yes",
+     "surface": "sand"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": null,
+    "text": null,
+    "bild": null
+   }
+  },
+  "Praia do Guincho|Praia do Guincho, Cascais": {
+   "a_n_geholt": true,
+   "a": {
+    "lat": 38.733158,
+    "lon": -9.472784,
+    "anzeige": "Praia do Guincho, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/147727446",
+    "art": "natural:beach",
+    "name": "Praia do Guincho",
+    "tags": {
+     "image": "https://img.edenmaps.net/147727446/praia-do-guincho-guincho-may-1.jpg",
+     "wikidata": "Q2107562",
+     "wikipedia": "en:Praia do Guincho",
+     "wikimedia_commons": "Category:Praia do Guincho"
+    }
+   },
+   "n": {
+    "lat": 38.733158,
+    "lon": -9.472784,
+    "anzeige": "Praia do Guincho, Cascais e Estoril, Cascais, Lissabon, Portugal",
+    "osm": "way/147727446",
+    "art": "natural:beach",
+    "name": "Praia do Guincho",
+    "tags": {
+     "image": "https://img.edenmaps.net/147727446/praia-do-guincho-guincho-may-1.jpg",
+     "wikidata": "Q2107562",
+     "wikipedia": "en:Praia do Guincho",
+     "wikimedia_commons": "Category:Praia do Guincho"
+    }
+   },
+   "datum": "2026-10-25",
+   "wiki": {
+    "wd": {
+     "qid": "Q2107562",
+     "bild": "Guincho June 2013-4.jpg",
+     "koord": [
+      38.733149,
+      -9.472696
+     ],
+     "titel": {
+      "en": "Praia do Guincho",
+      "de": "Praia do Guincho",
+      "pt": "Praia do Guincho"
+     }
+    },
+    "text": {
+     "lang": "de",
+     "titel": "Praia do Guincho",
+     "text": "Praia do Guincho ist ein Strand im Kreis von Cascais in Portugal. Er liegt an der Strand-Straße zwischen Cascais und Sintra. Der Dünenstrand ist auf Grund der vorherrschenden starken Winde ein bei Surfern beliebter Surfspot und auch immer wieder Austragungsort verschiedener internationaler Wettbewerbe. Die starken vorherrschenden Strömungen lassen hier keinen ausgedehnten Badebetrieb zu, während die Lage des Strandes oft fotografierte Sonnenuntergänge bietet.",
+     "url": "https://de.wikipedia.org/wiki/Praia_do_Guincho",
+     "seitenbild": "Cresmina-Düne.jpg"
+    },
+    "bild": {
+     "thumb": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/Guincho_June_2013-4.jpg/960px-Guincho_June_2013-4.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+     "autor": "Alvesgaspar",
+     "lizenz": "CC BY-SA 3.0",
+     "lizenz_url": "https://creativecommons.org/licenses/by-sa/3.0",
+     "quelle": "https://commons.wikimedia.org/wiki/File:Guincho_June_2013-4.jpg",
+     "breite": 720,
+     "hoehe": 505
+    }
+   }
   }
  }
 }

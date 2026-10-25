@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.0';
+  const VERSION = '3.1';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2010,6 +2010,53 @@
         } }, ic('aus'), 'Löschen')));
   }
 
+  // ---------- Blickrichtung (nur nach Tipp; Recherche standort-und-live.md, Regel 7) ----------
+  // iOS: DeviceOrientationEvent.requestPermission() aus einer Geste, dann webkitCompassHeading (magnetisch Nord),
+  // ungenau (webkitCompassAccuracy > 45° oder < 0): kein Kegel. Android: „deviceorientationabsolute“; flach oder leicht geneigt
+  // 360 − alpha (W3C, nur bei flachem Gerät exakt), steil gehalten nach dem Beispiel „compassHeading“ der W3C-Spezifikation.
+  const BLICK = { an: false, grad: null, zeit: 0 };
+  function kompass(alpha, beta, gamma) {
+    const d = Math.PI / 180, x = beta * d, y = gamma * d, z = alpha * d;
+    const cX = Math.cos(x), cY = Math.cos(y), cZ = Math.cos(z), sX = Math.sin(x), sY = Math.sin(y), sZ = Math.sin(z);
+    const vx = -cZ * sY - sZ * sX * cY, vy = -sZ * sY + cZ * sX * cY;
+    let h = Math.atan(vx / vy);
+    if (vy < 0) h += Math.PI; else if (vx < 0) h += 2 * Math.PI;
+    return h / d;
+  }
+  function richtungSetzen(g) {
+    BLICK.grad = g; BLICK.zeit = Date.now();
+    const e = ichPunkt && ichPunkt.getElement();
+    if (e) { e.classList.toggle('mit-richtung', g != null); if (g != null) e.style.setProperty('--richtung', `${Math.round(g)}deg`); }
+  }
+  function aufIos(ev) {
+    if (typeof ev.webkitCompassHeading !== 'number' || ev.webkitCompassAccuracy < 0 || ev.webkitCompassAccuracy > 45) { richtungSetzen(null); return; }
+    richtungSetzen(ev.webkitCompassHeading);
+  }
+  function aufAndroid(ev) {
+    if (ev.alpha == null || ev.beta == null || ev.gamma == null) { richtungSetzen(null); return; }
+    // Flach oder leicht geneigt (Karte lesen): Oberkante zeigt nach 360 − alpha; steil gehalten: Rückseite nach W3C-Beispiel
+    richtungSetzen(Math.abs(ev.beta) < 60 && Math.abs(ev.gamma) < 30 ? (360 - ev.alpha) % 360 : kompass(ev.alpha, ev.beta, ev.gamma));
+  }
+  async function richtungUmschalten() {
+    if (BLICK.an) {
+      removeEventListener('deviceorientation', aufIos); removeEventListener('deviceorientationabsolute', aufAndroid);
+      BLICK.an = false; richtungSetzen(null); zeichne({ scroll: true, karte: false }); return;
+    }
+    try {
+      // Android braucht keine Erlaubnis und hat „deviceorientationabsolute“; iOS fragt per requestPermission() nach
+      if ('ondeviceorientationabsolute' in window) addEventListener('deviceorientationabsolute', aufAndroid);
+      else if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        const r = await DeviceOrientationEvent.requestPermission();
+        if (r !== 'granted') { toast('Ohne Erlaubnis keine Blickrichtung.'); return; }
+        addEventListener('deviceorientation', aufIos);
+      } else if ('ondeviceorientation' in window) addEventListener('deviceorientation', aufIos);
+      else { toast('Dieses Handy liefert keine Blickrichtung.'); return; }
+      BLICK.an = true; haptik();
+      setTimeout(() => { if (BLICK.an && BLICK.grad == null) toast('Keine Kompassdaten. Handy einmal in Form einer 8 bewegen.'); }, 4000);
+    } catch (e) { toast('Blickrichtung nicht verfügbar.'); }
+    zeichne({ scroll: true, karte: false });
+  }
+
   // ---------- Live: frei laufen (Wunsch 24.10.2026) ----------
   // Eigene Ansicht zum Gehen, damit „Orte“ wieder zum Suchen da ist: Karte folgt dir, alle Orte und die Gruppe sind
   // sichtbar, das Blatt bleibt klein. Oben: Status, nächster Planstopp, wer gerade live ist.
@@ -2051,8 +2098,9 @@
       const alt = Date.now() - (S.meZeit || 0) > 30000;
       status = el('div', { class: 'live-status' }, el('span', { class: 'lampe ' + (alt ? 'sucht' : 'an'), 'aria-hidden': 'true' }),
         el('span', { class: 'text' }, el('strong', {}, S.follow ? 'Karte folgt dir' : 'Du bist auf der Karte'),
-          el('small', {}, `Genauigkeit ± ${Math.round(S.me.acc)} m${alt ? ` · letzte Position ${zeitHer(S.meZeit)}` : ''}`)),
-        S.follow ? null : el('button', { type: 'button', class: 'knopf', onclick: () => { liveStart(); zeichne({ scroll: true, karte: false }); } }, ic('standort'), 'Folgen'));
+          el('small', {}, `${S.me.acc > 50 ? 'Ungenau' : 'Genauigkeit'} ± ${Math.round(S.me.acc)} m${alt ? ` · letzte Position ${zeitHer(S.meZeit)}` : ''}`)),
+        S.follow ? null : el('button', { type: 'button', class: 'knopf', onclick: () => { liveStart(); zeichne({ scroll: true, karte: false }); } }, ic('standort'), 'Folgen'),
+        el('button', { type: 'button', class: 'knopf', 'aria-pressed': String(BLICK.an), onclick: richtungUmschalten }, ic('live'), BLICK.an ? 'Richtung aus' : 'Richtung'));
     }
     // 2. Nächster Planstopp mit Hinführen
     const nx = liveNaechster();

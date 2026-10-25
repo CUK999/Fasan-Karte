@@ -851,3 +851,8 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .notfall > div { grid-template-columns: minmax(0, 1fr); }
 .notfall .knopf { white-space: normal; max-width: 100%; }
 .notfall .reihe > * { min-width: 0; }
+/* Blickrichtung: Kegel hinter dem Punkt, nur mit gültigen Kompassdaten */
+.ich-punkt .kegel { display: none; inset: -26px; border-radius: 0; background: conic-gradient(from calc(var(--richtung, 0deg) - 28deg), rgb(26 115 232 / .38) 0deg 56deg, transparent 56deg 360deg);
+  -webkit-mask: radial-gradient(circle, #000 0 55%, transparent 56%); mask: radial-gradient(circle, #000 0 55%, transparent 56%); }
+.ich-punkt.mit-richtung .kegel { display: block; }
+.live-status .knopf[aria-pressed="true"] { border-color: var(--accent); }

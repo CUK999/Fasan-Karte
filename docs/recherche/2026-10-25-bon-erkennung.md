@@ -32,3 +32,9 @@ QR (Portaria 195/2020): O 85,00 · N 11,08 · I5/I6 59,20/7,70 (13 %) · I7/I8 1
 - Namen werden teils verstümmelt („COCA COLA“ → „OCACoL“). Beträge und Summe sind abgesichert, Namen nicht.
 - Menge wird nur aus der Zeile gelesen; ohne lesbaren „Preco“ wird nicht je Stück aufgeteilt.
 - Ohne QR bleibt nur die Steuer-Tabelle auf dem Bon als Prüfsumme (OCR-anfällig).
+
+## Nachtrag Bon 2 (Tasca de Notícias, 24.10.2026, 8 Posten, 103,95 €)
+- Zeilen und Bon wurden gefunden; die Fehler lagen bei Ziffern (7→1, 40→41, 13→„193“), „Preco“ als „Freco“, %-Zeichen als 4/8/g.
+- Abhilfe: Betrag und Menge × Preco als zwei Lesungen, Auswahl über die QR-Summe je Steuersatz; Steuersatz-Kandidaten bei Lesefehlern; Namen nachlesen.
+- Ergebnis: 8/8 Posten, Summe = QR; auch nach JPEG-Neukodierung (anderer QR-Pfad nötig, jsQR nur bei ~0,35× Verkleinerung).
+- Neuronale Alternativen (PaddleOCR PP-OCRv4/v5 als ONNX mit onnxruntime-web, Apache-2.0): in dieser Sitzung nicht prüfbar, Modell-Hosts (GitHub-Releases, HuggingFace, jsDelivr, npm) vom Netz gesperrt. Nicht geprüft.

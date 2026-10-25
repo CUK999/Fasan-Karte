@@ -186,59 +186,102 @@ window.Bon = (() => {
   // ---------- Portugiesischer Bon (Zone Soft u. a.): „2 Uni PIZZA PEPPERONI 13% 25,80“, darunter „Preco: 12,90/Uni“.
   // Prüfen: Summe der Zeilen je Steuersatz gegen die Brutto-Beträge im QR-Code (oder die TAXA-Tabelle des Bons), Gesamtsumme gegen QR.
   const SAETZE = [0, 4, 5, 6, 8, 9, 12, 13, 16, 22, 23];
-  const fehlt2 = (posten, k) => posten.some((p) => p.fehlt && p.mwst === k.satz);
+  // Das Prozentzeichen und die Ziffern davor werden oft falsch gelesen („193%“, „93%“, „3%“). Kandidaten: genauer Satz, sonst
+  // alle Sätze der Steuerklassen des Bons (QR) bzw. 6/13/23, die höchstens einen Buchstaben/Ziffer abweichen.
+  function abstand(a, b) { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  function satzKand(ziffern, moegliche) {
+    if (SAETZE.includes(+ziffern) && ziffern.length <= 2) return [+ziffern];
+    return moegliche.filter((x) => abstand(String(x), ziffern) <= 1);
+  }
   function liesPT(zeilen, qr) {
     const posten = [];
     let tabelle = [];
+    const moegl = qr && qr.klassen && qr.klassen.filter((k) => k.brutto > 0).length ? qr.klassen.filter((k) => k.brutto > 0).map((k) => k.satz) : [6, 13, 23];
     zeilen.forEach((z, i) => {
       const t = zahl(z.text);
       const kopf = /(?:^|[^A-Za-zÀ-ÿ])(Uni|Un|Kg|Lt)(?=[^a-z]|[a-z]?[A-Z])[\s'’|:.,;_-]*/i;
-      let m = new RegExp(kopf.source + "(.+?)\\s+(\\d{1,2})\\s*[%gx]\\s*(.*)$", 'i').exec(t);
+      let m = new RegExp(kopf.source + "(.+?)\\s+(\\d{1,3})\\s*[%gx]\\s*(.*)$", 'i').exec(t);
       // das %-Zeichen wird oft als 4, 8 oder gar nicht gelesen („134“, „23 3,50“): dann nur die bekannten Sätze zulassen
       if (!m) m = new RegExp(kopf.source + "(.+?)\\s+(0|4|5|6|8|9|12|13|16|22|23)[48]?\\s+(-?\\d[\\d.,]*)\\s*$", 'i').exec(t);
-      if (m && SAETZE.includes(+m[3])) {
+      const sk = m ? satzKand(m[3], moegl) : [];
+      if (m && sk.length) {
         const vor = t.slice(0, m.index + (m[0].toLowerCase().startsWith(m[1].toLowerCase()) ? 0 : 1)), q = /(\d{1,3})\s*[^\d\w]*$/.exec(vor);
         const pr = [...m[4].matchAll(PREIS)].map((x) => cent(x[1]));
         let name = m[2].replace(/^d(?=[A-Z])/, '').replace(/^[^\wÀ-ÿ]+/, '').replace(/[^\wÀ-ÿ.)]+$/, '').replace(/\s+/g, ' ').trim();
         let menge = q ? +q[1] : 1; if (menge > 20) menge = 1;
-        posten.push({ t: name || 'Posten', b: pr.length ? pr[pr.length - 1] : null, menge, einzel: null, mwst: +m[3], zeile: i, c: z.c, rep: null });
+        const lesbar = buchstaben(name) >= 3;
+        posten.push({ t: lesbar ? name : 'Posten (Name nicht lesbar)', b: pr.length ? pr[pr.length - 1] : null, menge, einzel: null, mwst: sk[0], satzK: sk, zeile: i, c: z.c, rep: null, nameUnsicher: !lesbar, rahmen: z.b });
         return;
       }
       // Name nicht lesbar („Uni“ fehlt), aber Steuersatz und genau ein Betrag am Ende: Zeile gehört trotzdem zu den Posten
       const nr = /^(.*?)\b(\d{1,2})\s*%\s*(-?\d+[,.]\d{2})\s*$/.exec(t);
-      if (nr && SAETZE.includes(+nr[2]) && /\d/.test(nr[1]) && !/pre[cç]o|total|incid/i.test(t)) {
+      if (nr && SAETZE.includes(+nr[2]) && /\d/.test(nr[1]) && !/[pf]re[cçg]o|total|incid/i.test(t)) {
         const q = /^\W*(\d{1,3})\b/.exec(nr[1]); let nm = nr[1].replace(/^\W*\d{1,3}\b/, '').replace(/[^\wÀ-ÿ]+/g, ' ').trim();
         const lesbar = buchstaben(nm) >= 3;
-        posten.push({ t: lesbar ? nm : 'Posten (Name nicht lesbar)', b: cent(nr[3]), menge: q && +q[1] <= 20 ? +q[1] : 1, einzel: null, mwst: +nr[2], zeile: i, c: z.c, rep: null, nameUnsicher: !lesbar });
+        posten.push({ t: lesbar ? nm : 'Posten (Name nicht lesbar)', b: cent(nr[3]), menge: q && +q[1] <= 20 ? +q[1] : 1, einzel: null, mwst: +nr[2], zeile: i, c: z.c, rep: null, nameUnsicher: !lesbar, rahmen: z.b });
         return;
       }
-      const pe = /pre[cç]o\s*:?\s*(\d+[,.]\d{2})/i.exec(t);
+      const pe = /[pf]r[eé][cçg]o\s*[:;.]?\s*(\d+[,.]\d{2})/i.exec(t);
       if (pe && posten.length) { posten[posten.length - 1].einzel = cent(pe[1]); return; }
       const ta = /^\W*(\d{1,2})\s*%\s+(\d+[,.]\d{2})\s+(\d+[,.]\d{2})\s*$/.exec(t);
       if (ta && SAETZE.includes(+ta[1])) tabelle.push({ satz: +ta[1], brutto: cent(ta[2]) + cent(ta[3]) });
     });
     if (posten.length < 2) return null;
-    // 1. Menge × Einzelpreis
+    // 1. Zwei Lesungen je Zeile: der Betrag am Zeilenende und Menge × „Preco“ (die Preco-Zeile ist meist besser gelesen).
+    //    Die Menge wird auch aus Betrag ÷ Preco abgeleitet, falls sie falsch gelesen wurde.
     for (const p of posten) {
-      if (p.einzel && p.menge) { const e = p.einzel * p.menge; if (p.b == null) { p.b = e; p.rep = 'Menge × Preis'; } else if (p.b !== e) p.zweifel = e; }
+      p.kand = [];
+      if (p.einzel) {
+        if (p.menge && p.einzel * p.menge > 0) p.kand.push(p.einzel * p.menge);
+        if (p.b != null && p.b % p.einzel === 0 && p.b / p.einzel <= 20 && !p.kand.includes(p.b)) p.kand.push(p.b);
+      }
+      if (p.b != null && !p.kand.includes(p.b)) p.kand.push(p.b);
+      p.gelesen = p.b;
     }
-    // 2. Klassen aus QR, sonst aus der Tabelle
+    // 2. Klassen aus QR, sonst aus der Tabelle; je Steuersatz die Kombination der Lesungen suchen, die genau die Brutto-Summe ergibt
     const klassen = (qr && qr.klassen && qr.klassen.length ? qr.klassen : tabelle).map((k) => ({ ...k }));
     const quelleKl = qr && qr.klassen && qr.klassen.length ? 'qr' : tabelle.length ? 'tabelle' : null;
-    for (const k of klassen) {
-      const mit = posten.filter((p) => p.mwst === k.satz); if (!mit.length) { k.ist = 0; k.ok = k.brutto === 0; continue; }
-      const fehlt = mit.filter((p) => p.b == null);
-      let ist = mit.reduce((a, p) => a + (p.b || 0), 0);
-      if (fehlt.length === 1 && k.brutto - ist > 0) { fehlt[0].b = k.brutto - ist; fehlt[0].rep = 'aus der Steuer-Summe'; ist = k.brutto; }
-      if (ist !== k.brutto) { // ein Betrag falsch gelesen? Menge × Preis probieren, dann jede einzelne Zeile als Kandidaten
-        for (const p of mit) if (p.zweifel != null && ist - p.b + p.zweifel === k.brutto) { p.rep = 'Menge × Preis'; ist = k.brutto; p.b = p.zweifel; break; }
+    // Lösung je Steuersatz, ohne etwas zu verändern: wählt je Zeile eine Lesung, sodass die Brutto-Summe genau stimmt
+    const klasseLoesen = (k, mit) => {
+      const feste = mit.filter((p) => p.kand.length), offen = mit.filter((p) => !p.kand.length);
+      if (feste.length > 14 || offen.length > 1) return null;
+      const n = feste.length, wahl = new Array(n).fill(0); let beste = null;
+      const rek = (i, summe, abw) => {
+        if (beste && abw > beste.abw) return;
+        if (i === n) { const rest = k.brutto - summe; if (offen.length === 0 ? rest === 0 : rest > 0) if (!beste || abw < beste.abw) beste = { abw, wahl: wahl.slice(), rest, feste, offen }; return; }
+        for (let c = 0; c < feste[i].kand.length; c++) { wahl[i] = c; rek(i + 1, summe + feste[i].kand[c], abw + (c ? 1 : 0)); }
+      };
+      rek(0, 0, 0); return beste;
+    };
+    // Zeilen mit mehreren möglichen Steuersätzen: alle Zuordnungen durchprobieren (höchstens 600), beste ohne Fehler nehmen
+    const unklar = posten.filter((p) => p.satzK && p.satzK.length > 1);
+    const zuordnungen = [[]]; for (const p of unklar) { const neuL = []; for (const z of zuordnungen) for (const s2 of p.satzK) neuL.push(z.concat(s2)); zuordnungen.splice(0, zuordnungen.length, ...neuL.slice(0, 600)); }
+    let gewaehlt = null;
+    if (klassen.length) {
+      for (const z of zuordnungen) {
+        unklar.forEach((p, i) => { p.mwst = z[i]; });
+        const loesungen = klassen.map((k) => { const mit = posten.filter((p) => p.mwst === k.satz); return mit.length ? klasseLoesen(k, mit) : { leer: true }; });
+        const fremd = posten.some((p) => !klassen.some((k) => k.satz === p.mwst));
+        if (!fremd && loesungen.every(Boolean)) { gewaehlt = loesungen; break; }
       }
-      if (ist < k.brutto && mit.length) { // Zeile(n) nicht gelesen: Rest als eigener, sichtbarer Posten, nie in eine fremde Zeile hineinrechnen
-        posten.push({ t: `Nicht gelesen (${k.satz} %)`, b: k.brutto - ist, menge: 1, einzel: null, mwst: k.satz, zeile: -1, c: 0, rep: 'fehlender Rest', fehlt: true, sicher: false }); ist = k.brutto;
-      }
-      k.ist = ist; k.ok = ist === k.brutto;
-      for (const p of mit) p.sicher = k.ok && !fehlt2(posten, k);
+      if (!gewaehlt) unklar.forEach((p) => { p.mwst = p.satzK[0]; });
     }
+    klassen.forEach((k, ki) => {
+      const mit = posten.filter((p) => p.mwst === k.satz); if (!mit.length) { k.ist = 0; k.ok = k.brutto === 0; return; }
+      const loesung = gewaehlt ? gewaehlt[ki] : klasseLoesen(k, mit);
+      if (loesung && !loesung.leer) {
+        loesung.feste.forEach((p, i) => { const v = p.kand[loesung.wahl[i]]; if (v !== p.gelesen) p.rep = p.einzel && v === p.einzel * p.menge ? 'Menge × Preis' : 'aus der Steuer-Summe'; p.b = v; p.sicher = true; });
+        if (loesung.offen.length) { loesung.offen[0].b = loesung.rest; loesung.offen[0].rep = 'aus der Steuer-Summe'; loesung.offen[0].sicher = true; }
+        k.ist = k.brutto; k.ok = true;
+      } else {
+        // keine Kombination passt: beste Einzellesung nehmen, Rest sichtbar machen, nichts schönreden
+        for (const p of mit) { if (p.kand.length) p.b = p.kand[0]; p.sicher = false; }
+        let ist = mit.reduce((a, p) => a + (p.b || 0), 0);
+        if (ist < k.brutto) { posten.push({ t: `Nicht gelesen (${k.satz} %)`, b: k.brutto - ist, menge: 1, einzel: null, mwst: k.satz, zeile: -1, c: 0, rep: 'fehlender Rest', fehlt: true, sicher: false, kand: [] }); ist = k.brutto; }
+        k.ist = ist; k.ok = false;
+      }
+    });
+    if (!klassen.length) for (const p of posten) { if (p.b == null && p.kand.length) p.b = p.kand[0]; else if (p.kand.length && p.einzel && p.menge) p.b = p.kand[0]; }
     const total = qr ? qr.total : klassen.length && klassen.every((k) => k.ok) ? klassen.reduce((a, k) => a + k.brutto, 0) : null;
     const summe = posten.reduce((a, p) => a + (p.b || 0), 0);
     const nichtLesbar = posten.filter((p) => p.b == null).length;
@@ -261,6 +304,26 @@ window.Bon = (() => {
     const klasse = (satz, b, v) => { if (b != null || v != null) kl.push({ satz, brutto: (b || 0) + (v || 0), basis: b, iva: v }); };
     if (f.I1 === 'PT' || f.I1 == null) { klasse(0, c('I2'), 0); klasse(6, c('I3'), c('I4')); klasse(13, c('I5'), c('I6')); klasse(23, c('I7'), c('I8')); }
     return { total: Math.round(parseFloat(f.O) * 100), nif: f.A, datum: f.F, dok: f.G, steuer: c('N'), klassen: kl };
+  }
+  async function ladeJsqr() {
+    if (!window.jsQR) await new Promise((ok, fehler) => { const sc = document.createElement('script'); sc.src = basis().replace('tesseract/', 'jsqr/') + 'jsQR.js'; sc.onload = ok; sc.onerror = fehler; document.head.append(sc); });
+  }
+  // QR in einem großen, hohen Ausschnitt: in Kacheln in voller Auflösung absuchen (Verkleinern macht den Code unlesbar),
+  // jede Kachel auch mit gestrecktem Kontrast und als Schwarz-Weiß-Bild
+  // jsQR liest unscharfe Codes nur bei etwa 3–6 Pixeln je Modul: darum mehrere Verkleinerungen (0,35 zuerst: am Testbon die einzige, die ging)
+  async function qrKacheln(c) {
+    try {
+      await ladeJsqr();
+      const lies1 = (g, w, h, y) => { const d = g.getImageData(0, y, w, h), r = window.jsQR(d.data, d.width, d.height, { inversionAttempts: 'attemptBoth' }); return r && qrLesen(r.data); };
+      for (const sk of [0.41, 0.35, 0.3, 0.5, 0.25, 0.6, 0.7, 1]) {
+        const k = document.createElement('canvas'); k.width = Math.max(1, Math.round(c.width * sk)); k.height = Math.max(1, Math.round(c.height * sk));
+        const g = k.getContext('2d', { willReadFrequently: true }); g.drawImage(c, 0, 0, k.width, k.height);
+        if (k.height <= 2200) { const q = lies1(g, k.width, k.height, 0); if (q) return q; }
+        const fh = Math.min(k.height, 900);
+        for (let y = 0; y < k.height; y += 300) { const h = Math.min(fh, k.height - y), q = lies1(g, k.width, h, y); if (q) return q; if (y + h >= k.height) break; }
+      }
+    } catch (e) { /* kein QR */ }
+    return null;
   }
   async function qrSuchen(daten) {
     const img = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; });
@@ -301,6 +364,27 @@ window.Bon = (() => {
     const sicher = r.posten.filter((p) => p.sicher).length, gut = woerter.filter((x) => x.c > 70).length;
     return (r.pruefung && r.pruefung.gesamtOk ? 10000 : 0) + (r.total != null && r.summe === r.total ? 5000 : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1;
   }
+  // Name aus einer neu gelesenen Zeile ziehen („… Uni NAME 13% …“)
+  function nameAusZeile(t) {
+    const m = /(?:^|[^A-Za-zÀ-ÿ])(Uni|Un|Kg|Lt)(?=[^a-z]|[a-z]?[A-Z])[\s'’|:.,;_-]*(.+?)\s+(?:\d{1,2}\s*[%gx48]|\d{1,2}\s+\d)/i.exec(t);
+    if (!m) return null;
+    const n = m[2].replace(/^d(?=[A-Z])/, '').replace(/^[^\wÀ-ÿ]+/, '').replace(/[^\wÀ-ÿ.)]+$/, '').replace(/\s+/g, ' ').trim();
+    return buchstaben(n) >= 3 ? n : null;
+  }
+  // Zweiter, genauer Blick auf unsichere Zeilen: Zeile ausschneiden, 2,5-fach vergrößern, einzeln lesen (PSM 7)
+  async function nachlesen(w, leinwand, posten) {
+    for (const p of posten) {
+      if (!p.rahmen || !(p.nameUnsicher || p.c < 80)) continue;
+      const r = p.rahmen, pad = Math.round((r.y1 - r.y0) * 0.35), x0 = Math.max(0, r.x0 - pad), y0 = Math.max(0, r.y0 - pad), bw = Math.min(leinwand.width - x0, r.x1 - r.x0 + 2 * pad), bh = Math.min(leinwand.height - y0, r.y1 - r.y0 + 2 * pad);
+      if (bw < 20 || bh < 10) continue;
+      const k = 2.5, c = document.createElement('canvas'); c.width = Math.round(bw * k); c.height = Math.round(bh * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(leinwand, x0, y0, bw, bh, 0, 0, c.width, c.height);
+      try {
+        const l = await worterLesen(w, c, 7), n = nameAusZeile(zeilenAus(l.woerter).map((z) => z.text).join(' '));
+        if (n && (p.nameUnsicher || n !== p.t)) { const c2 = l.woerter.length ? l.woerter.reduce((a, x) => a + x.c, 0) / l.woerter.length : 0; const gleich = n.replace(/\s/g, '').toLowerCase() === p.t.replace(/\s/g, '').toLowerCase(); if (p.nameUnsicher || (!gleich && c2 > p.c + 10)) { p.t = n; p.nameUnsicher = false; } }
+      } catch (e) { /* alter Name bleibt */ }
+    }
+  }
   async function erkenne(daten, melde) {
     const w = await bereit(melde);
     // 1. Bon im Foto finden und entzerren (bonbild.js); 2. Zeilen lesen (PSM 6 auf dem geraden Ausschnitt), bei schlechtem
@@ -317,7 +401,7 @@ window.Bon = (() => {
       }
     } catch (e) { ausschnitt = null; }
     let qr = await qrSuchen(daten);
-    if (!qr && ausschnitt) { try { qr = await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrSuchen(ausschnitt.canvas.toDataURL('image/jpeg', 0.9)); } catch (e) { /* ohne QR */ } }
+    if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
     const versuche = []; let beste = null;
     const lauf = async (quelleBild, gerade, psm, name, ecken) => {
       const v = await vorbereiten(quelleBild, gerade), l = await worterLesen(w, v.canvas, psm), z = zeilenAus(l.woerter), r = lies(z, qr);
@@ -331,7 +415,8 @@ window.Bon = (() => {
     }
     if (!beste || beste.g < 5000) await lauf(daten, false, 11, 'foto', null);
     const { r, v, l, name, ecken } = beste;
+    if (name !== 'foto') await nachlesen(w, v.canvas, r.posten.filter((p) => !p.fehlt));
     return { ...r, qr, quelle: name, versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: v.canvas.toDataURL('image/jpeg', 0.82), winkel: v.winkel, roh: l.roh, ecken };
   }
-  return { erkenne, bereit, lies, zeilenAus, cent, qrLesen, qrSuchen };
+  return { erkenne, bereit, qrKacheln, vorbereiten, worterLesen, lies, zeilenAus, cent, qrLesen, qrSuchen };
 })();

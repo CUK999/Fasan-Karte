@@ -2664,7 +2664,7 @@
       if (!RW.posten.length && rwSicher(RW.bon)) {
         // Menge > 1 und Menge × Einzelpreis = Zeilenbetrag: je Stück eine Zeile, damit jede Person ihr Stück bekommt
         RW.posten = RW.bon.posten.flatMap((p) => (p.menge > 1 && p.menge <= 12 && p.einzel && p.einzel * p.menge === p.b
-          ? Array.from({ length: p.menge }, (_, k) => ({ t: `${p.t} (${k + 1}/${p.menge})`, b: p.einzel, w: [] })) : [{ t: p.t, b: p.b, w: [], pruef: p.fehlt ? 'Nicht gelesen, bitte im Foto nachsehen' : p.nameUnsicher ? 'Name bitte prüfen' : p.rep === 'aus der Steuer-Summe' || p.rep === 'Menge × Preis' ? 'Betrag bitte prüfen' : '' }]));
+          ? Array.from({ length: p.menge }, (_, k) => ({ t: `${p.t} (${k + 1}/${p.menge})`, b: p.einzel, w: [] })) : [{ t: p.t, b: p.b, w: [], pruef: p.fehlt ? 'Nicht gelesen, bitte im Foto nachsehen' : p.nameUnsicher ? 'Name bitte prüfen' : p.rep === 'aus der Steuer-Summe' ? 'Betrag bitte prüfen' : '' }]));
       }
     }
     const wer = RW.dabei;

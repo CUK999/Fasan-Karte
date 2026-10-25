@@ -123,14 +123,15 @@ body[data-blatt="gross"] .kartenknopf { opacity: 0; pointer-events: none; }
 /* Leiste unten */
 .leiste {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 1300;
-  display: grid; grid-template-columns: repeat(5, 1fr);
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
   padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
   background: var(--surface); border-top: 1px solid var(--line);
 }
 :root[data-theme="glas"] .leiste { background: var(--flaeche-blatt); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); }
 .leiste button {
-  min-height: var(--nav-h); border: 0; background: none; color: var(--muted);
+  min-height: var(--nav-h); min-width: 0; border: 0; background: none; color: var(--muted);
   display: grid; justify-items: center; align-content: center; gap: 2px; font-size: 13px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .leiste svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .leiste button[aria-current="page"] { color: var(--text); }
@@ -328,7 +329,7 @@ details.tipps ul { margin: 0 0 14px; padding-left: 20px; display: grid; gap: 6px
 .hilfe span { flex: 1; }
 .hilfe .knopf { flex: none; padding: 0 12px; color: var(--accent); }
 .filterzeile { display: flex; gap: 8px; margin-top: 10px; }
-.filterzeile .knopf { flex: 1; }
+.filterzeile .knopf { flex: 1; min-width: 0; padding: 0 12px; white-space: nowrap; }
 .filterpanel { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 
 /* Gruppe */
@@ -737,3 +738,46 @@ body.zieht .griff span { width: 56px; opacity: .9; }
 .zl-spaet .zl-marke { background: var(--surface); color: var(--muted); }
 .zl-spaet .zl-text { opacity: .6; }
 .bon-qr { margin: 0; padding: 8px 12px; border-radius: var(--r); background: color-mix(in srgb, #1D4ED8 12%, transparent); font-weight: 600; }
+
+/* 2.4: Eigener Standort über allem (eigene Ebene „ich“), deutlich: Kern mit weißem Rand, ruhiger Puls, grau wenn alt */
+.ich-punkt { pointer-events: none; }
+.ich-punkt span { position: absolute; border-radius: 50%; }
+.ich-punkt .kern { inset: 6px; background: #1A73E8; border: 3px solid #fff; box-shadow: 0 1px 5px rgb(0 0 0 / .5), 0 0 0 1px rgb(0 0 0 / .15); }
+.ich-punkt .halo { inset: 0; background: rgb(26 115 232 / .28); animation: ich-puls 2.6s ease-out infinite; }
+.ich-punkt .kegel { display: none; }
+@keyframes ich-puls { from { transform: scale(.55); opacity: .95; } to { transform: scale(1.7); opacity: 0; } }
+.ich-punkt.alt .kern { background: #8A8F98; }
+.ich-punkt.alt .halo, .ich-punkt.ungenau .halo { animation: none; opacity: 0; }
+:root[data-theme="kontrast"] .ich-punkt .kern { border-color: #000; }
+@media (prefers-reduced-motion: reduce) { .ich-punkt .halo { animation: none; transform: scale(1.25); opacity: .45; } }
+/* Weit draußen kleinere Punkte statt übereinander gestapelter Symbole; Nummern, Gruppe und Treffpunkt bleiben groß */
+.leaflet-container.weit .punkt:not(.nr):not(.gewaehlt):not(.naechster):not(.person-punkt):not(.treffpunkt) .p { transform: scale(.5); }
+.leaflet-container.mittel .punkt:not(.nr):not(.gewaehlt):not(.naechster):not(.person-punkt):not(.treffpunkt) .p { transform: scale(.75); }
+.leaflet-container.weit .punkt .marke { display: none; }
+/* Live */
+.live-mini { display: grid; gap: 10px; padding-bottom: 6px; }
+.live-status { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.live-status .text { flex: 1; min-width: 0; display: grid; }
+.live-status small, .live-ziel small, .person-chip small, .live-hinweis small { color: var(--muted); font-size: var(--fs-k); }
+.live-status .knopf { min-height: 48px; padding: 0 14px; }
+.live-ziel { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 12px; border-radius: var(--r-gross); background: color-mix(in srgb, var(--accent) 9%, var(--surface)); border: 1px solid var(--line); }
+.live-ziel .auf { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; border: 0; background: none; color: inherit; text-align: left; padding: 0; font: inherit; }
+.live-ziel .text { display: grid; min-width: 0; }
+.live-ziel strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--fs-l); }
+.knopf.rund { width: var(--ziel); min-width: var(--ziel); min-height: var(--ziel); padding: 0; border-radius: 50%; }
+.live-leute { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 2px max(16px, env(safe-area-inset-left, 0px)); align-items: center; }
+.live-leute::-webkit-scrollbar { display: none; }
+.person-chip { flex: none; display: flex; align-items: center; gap: 10px; min-height: var(--ziel); padding: 6px 16px 6px 6px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text); font: inherit; text-align: left; }
+.person-chip .marker { width: 44px; height: 44px; }
+.person-chip .text { display: grid; }
+.person-chip.alt { opacity: .7; }
+.chip.still { background: color-mix(in srgb, var(--ok) 14%, var(--surface)); border-color: transparent; }
+.live-leer { flex: none; padding: 0 4px; }
+.live-hinweis { display: flex; align-items: center; gap: 12px; min-height: var(--ziel); padding: 8px 14px; border-radius: var(--r); border: 1.5px dashed var(--line); background: none; color: var(--text); text-align: left; font: inherit; }
+.live-hinweis span { display: grid; }
+.live-hinweis svg { width: 26px; height: 26px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; }
+.live-h { margin: 16px 0 8px; font-size: var(--fs-k); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.nah-weit { color: var(--muted); font-weight: 500; }
+.gemerkt-chip { color: #C0392B; }
+.gemerkt-chip svg { stroke: #C0392B; }
+:root[data-theme="dunkel"] .gemerkt-chip, :root[data-theme="dunkel"] .gemerkt-chip svg { color: #F28B82; stroke: #F28B82; }

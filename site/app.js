@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '2.3';
+  const VERSION = '2.4';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -17,6 +17,7 @@
     abends: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
     verkehr: '<rect x="6" y="4" width="12" height="13" rx="2.5"/><path d="M6 11h12M9 20l-1.5 2M15 20l1.5 2M9.5 14.5h.01M14.5 14.5h.01"/>',
     plan: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h3"/>',
+    live: '<path d="M12 3 19 20l-7-3.6L5 20z"/>',
     orte: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
     herz: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.1a4.3 4.3 0 0 1 7.5 2.7C19.5 15.4 12 20 12 20z"/>',
     mehr: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
@@ -176,7 +177,7 @@
   const heuteTag = TAGE.find((t) => t.datum === iso);
   if (heuteTag) S.tag = heuteTag.id;
   if (!['A', 'B', 'C', 'G'].includes(S.plan) && !String(S.plan).startsWith('P:')) S.plan = 'A';
-  if (!['plan', 'orte', 'gruppe', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
+  if (!['live', 'plan', 'orte', 'gruppe', 'gemerkt', 'mehr'].includes(S.tab)) S.tab = 'plan';
 
   let M = speicher.get('markierungen', {});
   const mk = (id) => M[id] || {};
@@ -492,7 +493,7 @@
       if (alt && alt.ts >= ts) return;
       F.leuteOrt.set(m.id, { n: String(m.n || 'Jemand').slice(0, 40), lat, lon, acc: Math.min(+m.acc || 0, 2000), ts });
       zeichneLeute();
-      if (S.tab === 'gruppe' && !S.ort) neuZeichnen();
+      if ((S.tab === 'gruppe' || S.tab === 'live') && !S.ort) neuZeichnen();
     }
   }
   // Nicht mitten ins Tippen hinein neu zeichnen
@@ -605,7 +606,7 @@
   // ---------- Daten ----------
   // Eigene Pläne (Reiseführer-Modus): Wer einen Plan baut, führt; alle mit offener App sehen Änderungen sofort
   const aktiverEigenplan = () => (String(S.plan).startsWith('P:') ? G.plaene[S.plan.slice(2)] || null : null);
-  function fertig(o) { const p = S.tab === 'plan' || S.tab === undefined ? aktiverEigenplan() : null; return p && p.s.includes(o.id) ? p.d.includes(o.id) : !!mk(o.id).fertig; }
+  function fertig(o) { const p = S.tab === 'plan' || S.tab === 'live' || S.tab === undefined ? aktiverEigenplan() : null; return p && p.s.includes(o.id) ? p.d.includes(o.id) : !!mk(o.id).fertig; }
   const allePersonen = () => Object.keys(G.leute);
   const gesehenVon = (ortId) => ((G.gesehen[ortId] && G.gesehen[ortId].w) || []).filter((id) => G.leute[id]);
   const vonAllenGesehen = (ortId) => { const a = allePersonen(); const w = gesehenVon(ortId); return a.length > 1 && a.every((id) => w.includes(id)); };
@@ -671,11 +672,11 @@
     karte.on('dragstart', () => {
       if (S.follow) { S.follow = false; gpsKnopf(); }
       if (S.ort || N.aktiv || innerWidth >= 760) return;
-      if (S.tab === 'orte' && S.hoehe !== 'mini') hoehe('mini');
+      if ((S.tab === 'orte' || S.tab === 'live') && S.hoehe !== 'mini') hoehe('mini');
       else if (S.hoehe === 'mitte' || S.hoehe === 'gross') hoehe('klein');
     });
     karte.on('zoomend', () => namenZoom());
-    karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.tab === 'orte') hoehe(S.hoehe === 'mini' ? 'klein' : 'mini'); else if (S.hoehe !== 'klein') hoehe('klein'); });
+    karte.on('click', () => { if (S.ort) schliesseOrt(); else if (S.tab === 'orte' || S.tab === 'live') hoehe(S.hoehe === 'mini' ? 'klein' : 'mini'); else if (S.hoehe !== 'klein') hoehe('klein'); });
   }
 
   // Mitreisende mit geteiltem Standort: Kreis mit Initialen, Name daneben; nach 10 Minuten blass
@@ -720,6 +721,9 @@
       for (const u of Object.values(G.umfragen)) u.o.map((id) => NACH_ID.get(id)).filter(Boolean).forEach((o) => { if (!orte.includes(o)) orte.push(o); });
     } else if (S.tab === 'gemerkt') {
       orte = ORTE.filter((o) => { const m = mk(o.id); return !m.aus && (m.fav || m.notiz || m.sterne || m.fertig); });
+    } else if (S.tab === 'live' && !S.nah) {
+      orte = ORTE.filter((o) => hatPos(o) && !mk(o.id).aus);
+      const nx = liveNaechster(); naechsterId = nx ? nx.o.id : null;
     } else if (S.nah) {
       orte = [];
     } else {
@@ -728,13 +732,15 @@
     if (S.ort && !orte.some((o) => o.id === S.ort)) orte.push(NACH_ID.get(S.ort));
     if (linie.length > 1) L.polyline(linie, { className: 'route', color: '#9A4A1C', weight: 4, opacity: 0.85, dashArray: '1 10', lineCap: 'round', interactive: false }).addTo(ebene);
     const punkte = [];
+    // Unter Live nur die Namen der nächsten Orte, sonst überdecken sich die Schilder
+    const mitNamen = S.tab === 'live' && S.me ? new Set(orte.filter(hatPos).map((o) => [o.id, meter(S.me, o)]).sort((a, b) => a[1] - b[1]).slice(0, 5).map(([id]) => id).concat(naechsterId ? [naechsterId] : [])) : null;
     for (const o of orte) {
       if (!hatPos(o)) continue;
       const nr = nummern.get(o.id);
       const mm = L.marker([o.lat, o.lon], { icon: punktIcon(o, nr, { naechster: o.id === naechsterId }), title: o.name, alt: o.name, keyboard: true, riseOnHover: true, zIndexOffset: o.id === naechsterId ? 800 : nr ? 400 : 0 })
         .on('click', (e) => { L.DomEvent.stopPropagation(e); oeffneOrt(o.id); })
-        .bindTooltip(o.name, { permanent: true, direction: 'right', offset: [18, 0], className: 'name-label', interactive: false })
         .addTo(ebene);
+      if (!mitNamen || mitNamen.has(o.id)) mm.bindTooltip(o.name, { permanent: true, direction: 'right', offset: [18, 0], className: 'name-label', interactive: false });
       marker.set(o.id, mm);
       punkte.push([o.lat, o.lon]);
     }
@@ -742,7 +748,7 @@
     if (tp) L.marker([tp.lat, tp.lon], { icon: L.divIcon({ className: 'punkt treffpunkt', html: `<span class="p"><svg viewBox="0 0 24 24">${SYMBOL.treff}</svg></span>`, iconSize: [60, 60], iconAnchor: [30, 30] }), title: tp.name, zIndexOffset: 900 })
       .bindTooltip(`${G.treff.zeit} · ${G.treff.name}`, { permanent: true, direction: 'right', offset: [18, 0], className: 'name-label treff-label', interactive: false })
       .on('click', (e) => { L.DomEvent.stopPropagation(e); starteNavi(tp, true); }).addTo(ebene);
-    if (S.tab === 'orte' && S.nah && !S.ort && !N.aktiv) {
+    if ((S.tab === 'orte' || S.tab === 'live') && S.nah && !S.ort && !N.aktiv) {
       const l = nahListe(S.nah);
       l.forEach((o, i) => {
         const mm = L.marker([o.lat, o.lon], { icon: L.divIcon({ className: 'punkt g-nah nah-punkt' + (S.nahWahl === o.id ? ' gewaehlt' : ''), html: `<span class="p"><svg viewBox="0 0 24 24">${SYMBOL[o.typ]}</svg></span>`, iconSize: [52, 52], iconAnchor: [26, 26] }), title: o.name, alt: o.name, keyboard: true, zIndexOffset: S.nahWahl === o.id ? 900 : 300 - i })
@@ -753,11 +759,17 @@
       });
       if (anpassen && l.length) passeAn(l.slice(0, 6).map((o) => [o.lat, o.lon]));
     }
-    if (anpassen && punkte.length && !S.follow && !S.ort) passeAn(punkte);
+    if (anpassen && punkte.length && !S.follow && !S.ort && S.tab !== 'live') passeAn(punkte);
     namenZoom();
   }
   // Namen an den Punkten erst ab näherem Zoom, sonst wird es unübersichtlich
-  function namenZoom() { if (karte) karte.getContainer().classList.toggle('namen', karte.getZoom() >= (S.tab === 'plan' || N.aktiv ? 15 : 16)); }
+  function namenZoom() {
+    if (!karte) return;
+    const z = karte.getZoom(), k = karte.getContainer().classList;
+    k.toggle('namen', z >= (S.tab === 'plan' || N.aktiv ? 15 : 16));
+    // Weit draußen überlagern sich 60-px-Symbole; dann kleinere Punkte (Trefferfläche bleibt 60 px)
+    k.toggle('weit', z <= 14); k.toggle('mittel', z === 15);
+  }
 
   function blattPx() { return $('#blatt').getBoundingClientRect().height; }
   function passeAn(punkte) {
@@ -767,12 +779,15 @@
     if (punkte.length === 1) { zeigeAufKarte({ lat: punkte[0][0], lon: punkte[0][1] }, 16); return; }
     karte.fitBounds(punkte, { paddingTopLeft: [28, 48], paddingBottomRight: [28 + (innerWidth >= 760 ? 440 : 0), unten], maxZoom: 16, animate: true });
   }
+  // Kartenmitte so verschieben, dass der Punkt im sichtbaren Teil über dem Blatt liegt
+  function mitteFuer(o, z) {
+    const versatz = innerWidth >= 760 ? [-220, 0] : [0, (blattPx() + $('#leiste').offsetHeight - 48) / 2];
+    return karte.unproject(karte.project([o.lat, o.lon], z).add(versatz), z);
+  }
   function zeigeAufKarte(o, zoom) {
     if (!karte || !hatPos(o)) return;
     const z = zoom || Math.max(karte.getZoom(), 16);
-    const versatz = innerWidth >= 760 ? [-220, 0] : [0, (blattPx() + $('#leiste').offsetHeight - 48) / 2];
-    const p = karte.project([o.lat, o.lon], z).add(versatz);
-    karte.setView(karte.unproject(p, z), z, { animate: true });
+    karte.setView(mitteFuer(o, z), z, { animate: true });
   }
 
   // ---------- Blatt ----------
@@ -789,7 +804,7 @@
   function miniPx() {
     const blatt = $('#blatt'), ansicht = $('#ansicht');
     const kopf = ansicht.getBoundingClientRect().top - blatt.getBoundingClientRect().top;
-    const erstes = S.tab === 'orte' && !S.ort ? ansicht.querySelector('.chips') : null;
+    const erstes = S.ort ? null : S.tab === 'orte' ? ansicht.querySelector('.chips') : S.tab === 'live' && !S.nah ? ansicht.querySelector('.live-mini') : null;
     return Math.round(Math.max(110, kopf + (erstes ? erstes.getBoundingClientRect().height + 4 : 6)));
   }
   function setzeBlatt(px) { document.documentElement.style.setProperty('--blatt-h', `${Math.round(px)}px`); }
@@ -841,15 +856,18 @@
 
   // ---------- Ansichten ----------
   function zeichne(opt = {}) {
-    $$('#leiste [data-tab]').forEach((b) => { if (b.dataset.tab === S.tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+    const leisteTab = S.tab === 'gemerkt' ? 'orte' : S.tab;
+    $$('#leiste [data-tab]').forEach((b) => { if (b.dataset.tab === leisteTab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
     const box = $('#ansicht');
     const scroll = opt.scroll ? box.scrollTop : 0;
     const ansichtNeu = `${S.tab}|${S.ort || ''}|${S.nah || ''}`;
     if (S.letzteAnsicht && S.letzteAnsicht !== ansichtNeu) { box.classList.remove('neu'); void box.offsetWidth; box.classList.add('neu'); }
     S.letzteAnsicht = ansichtNeu;
-    $('.blatt-kopf').hidden = !!S.ort;
+    // Suchfeld nur, wo gesucht wird (Plan, Orte); unter Live, Gruppe und Mehr wäre es nur Ablenkung
+    $('.blatt-kopf').hidden = !!S.ort || ['live', 'gruppe', 'mehr'].includes(S.tab);
     if (S.ort) zeichneOrt(box);
     else if (S.tab === 'plan') zeichnePlan(box);
+    else if (S.tab === 'live') (S.nah ? zeichneNah(box) : zeichneLive(box));
     else if (S.tab === 'orte') (S.nah ? zeichneNah(box) : zeichneOrte(box));
     else if (S.tab === 'gemerkt') zeichneGemerkt(box);
     else if (S.tab === 'gruppe') zeichneGruppe(box);
@@ -1152,8 +1170,8 @@
           if (!x.s.includes(o.id)) { x.s.push(o.id); planSpeichern(x); toast(`Zu „${x.n}“ hinzugefügt.`, { aktion: 'Zum Plan', fn: () => { S.plan = 'P:' + id; S.tab = 'plan'; S.ort = null; zeichne({ anpassen: true }); } }); } else { x.s = x.s.filter((y) => y !== o.id); planSpeichern(x); toast(`Aus „${x.n}“ entfernt.`); }
           haptik(); S.inPlan = null; zeichne({ scroll: true, karte: false });
         } }, x.n)),
-        el('button', { type: 'button', class: 'chip', onclick: () => { const id = neuerPlan(o.id); if (id) { S.inPlan = null; toast('Neuer Plan mit diesem Ort. Unter „Tagesplan“ bearbeiten.'); zeichne({ scroll: true, karte: false }); } } }, '+ Neuer Plan')),
-      el('p', { class: 'leise klein', style: 'margin:0' }, 'Eigene Pläne sieht die ganze Gruppe. Wer ihn baut, ist Reiseführer; die anderen wählen ihn im Tagesplan und folgen.'));
+        el('button', { type: 'button', class: 'chip', onclick: () => { const id = neuerPlan(o.id); if (id) { S.inPlan = null; toast('Neuer Plan mit diesem Ort. Unter „Plan“ bearbeiten.'); zeichne({ scroll: true, karte: false }); } } }, '+ Neuer Plan')),
+      el('p', { class: 'leise klein', style: 'margin:0' }, 'Eigene Pläne sieht die ganze Gruppe. Wer ihn baut, ist Reiseführer; die anderen wählen ihn unter „Plan“ und folgen.'));
   }
 
   const heimOrt = () => (E.heimPos ? { id: 'heim', name: 'Unterkunft', kategorie: 'Verkehr', typ: 'haus', adresse: '', notiz: '', lat: E.heimPos.lat, lon: E.heimPos.lon } : null);
@@ -1166,7 +1184,10 @@
   function zeichneOrte(box) {
     const liste = sortiert(gefiltert());
     const chip = (id, label, an, fn, extra) => el('button', { type: 'button', class: 'chip ' + (extra || ''), 'aria-pressed': String(an), onclick: fn }, label);
-    const gruppen = el('div', { class: 'chips', role: 'group', 'aria-label': 'Kategorien' },
+    const nGemerkt = ORTE.filter((o) => { const m = mk(o.id); return !m.aus && (m.fav || m.notiz || m.sterne || m.fertig); }).length;
+    const gemerkt = el('button', { type: 'button', class: 'chip gemerkt-chip', onclick: () => { S.tab = 'gemerkt'; speicher.set('tab', 'gemerkt'); haptik(); hoehe('gross'); zeichne({ anpassen: true }); } },
+      ic('herz'), nGemerkt ? `Gemerkt ${nGemerkt}` : 'Gemerkt');
+    const gruppen = el('div', { class: 'chips', role: 'group', 'aria-label': 'Kategorien' }, gemerkt,
       chip('alle', 'Alle', S.gruppen.size === 0, () => { S.gruppen.clear(); speicher.set('gruppen', []); zeichne({ anpassen: true }); }),
       GRUPPEN.map((g) => {
         const b = chip(g.id, '', S.gruppen.has(g.id), () => {
@@ -1225,7 +1246,7 @@
     fetch('stadtfuehrer.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
       .then((d) => { SF = d && Array.isArray(d.artikel) ? d : { artikel: [], fehler: true }; })
       .catch(() => { SF = { artikel: [], fehler: true }; })
-      .finally(() => { sfLaedt = false; if (S.nah === 'wiki' && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); });
+      .finally(() => { sfLaedt = false; if (S.nah === 'wiki' && (S.tab === 'orte' || S.tab === 'live') && !S.ort) zeichne({ anpassen: true }); });
   }
   function ladeUmgebung() {
     if (S.nah === 'wiki') { ladeFuehrer(); return; }
@@ -1234,7 +1255,7 @@
     fetch('umgebung.json', { cache: 'no-cache' }).then((r) => (r.ok ? r.json() : null))
       .then((d) => { U = d && d.stand ? d : { fehler: true }; })
       .catch(() => { U = { fehler: true }; })
-      .finally(() => { uLaedt = false; if (S.nah && S.tab === 'orte' && !S.ort) zeichne({ anpassen: true }); else if (S.tab === 'mehr' && !S.ort) zeichne({ scroll: true, karte: false }); });
+      .finally(() => { uLaedt = false; if (S.nah && (S.tab === 'orte' || S.tab === 'live') && !S.ort) zeichne({ anpassen: true }); else if (S.tab === 'live' && !S.ort) zeichne({ scroll: true, karte: false }); else if (S.tab === 'mehr' && !S.ort) zeichne({ scroll: true, karte: false }); });
   }
   const nahBezug = () => S.me || (karte ? { lat: karte.getCenter().lat, lon: karte.getCenter().lng } : { lat: LISSABON[0], lon: LISSABON[1] });
   function nahOrt(id, x, i) {
@@ -1339,7 +1360,9 @@
       teil('Erledigt', (m) => m.fertig && !m.aus),
       teil('Ausgeblendet', (m) => m.aus, (o) => el('button', { type: 'button', class: 'knopf', onclick: () => { markiere(o.id, { aus: false }); zeichne({ scroll: true }); toast(`${o.name} wird wieder gezeigt.`); } }, 'Zeigen')),
     ].filter(Boolean);
-    setze(box,
+    // „Gemerkt“ ist seit 2.4 ein Teil von „Orte“ (Platz für den Tab „Live“); Zurück führt zur Ortsliste
+    const zurueck = el('button', { type: 'button', class: 'knopf flach', style: 'margin:0 0 4px -8px', onclick: () => { S.tab = 'orte'; speicher.set('tab', 'orte'); haptik(); zeichne({ anpassen: true }); } }, ic('zurueck'), 'Alle Orte');
+    setze(box, zurueck,
       teile.length ? teile : el('div', { class: 'leer' }, fasan(), el('strong', {}, 'Noch nichts gemerkt.'),
         el('span', {}, 'Öffne einen Ort und tippe auf „Merken“. Hier sammeln sich Favoriten, Notizen, Bewertungen und Erledigtes.')),
       gruppeGemerkt(),
@@ -1378,7 +1401,7 @@
     const zeile = (o, typ, extra) => el('li', { class: 'eintrag' },
       el('span', { class: 'text' }, el('span', { class: 'titel' }, o.name), el('span', { class: 'unter' }, [o.d != null ? `${strecke(o.d)} · ${gehzeit(o.d)} Min.` : 'Standort fehlt', extra].filter(Boolean).join(' · '))),
       el('button', { type: 'button', class: 'haken', 'aria-label': `Zu ${o.name} hinführen`, onclick: () => starteNavi(ziel(o, typ), true) }, ic('route')));
-    const adr = el('input', { type: 'text', maxlength: '120', value: E.heimAdresse || '', placeholder: 'Adresse der Unterkunft (bleibt auf dem Handy)', 'aria-label': 'Adresse der Unterkunft' });
+    const adr = el('input', { type: 'text', maxlength: '120', value: E.heimAdresse || '', placeholder: 'Straße, Hausnummer', 'aria-label': 'Adresse der Unterkunft, bleibt auf diesem Handy' });
     adr.addEventListener('change', () => { E.heimAdresse = adr.value.trim(); speichereE(); toast('Gespeichert, nur auf diesem Handy.'); });
     const gross = () => { const b = el('div', { class: 'foto-voll gross-text', role: 'dialog', 'aria-label': 'Adresse groß', onclick: () => b.remove() }, el('p', {}, E.heimAdresse || ''), el('small', {}, 'Antippen zum Schließen')); document.body.append(b); };
     return el('section', { class: 'abschnitt notfall' }, el('h3', {}, 'Notfall'),
@@ -1387,7 +1410,7 @@
         tel('808 24 24 24', 'SNS 24', 'Gesundheitstelefon in Portugal'),
         tel('+351 21 881 02 10', 'Deutsche Botschaft', 'Campo dos Mártires da Pátria 38, Lissabon'),
         tel('+351 96 580 80 92', 'Botschaft im Notfall', 'außerhalb der Öffnungszeiten')),
-      el('div', { style: 'display:grid;gap:8px;margin-top:12px' }, el('strong', {}, 'Unterkunft'), el('div', { class: 'feld' }, adr),
+      el('div', { style: 'display:grid;gap:8px;margin-top:12px' }, el('strong', {}, 'Unterkunft'), el('span', { class: 'leise klein', style: 'margin-top:-4px' }, 'Adresse für Taxi und Notfall. Bleibt nur auf diesem Handy.'), el('div', { class: 'feld' }, adr),
         el('div', { class: 'reihe' }, E.heimAdresse ? el('button', { type: 'button', class: 'knopf', onclick: gross }, 'Groß zeigen (Taxi)') : null, heimKnopf())),
       treffKarte(),
       kh.length ? el('div', { style: 'margin-top:12px' }, el('strong', {}, 'Nächste Notaufnahme'), el('ul', { class: 'liste' }, kh.map((o) => zeile(o, 'apo', o.tel ? `Tel. ${o.tel}` : '')))) : null,
@@ -1621,7 +1644,7 @@
 
   // ---------- Gruppe: Live, Nachrichten, Angepinntes ----------
   const uhrzeit = (t) => { const d = new Date(t), h = new Date(); const z = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; return d.toDateString() === h.toDateString() ? z : `${['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][d.getDay()]} ${z}`; };
-  function funkAnzeige() { if (S.tab === 'gruppe' && !S.ort) neuZeichnen(); }
+  function funkAnzeige() { if ((S.tab === 'gruppe' || S.tab === 'live') && !S.ort) neuZeichnen(); }
   function pinKarte() {
     if (!G.pin || G.pin.weg || !G.pin.x) return null;
     const von = G.ich && G.pin.von === G.ich.id ? 'dir' : G.pin.n || 'jemandem';
@@ -1673,6 +1696,95 @@
         zeichne({ scroll: true, karte: false });
       } }, E.funk === false ? 'Live-Abgleich einschalten' : 'Live-Abgleich ausschalten'));
   }
+  // ---------- Live: frei laufen (Wunsch 24.10.2026) ----------
+  // Eigene Ansicht zum Gehen, damit „Orte“ wieder zum Suchen da ist: Karte folgt dir, alle Orte und die Gruppe sind
+  // sichtbar, das Blatt bleibt klein. Oben: Status, nächster Planstopp, wer gerade live ist.
+  // Unter Live zählt der heutige Tag (falls er zur Reise gehört), sonst der gewählte
+  function reiseTagHeute() {
+    const d = new Date(), iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const t = TAGE.find((x) => x.datum === iso); return t ? t.id : S.tag;
+  }
+  function planName() { const ep = aktiverEigenplan(); return S.plan === 'G' ? 'Gruppenplan' : ep ? `„${ep.n}“` : (PLAENE && PLAENE[S.plan] ? PLAENE[S.plan].titel : 'Plan ' + S.plan); }
+  function liveNaechster() {
+    if (!ORTE.length) return null;
+    return schritte(S.plan, reiseTagHeute()).filter((s) => s.ort && NACH_NAME.has(s.ort)).map((s, i) => ({ s, o: NACH_NAME.get(s.ort), nr: i + 1 }))
+      .find(({ o }) => hatPos(o) && !fertig(o)) || null;
+  }
+  function liveStart() {
+    if (S.watchId == null) starteGps(false);
+    S.follow = true; gpsKnopf();
+    if (S.me && karte) zeigeAufKarte(S.me, Math.max(karte.getZoom(), 17));
+  }
+  function teilenStart(ms) {
+    E.teilenBis = ms; speichereE();
+    if (S.watchId == null) starteGps(false);
+    if (S.me) funkOrt(S.me, true);
+    toast(F.an && F.status.verbunden ? 'Die Gruppe sieht dich jetzt auf der Karte, solange deine App offen ist.' : 'Wird geteilt, sobald Live verbunden ist.');
+    zeichne({ scroll: true, karte: false });
+  }
+  function zeichneLive(box) {
+    if (!U && !uLaedt) ladeUmgebung();
+    // 1. Status: Standort, Genauigkeit, Folgen
+    let status;
+    if (S.watchId == null) {
+      status = el('div', { class: 'live-status' }, el('span', { class: 'lampe aus', 'aria-hidden': 'true' }),
+        el('span', { class: 'text' }, el('strong', {}, 'Standort ist aus'), el('small', {}, 'Live zeigt dich und alles um dich herum')),
+        el('button', { type: 'button', class: 'knopf haupt', onclick: liveStart }, ic('standort'), 'Einschalten'));
+    } else if (!S.me) {
+      status = el('div', { class: 'live-status' }, el('span', { class: 'lampe sucht', 'aria-hidden': 'true' }),
+        el('span', { class: 'text' }, el('strong', {}, 'Suche deinen Standort …'), el('small', {}, 'Draußen geht es meist schneller')));
+    } else {
+      const alt = Date.now() - (S.meZeit || 0) > 30000;
+      status = el('div', { class: 'live-status' }, el('span', { class: 'lampe ' + (alt ? 'sucht' : 'an'), 'aria-hidden': 'true' }),
+        el('span', { class: 'text' }, el('strong', {}, S.follow ? 'Karte folgt dir' : 'Du bist auf der Karte'),
+          el('small', {}, `Genauigkeit ± ${Math.round(S.me.acc)} m${alt ? ` · letzte Position ${zeitHer(S.meZeit)}` : ''}`)),
+        S.follow ? null : el('button', { type: 'button', class: 'knopf', onclick: () => { liveStart(); zeichne({ scroll: true, karte: false }); } }, ic('standort'), 'Folgen'));
+    }
+    // 2. Nächster Planstopp mit Hinführen
+    const nx = liveNaechster();
+    const ziel = nx ? el('div', { class: 'live-ziel' },
+      el('button', { type: 'button', class: 'auf', onclick: () => oeffneOrt(nx.o.id, true) },
+        el('span', { class: 'marker g-' + gruppeVon(nx.o.kategorie) }, symbol(nx.o), el('span', { class: 'nummer' }, String(nx.nr))),
+        el('span', { class: 'text' }, el('small', {}, `Nächster Stopp ${nx.nr} · ${planName()}`), el('strong', {}, nx.o.name),
+          S.me ? el('small', {}, (() => { const d = meter(S.me, nx.o); return d > 2500 ? `${strecke(d)} · besser mit Bahn oder Bus` : `${strecke(d)} · ${gehzeit(d)} Min. zu Fuß`; })()) : null)),
+      el('button', { type: 'button', class: 'knopf haupt rund', 'aria-label': `Zu ${nx.o.name} hinführen`, onclick: () => starteNavi(nx.o, true) }, ic('route'))) : null;
+    // 3. Gruppe live
+    const imGruppe = !!(G.ich && G.ich.name);
+    const leute = [...F.leuteOrt].sort((a, b) => (S.me ? meter(S.me, a[1]) - meter(S.me, b[1]) : b[1].ts - a[1].ts));
+    const zeigeAlle = () => {
+      const pkt = leute.map(([, x]) => [x.lat, x.lon]); if (S.me) pkt.push([S.me.lat, S.me.lon]);
+      S.follow = false; gpsKnopf(); if (pkt.length) passeAn(pkt); haptik();
+      zeichne({ scroll: true, karte: false });
+    };
+    const gruppe = !imGruppe
+      ? el('button', { type: 'button', class: 'live-hinweis', onclick: () => { S.tab = 'gruppe'; speicher.set('tab', 'gruppe'); hoehe('gross'); zeichne(); } },
+        ic('gruppe'), el('span', {}, el('strong', {}, 'Gruppe live sehen'), el('small', {}, 'Unter „Gruppe“ beitreten, dann seht ihr euch hier')))
+      : el('div', { class: 'live-leute', role: 'group', 'aria-label': 'Gruppe live' },
+        leute.map(([, x]) => el('button', { type: 'button', class: 'person-chip' + (Date.now() - x.ts > 600000 ? ' alt' : ''), 'aria-label': `${x.n}, ${S.me ? strecke(meter(S.me, x)) + ' entfernt, ' : ''}Stand ${zeitHer(x.ts)}. Auf der Karte zeigen`,
+          onclick: () => { S.follow = false; gpsKnopf(); zeigeAufKarte(x, 17); haptik(); zeichne({ scroll: true, karte: false }); } },
+          el('span', { class: 'marker person' + (Date.now() - x.ts > 600000 ? ' alt' : '') }, initialen(x.n)),
+          el('span', { class: 'text' }, el('strong', {}, x.n), el('small', {}, [S.me ? strecke(meter(S.me, x)) : null, zeitHer(x.ts)].filter(Boolean).join(' · '))))),
+        leute.length ? el('button', { type: 'button', class: 'chip', onclick: zeigeAlle }, ic('gruppe'), 'Alle zeigen') : null,
+        teileOrt() ? el('span', { class: 'chip still' }, ic('standort'), `Du teilst bis ${uhrzeit(E.teilenBis)}`)
+          : el('button', { type: 'button', class: 'chip', onclick: () => teilenStart(Date.now() + 3600e3) }, ic('standort'), 'Mich zeigen (1 Std.)'),
+        F.an && F.status.verbunden ? el('button', { type: 'button', class: 'chip', onclick: () => { woFragen(); zeichne({ scroll: true, karte: false }); } }, ic('gruppe'), 'Wo seid ihr?') : null,
+        !leute.length ? el('span', { class: 'leise klein live-leer' }, F.an && F.status.verbunden ? 'Gerade teilt niemand seinen Standort.' : 'Live-Abgleich verbindet …') : null);
+    // 4. Schnell finden: nächste Toilette, Supermarkt …
+    const schnell = el('div', { class: 'chips nah-chips', role: 'group', 'aria-label': 'Schnell finden' },
+      NAH.filter((n) => n.id !== 'wiki').map((n) => {
+        const l = U && !U.fehler ? nahListe(n.id) : [];
+        return el('button', { type: 'button', class: 'chip nah-chip', onclick: () => { S.nah = n.id; S.nahWahl = null; haptik(); if (S.hoehe === 'mini') hoehe('klein'); zeichne({ anpassen: true }); } },
+          el('span', { class: 'nah-icon', html: `<svg viewBox="0 0 24 24" aria-hidden="true">${SYMBOL[n.typ]}</svg>` }), n.label, l[0] ? el('small', { class: 'nah-weit' }, strecke(l[0].d)) : null);
+      }));
+    // 5. Orte in der Nähe
+    const nah = S.me ? ORTE.filter((o) => hatPos(o) && !mk(o.id).aus).map((o) => [o, meter(S.me, o)]).filter(([, d]) => d < 1000).sort((a, b) => a[1] - b[1]).slice(0, 8) : [];
+    setze(box,
+      el('div', { class: 'live-mini' }, status, ziel, gruppe),
+      el('h3', { class: 'live-h' }, 'Schnell finden'), schnell,
+      el('h3', { class: 'live-h' }, 'Orte in der Nähe'),
+      nah.length ? el('ul', { class: 'liste' }, nah.map(([o]) => eintragOrt(o)))
+        : el('p', { class: 'leise klein' }, S.me ? 'Im Umkreis von 1 km liegt keiner eurer Orte.' : 'Mit Standort siehst du hier, was um dich herum liegt.'));
+  }
   function nachrichtenTeil() {
     const eingabe = el('input', { id: 'nachricht', type: 'text', maxlength: '300', placeholder: 'Nachricht an alle', enterkeyhint: 'send', autocomplete: 'off', 'aria-label': 'Nachricht an die Gruppe' });
     const senden = () => {
@@ -1689,7 +1801,7 @@
         const meine = G.ich && x.von === G.ich.id;
         return el('li', { class: 'nachricht' + (meine ? ' meine' : '') },
           el('div', { class: 'n-kopf' }, el('strong', {}, meine ? 'Du' : x.n || 'Jemand'), el('span', { class: 'leise klein' }, uhrzeit(x.t)),
-            el('button', { type: 'button', class: 'knopf flach nur-voll n-pin', onclick: () => { anpinnen(x.x); zeichne({ scroll: true, karte: false }); toast('Angepinnt. Alle sehen es oben im Tagesplan.'); } }, ic('pin'), 'Anpinnen')),
+            el('button', { type: 'button', class: 'knopf flach nur-voll n-pin', onclick: () => { anpinnen(x.x); zeichne({ scroll: true, karte: false }); toast('Angepinnt. Alle sehen es oben im Plan.'); } }, ic('pin'), 'Anpinnen')),
           x.o && NACH_ID.has(x.o) ? ortNachricht(x) : el('p', {}, x.x));
       })) : el('p', { class: 'leise klein', style: 'margin:10px 0 0' }, 'Noch keine Nachrichten. Was du schreibst, sehen alle in eurer Gruppe. Wichtiges zum Anpinnen: Treffpunkt, Zeiten, Notfallnummer.'));
   }
@@ -2417,7 +2529,7 @@
           info('Küche', [kueche, veg].filter(Boolean).join(', ') || null),
           info('Zugang', rollstuhl))),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Meine Notiz'), notiz, gespeichert,
-        G.ich && G.ich.name && E.markTeilen !== false ? el('p', { class: 'leise klein', style: 'margin:4px 0 0' }, 'Notiz, Merken, Erledigt und Bewertung sieht deine Gruppe. Abschalten unter „Gemerkt“.') : null),
+        G.ich && G.ich.name && E.markTeilen !== false ? el('p', { class: 'leise klein', style: 'margin:4px 0 0' }, 'Notiz, Merken, Erledigt und Bewertung sieht deine Gruppe. Abschalten unter „Orte → Gemerkt“.') : null),
       el('section', { class: 'abschnitt nur-voll' }, el('h3', {}, 'Meine Bewertung'),
         el('div', { class: 'sterne', role: 'group', 'aria-label': 'Bewertung' }, [1, 2, 3, 4, 5].map((n) => el('button', {
           type: 'button', 'aria-pressed': String((m.sterne || 0) >= n), 'aria-label': `${n} von 5 Sternen`,
@@ -2718,8 +2830,8 @@
   // Einführung: vier kurze Seiten, „Weiter“ immer sichtbar unten, Standort erst im Zusammenhang (Recherche: natives-gefuehl.md)
   function zeigeEinfuehrung(seite = 0, richtung = 1) {
     const box = $('#einfuehrung');
-    const leiste = [['plan', 'Tagesplan', 'Euer Tag, Stopp für Stopp'], ['orte', 'Orte', 'Karte, Suche, „In der Nähe“'], ['gruppe', 'Gruppe', 'Abstimmen, Nachrichten, Standort'],
-      ['herz', 'Gemerkt', 'Favoriten und Notizen'], ['mehr', 'Mehr', 'Schrift, Aussehen, Tipps']];
+    const leiste = [['live', 'Live', 'Frei laufen: Karte folgt dir, Gruppe und Nähe'], ['plan', 'Plan', 'Euer Tag, Stopp für Stopp'], ['orte', 'Orte', 'Suche, Filter, Gemerkt, „In der Nähe“'],
+      ['gruppe', 'Gruppe', 'Abstimmen, Nachrichten, Kosten'], ['mehr', 'Mehr', 'Schrift, Aussehen, Notfall']];
     const legende = [['restaurant', 'g-essen', 'Essen'], ['restaurant', 'g-veggie', 'Vegetarisch'], ['museum', 'g-sehen', 'Sehen'], ['aussicht', 'g-aussicht', 'Aussicht'],
       ['bar', 'g-abends', 'Abends'], ['metro', 'g-verkehr', 'Verkehr'], ['shop', 'g-shoppen', 'Shoppen'], ['korb', 'g-nah', 'Supermarkt']];
     const schrift = () => el('div', { class: 'segmente', role: 'group', 'aria-label': 'Schriftgröße', style: 'width:100%' },
@@ -2849,14 +2961,26 @@
     b.dataset.zustand = S.watchId == null ? 'aus' : !S.me ? 'sucht' : S.follow ? 'folgt' : 'an';
     b.setAttribute('aria-label', S.follow ? 'Karte folgt deinem Standort' : 'Mein Standort');
   }
+  // Eigener Standort: eigene Ebene über allen Punkten und Namen (Leaflet: markerPane 600, tooltipPane 650, popupPane 700;
+  // leafletjs.com/reference.html#map-pane), nicht antippbar, damit darunterliegende Orte erreichbar bleiben.
+  // Grau, wenn die letzte Position älter als 30 s ist; blasser bei Genauigkeit schlechter als 100 m.
   function zeichneIch() {
     if (!karte || !S.me) return;
     const p = [S.me.lat, S.me.lon];
+    if (!karte.getPane('ich')) { const pane = karte.createPane('ich'); pane.style.zIndex = 660; pane.style.pointerEvents = 'none'; }
     if (!ichKreis) ichKreis = L.circle(p, { radius: S.me.acc, className: 'ich-genau', interactive: false }).addTo(karte);
-    if (!ichPunkt) ichPunkt = L.circleMarker(p, { radius: 9, weight: 3, className: 'ich', fillOpacity: 1, interactive: false }).addTo(karte);
+    if (!ichPunkt) ichPunkt = L.marker(p, { pane: 'ich', interactive: false, keyboard: false, icon: L.divIcon({ className: 'ich-punkt', html: '<span class="kegel"></span><span class="halo"></span><span class="kern"></span>', iconSize: [32, 32], iconAnchor: [16, 16] }) }).addTo(karte);
     ichKreis.setLatLng(p).setRadius(S.me.acc);
     ichPunkt.setLatLng(p);
+    ichZustand();
   }
+  function ichZustand() {
+    const e = ichPunkt && ichPunkt.getElement();
+    if (!e || !S.me) return;
+    e.classList.toggle('alt', Date.now() - (S.meZeit || 0) > 30000);
+    e.classList.toggle('ungenau', S.me.acc > 100);
+  }
+  setInterval(ichZustand, 10000);
   function starteGps(folgen = true) {
     if (!('geolocation' in navigator)) { toast('Dieses Gerät gibt keinen Standort heraus.'); return; }
     if (S.watchId != null) { if (folgen && S.me) { S.follow = true; zeigeAufKarte(S.me); gpsKnopf(); } return; }
@@ -2868,14 +2992,15 @@
   function aufPosition(p) {
     const neu = { lat: p.coords.latitude, lon: p.coords.longitude, acc: Math.min(p.coords.accuracy || 0, 2000) };
     const erst = !S.me;
-    S.me = neu;
+    S.me = neu; S.meZeit = Date.now();
     zeichneIch();
     if (teileOrt()) funkOrt(neu);
     naeheHinweis(neu);
-    if (karte && erst && !N.aktiv && !S.ort) karteZeichnen(true);
-    else if (S.follow && karte) { if (erst) zeigeAufKarte(neu, 17); else karte.panTo([neu.lat, neu.lon], { animate: true }); }
+    if (karte && erst && !N.aktiv && !S.ort && !S.follow) karteZeichnen(true);
+    else if (S.follow && karte) { if (erst) zeigeAufKarte(neu, 17); else karte.panTo(mitteFuer(neu, karte.getZoom()), { animate: true }); }
     if (N.aktiv) { if (!N.route && !N.letzteVersuch) { N.letzteVersuch = Date.now(); neueRoute().finally(() => { N.letzteVersuch = 0; }); } else naviUpdate(); gpsKnopf(); return; }
     if (!S.meAlt || meter(S.meAlt, neu) > 40) { S.meAlt = neu; if (!S.ort) zeichne({ scroll: true, karte: false }); }
+    else if (S.tab === 'live' && !S.ort && !S.nah && (!S.liveAlt || meter(S.liveAlt, neu) > 12 || Date.now() - S.liveZeit > 15000)) { S.liveAlt = neu; S.liveZeit = Date.now(); neuZeichnen(); }
     gpsKnopf();
   }
   function aufFehler(e) {
@@ -2912,7 +3037,10 @@
     const neu = b.dataset.tab;
     if (S.ort) { S.ort = null; try { history.replaceState(null, '', location.pathname); } catch (e) { /* egal */ } }
     if (neu === S.tab && S.hoehe !== 'klein') { $('#ansicht').scrollTop = 0; }
+    if (neu !== S.tab && (neu === 'live' || S.tab === 'live')) { S.nah = null; S.nahWahl = null; }
     S.tab = neu; speicher.set('tab', neu);
+    haptik();
+    if (neu === 'live') { hoehe('mini'); zeichne({ anpassen: false }); liveStart(); return; }
     if (neu === 'mehr' || neu === 'gemerkt' || neu === 'gruppe') hoehe('gross'); else if (S.hoehe === 'gross' && neu === 'plan') hoehe('mitte');
     zeichne({ anpassen: true });
   }));

@@ -937,6 +937,9 @@ body.rw-offen { overflow: hidden; }
 .rw-p { flex: 1; min-width: 0; min-height: 64px; display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'n b' 'w w'; gap: 2px 12px; align-items: center; text-align: left; padding: 8px 14px; border-radius: 14px; border: 2px solid var(--rand); background: var(--surface); color: var(--text); font: inherit; }
 .rw-p[aria-pressed="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
 .rw-zeile.frei .rw-p { border-style: dashed; }
+.rw-p:has(.rw-zeilenbild) { grid-template-areas: 'i i' 'n b' 'w w'; }
+/* Zeile aus dem Foto neben der Lesung: ein Blick genügt zum Prüfen */
+.rw-zeilenbild { grid-area: i; display: block; width: 100%; max-height: 30px; object-fit: contain; object-position: left center; border-radius: 6px; background: #fff; }
 .rw-pn { grid-area: n; font-weight: 700; overflow-wrap: anywhere; }
 .rw-pb { grid-area: b; font-weight: 800; font-variant-numeric: tabular-nums; }
 .rw-wer { grid-area: w; display: flex; gap: 4px; flex-wrap: wrap; color: var(--muted); font-size: var(--fs-k); font-weight: 700; }

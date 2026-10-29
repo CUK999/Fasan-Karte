@@ -174,7 +174,9 @@ window.Bon = (() => {
     zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
     rueck: /\b(ruckgeld|wechselgeld|change|cambio|vuelto|rendu|resto|troco|wisselgeld)\b/,
     rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|leergut|pfandruckgabe)\b/,
-    nein: /\b(datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
+    nein: /\b(capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
+    // Spaltenüberschrift über den Posten („Qt Descrição P.Unit. Tx Valor“, „Menge Artikel Preis Betrag“)
+    kopf: /\b(qt|qtd|qty|qte|quant|quantidade|menge|anz|anzahl|descri[cç]?[aã]?o|descricao|descripcion|description|bezeichnung|artikel|artigo|article|articulo|produkt|produto|p\.?\s?unit|p\.?\s?u|preco|preis|price|prix|precio|prezzo|valor|betrag|amount|montant|importe|importo|tx|vat|mwst|einzel)\b/g,
     // Einzelpreis-Zeilen unter dem Posten („Preco: 12,90/Uni“, „à 2,50“, „je 1,99“, „@ 3.50“)
     einzel: /\b(pre[cç]o|preis|price|prix|precio|prezzo|prijs|je|a|à|@|ea|each|stuckpreis|einzelpreis|ep)\b\s*[:;.]?\s*$/,
   };
@@ -216,15 +218,19 @@ window.Bon = (() => {
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
     return t.replace(MENGE_VORN, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
-      .replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
+      .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
   function liesAllgemein(zeilen, qr) {
     const dez = dezimal(zeilen);
     const info = zeilen.map((z, i) => {
-      const n = ohneAkz(z.text), bt = betraege(z.text, dez), letzter = bt.length ? bt[bt.length - 1] : null;
+      const n = ohneAkz(z.text), bt = betraege(z.text, dez);
+      let mengeVorn = null;
+      if (bt.length >= 2 && /^\W*$/.test(z.text.slice(0, bt[0].start)) && /^\s*[A-Za-zÀ-ÿ]/.test(z.text.slice(bt[0].ende)) && bt[0].v > 0 && bt[0].v <= 9900) { mengeVorn = bt[0].v / 100; bt.shift(); }
+      const letzter = bt.length ? bt[bt.length - 1] : null;
       let art = 'sonst';
-      if (W.zwischen.test(n)) art = 'zwischen';
+      if (!bt.length && (n.match(W.kopf) || []).length >= 2) art = 'kopf';
+      else if (W.zwischen.test(n)) art = 'zwischen';
       else if (W.summe.test(n) && !W.steuer.test(n.replace(W.summe, ''))) art = 'summe';
       else if (W.rueck.test(n)) art = 'rueck';
       else if (W.zahlung.test(n) && !/\d\s*[x×*]\s*\d/.test(n)) art = 'zahlung';
@@ -236,6 +242,7 @@ window.Bon = (() => {
       let menge = null, einzel = null;
       const mx = new RegExp(`(\\d{1,3}(?:[.,]\\d{1,3})?)\\s*(?:stk\\.?|st\\.?|kg|pcs|un\\.?|uni)?\\s*[x×*]\\s*(\\d+\\${dez}\\d{2})`, 'i').exec(z.text);
       if (mx) { menge = parseFloat(mx[1].replace(',', '.')); einzel = Math.round(parseFloat(mx[2].replace(dez, '.')) * 100); }
+      else if (mengeVorn) { menge = mengeVorn; if (bt.length >= 2) einzel = bt[bt.length - 2].v; }
       else { const mv = /^\s*(\d{1,2})\s*(?:x|×|stk\.?|st\.?|pcs\.?|un\.?|uni|und\.?|pz\.?)?\s+[A-Za-zÀ-ÿ]/i.exec(z.text); if (mv && +mv[1] > 0) menge = +mv[1]; }
       const name = letzter ? nameAus(z.text.slice(0, (mx ? Math.min(mx.index, bt[0].start) : bt[0].start))) : nameAus(z.text);
       return { i, z, n, bt, letzter, art, menge, einzel, name, bu: buchst(name), nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
@@ -244,8 +251,9 @@ window.Bon = (() => {
     // (steht der Betrag der Summenzeile durch Schräglage eine Zeile tiefer, gilt die Zeile ohne Betrag als Ende)
     let ende = info.findIndex((r, i) => r.art === 'summe' && (r.letzter || (info[i + 1] && info[i + 1].letzter && info[i + 1].bu < 3)));
     if (ende < 0) ende = info.length;
+    const kopfZ = info.findIndex((r, i) => i < ende && r.art === 'kopf');
     const posten = [], zuschlaege = [];
-    for (let i = 0; i < ende; i++) {
+    for (let i = kopfZ + 1; i < ende; i++) {
       const r = info[i];
       if (!r.letzter || r.art === 'nein' || r.art === 'zwischen') continue;
       if (r.art === 'steuer' || r.art === 'service') { zuschlaege.push({ t: r.art === 'service' ? (r.name || 'Service') : (r.name || 'Steuer'), art: r.art, zeile: i, kand: [{ v: r.letzter.v, k: 0 }, ...alternativen(r.z, r.letzter, dez)] }); continue; }
@@ -268,8 +276,8 @@ window.Bon = (() => {
       if (nameZeile >= 0) { info[nameZeile].typ = 'teil'; info[nameZeile].zu = posten.length; }
       r.typ = 'posten'; r.zu = posten.length;
       const lesbar = buchst(name) >= 2;
-      // Zeile ohne Namen (nur Zahlen, z. B. eine falsch gelesene Gewichtszeile): darf beim Abgleich wegfallen
-      if (!lesbar) kand.push({ v: 0, k: 1.2, warum: 'weg' });
+      // Jede Zeile darf beim Abgleich wegfallen: ohne Namen billig, mit Namen teuer (die Summe muss dann trotzdem genau stimmen)
+      kand.push({ v: 0, k: lesbar ? 1.6 : 1.2, warum: 'weg' });
       posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: r.menge && r.menge >= 1 && Number.isInteger(r.menge) ? r.menge : 1, einzel: r.einzel, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand });
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
@@ -287,6 +295,9 @@ window.Bon = (() => {
     const gegeben = info.filter((r, i) => i >= ende && r.art === 'zahlung' && r.letzter).map((r) => r.letzter.v);
     const rueck = info.filter((r, i) => i >= ende && r.art === 'rueck' && r.letzter).map((r) => Math.abs(r.letzter.v));
     for (const g of gegeben) { ziel(g, 0.4, 'zahlung'); for (const q of rueck) if (g - q > 0) ziel(g - q, 0.4, 'zahlung'); }
+    // Beträge größer als jede gelesene Summe können keine Posten sein (z. B. Stammkapital im Kopf): Streichen fast kostenlos
+    const maxZiel = ziele.length ? Math.max(...ziele.map((z) => z.v)) : Infinity;
+    for (const p of posten) if (Math.abs(p.b) > maxZiel) { const w = p.kand.find((c) => c.warum === 'weg'); if (w) w.k = 0.1; }
     const loesung = posten.length ? abgleich(posten, zuschlaege, ziele) : null;
     let total = null, gesamtOk = false;
     if (loesung) {

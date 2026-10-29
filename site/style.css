@@ -972,3 +972,46 @@ body.rw-offen .toast { z-index: 2100; bottom: calc(env(safe-area-inset-bottom, 0
 
 /* Bon-Erkennung: errechnete Beträge kenntlich machen (3.5) */
 .rw-pruef { display: block; font-style: normal; font-size: .78rem; font-weight: 600; color: var(--warn, #b45309); margin-top: 2px; }
+
+/* ---------- Rechnung teilen 3.8: Personenfarben, Klarnamen, Original-Bon (29.10.2026) ---------- */
+.p-punkt { display: inline-block; width: .8em; height: .8em; border-radius: 50%; background: var(--pf); margin-right: 6px; vertical-align: -.05em; box-shadow: 0 0 0 2px var(--surface); flex: none; }
+.rw-person.farbig { border-top: 6px solid var(--pf); }
+.rw-person.farbig[aria-pressed="true"] { background: var(--pf); border-color: var(--pf); color: var(--pt); }
+.rw-abz { background: var(--pf, var(--accent)); color: var(--pt, var(--on-accent)); min-width: 34px; }
+.rw-p { position: relative; overflow: hidden; padding-left: 20px; }
+.rw-band { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; }
+.rw-sym { font-size: 1.15em; margin-right: 6px; }
+.rw-orig { display: block; font-weight: 500; color: var(--muted); font-size: var(--fs-k); }
+.rw-zeile.aus .rw-p { opacity: .55; border-style: dotted; }
+.rw-zeile.aus .rw-pb { text-decoration: line-through; }
+.rw-bonkopf { display: block; text-align: left; padding: 8px; border: 2px solid var(--accent); border-radius: var(--r); background: var(--surface); color: var(--text); }
+.rw-bonkopf-in { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center; }
+.rw-bonkopf img { width: 64px; height: 64px; object-fit: cover; object-position: top; border-radius: 10px; background: #fff; }
+.rw-bonkopf span { display: grid; gap: 2px; } .rw-bonkopf small { color: var(--muted); font-size: var(--fs-k); }
+.rw-bonfab { position: fixed; right: max(16px, env(safe-area-inset-right, 0px)); bottom: calc(96px + env(safe-area-inset-bottom, 0px)); z-index: 5; width: 68px; height: 68px; padding: 0; border-radius: 18px; border: 3px solid var(--accent); background: #fff; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.28); display: grid; }
+.rw-bonfab img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.rw-bonfab span { grid-area: 1 / 1; align-self: end; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 14px; padding: 2px 0; }
+#rw-bon { position: fixed; inset: 0; z-index: 2100; background: var(--bg); color: var(--text); display: grid; grid-template-rows: auto minmax(0, 1fr) auto; padding-top: env(safe-area-inset-top, 0px); }
+.rwb-kopf { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.rwb-stand { font-size: var(--fs-k); white-space: nowrap; font-weight: 800; font-variant-numeric: tabular-nums; } .rwb-stand.ok { color: var(--ok); } .rwb-stand.warn { color: var(--danger); }
+.rwb-roll { overflow: auto; overscroll-behavior: contain; background: #777; -webkit-overflow-scrolling: touch; }
+.rwb-flaeche { position: relative; margin: 0 auto; min-width: 100%; }
+.rwb-flaeche img { display: block; width: 100%; height: auto; user-select: none; }
+.rwb-k { position: absolute; padding: 0; margin: 0; border: 2px dashed rgba(0,0,0,.35); border-radius: 6px; background: transparent; min-height: 0; cursor: pointer; }
+.rwb-k.p { border: 3px solid #843F17; background: rgba(132,63,23,.08); }
+.rwb-k.p.frei { border-style: dashed; }
+.rwb-k.aus { border: 2px dotted #666; background: repeating-linear-gradient(135deg, rgba(0,0,0,.18) 0 6px, transparent 6px 12px); }
+.rwb-k.sel { outline: 4px solid #0072B2; outline-offset: 2px; z-index: 2; }
+.rwb-band { position: absolute; left: -10px; top: 0; bottom: 0; width: 7px; border-radius: 4px; }
+.rwb-wer { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); display: flex; gap: 2px; }
+.rwb-wer .rw-abz { min-width: 26px; height: 22px; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.4); }
+.rwb-blatt, .rwb-hilfe { padding: 12px max(16px, env(safe-area-inset-left, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: grid; gap: 8px; max-height: 52dvh; overflow-y: auto; margin: 0; }
+.rwb-titel { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; align-items: center; }
+.rwb-titel strong { font-size: var(--fs-t); } .rwb-text { grid-column: 1 / -1; font-family: ui-monospace, monospace; }
+.rwb-reihe { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-width: 0; }
+.rwb-reihe .geld { flex: none; width: 7.5em; } .rwb-teil { flex: none; min-width: 2.5em; }
+.rwb-blatt { grid-template-columns: minmax(0, 1fr); } .rwb-blatt > * { min-width: 0; } .rwb-blatt input { box-sizing: border-box; max-width: 100%; }
+.rwb-kopf .reihe { flex-wrap: nowrap; gap: 4px; } .rwb-kopf .knopf { min-height: 48px; padding: 0 10px; white-space: nowrap; }
+.rwb-leute { display: flex; flex-wrap: wrap; gap: 6px; }
+.rwb-p { min-width: 52px; min-height: 48px; border-radius: 12px; border: 3px solid var(--pf); background: var(--surface); color: var(--text); font-weight: 800; }
+.rwb-p[aria-pressed="true"] { background: var(--pf); color: var(--pt); }

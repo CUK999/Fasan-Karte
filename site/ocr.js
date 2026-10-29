@@ -144,9 +144,23 @@ window.FasanOCR = (() => {
   async function woerter(leinwand, opt = {}) {
     const m = await lade(opt.melde);
     const k = await finde(leinwand, opt), out = [];
+    // Typische Zeilenhöhe (Median der breiten Kästen). Dicht gedruckte Bons: die Erkennung verschmilzt manchmal zwei
+    // übereinander stehende Beträge zu einem hohen Kasten, der dann Unsinn liest (Test 29.10., „2,50“ → „1,50“).
+    const hs = k.filter((q) => q.x1 - q.x0 > 1.5 * (q.y1 - q.y0)).map((q) => q.y1 - q.y0).sort((a, b) => a - b);
+    const med = hs.length ? hs[hs.length >> 1] : 0;
     for (let i = 0; i < k.length; i++) {
-      const r = await liesKasten(leinwand, k[i], m);
-      if (r && r.t) out.push({ t: r.t, c: r.c, b: { x0: k[i].x0, y0: k[i].y0, x1: k[i].x1, y1: k[i].y1 }, zeichen: r.zeichen, kg: k[i].guete, neig: k[i].neig });
+      const q = k[i], h = q.y1 - q.y0;
+      let r = await liesKasten(leinwand, q, m), teile = null;
+      // Zu hoher Kasten mit mäßiger Sicherheit: in n gleich hohe Streifen teilen und einzeln lesen; nur übernehmen, wenn die
+      // Teile sicherer gelesen werden (große Schrift wie „TOTAL“ liest ganz sicherer und bleibt ganz)
+      if (med && h > 1.45 * med && (!r || r.c < 93)) {
+        const n = Math.max(2, Math.round(h / med)), sh = h / n, liste = [];
+        for (let j = 0; j < n; j++) { const t = { x0: q.x0, x1: q.x1, y0: q.y0 + j * sh - sh * 0.08, y1: q.y0 + (j + 1) * sh + sh * 0.08 }; const l = await liesKasten(leinwand, t, m); if (l && l.t) liste.push({ l, t }); }
+        const mittel = liste.length ? liste.reduce((a, x) => a + x.l.c, 0) / liste.length : 0;
+        if (liste.length >= 2 && mittel > (r ? r.c : 0) + 3) teile = liste;
+      }
+      if (teile) for (const { l, t } of teile) out.push({ t: l.t, c: l.c, b: t, zeichen: l.zeichen, kg: q.guete, neig: q.neig, geteilt: true });
+      else if (r && r.t) out.push({ t: r.t, c: r.c, b: { x0: q.x0, y0: q.y0, x1: q.x1, y1: q.y1 }, zeichen: r.zeichen, kg: q.guete, neig: q.neig });
       if (opt.melde && (i % 4 === 0 || i === k.length - 1)) opt.melde({ status: 'recognizing paddle', progress: (i + 1) / k.length });
     }
     return out;
@@ -160,5 +174,34 @@ window.FasanOCR = (() => {
     for (const q of k) { const w = q.x1 - q.x0, h = q.y1 - q.y0; if (w > 1.6 * h) breit++; else if (h > 1.6 * w) hoch++; }
     return hoch > Math.max(3, breit * 1.5);
   }
-  return { lade, verfuegbar, finde, hochkant, woerter, liesKasten: async (c, k) => liesKasten(c, k, await lade()) };
+  // Mehrfach lesen (Abstimmung nach Konfidenz, vgl. Reul u. a. 2017, arXiv:1711.09670): denselben Bereich mit
+  // verschiedenen Ausschnitten lesen (Rand eng/weit, oben/unten etwas weniger, Kontrast gestreckt). Dünne Ziffern in schmaler
+  // Bon-Schrift („1“) fallen sonst je nach Ausschnitt mal weg. Rückgabe: alle Lesungen mit Konfidenz.
+  async function mehrfach(leinwand, k, opt = {}) {
+    const m = await lade(), h = k.y1 - k.y0, w = k.x1 - k.x0, out = [];
+    const varianten = opt.varianten || [[0.12, 0], [0.3, 0], [0.12, 0.1], [0.45, -0.05], [0.2, 0, true]];
+    for (const [rand, ein, kontrast] of varianten) {
+      const r = { x0: Math.max(0, k.x0 - h * rand), x1: Math.min(leinwand.width, k.x1 + h * rand), y0: Math.max(0, k.y0 - h * (rand * 0.5 - ein)), y1: Math.min(leinwand.height, k.y1 + h * (rand * 0.5 - ein)) };
+      let quelle = leinwand;
+      if (kontrast) {
+        const c = document.createElement('canvas'); c.width = Math.round(r.x1 - r.x0); c.height = Math.round(r.y1 - r.y0);
+        const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(leinwand, r.x0, r.y0, c.width, c.height, 0, 0, c.width, c.height);
+        const d = g.getImageData(0, 0, c.width, c.height), px = d.data; let lo = 255, hi = 0;
+        for (let i = 0; i < px.length; i += 4) { const v = (px[i] + px[i + 1] + px[i + 2]) / 3; if (v < lo) lo = v; if (v > hi) hi = v; }
+        const sp = Math.max(1, hi - lo); for (let i = 0; i < px.length; i += 4) { const v = Math.max(0, Math.min(255, (((px[i] + px[i + 1] + px[i + 2]) / 3 - lo) * 255) / sp)); px[i] = px[i + 1] = px[i + 2] = v; }
+        g.putImageData(d, 0, 0); quelle = c; r.x1 -= r.x0; r.y1 -= r.y0; r.x0 = 0; r.y0 = 0;
+      }
+      try { const l = await liesKasten(quelle, r, m); if (l && l.t) out.push({ t: l.t, c: l.c }); } catch (e) { /* nächste Variante */ }
+    }
+    return out;
+  }
+  // Einen Streifen quer über den Bon lesen (z. B. eine Zeile, deren Betrag fehlte): erst Kästen finden, dann lesen
+  async function streifen(leinwand, y0, y1) {
+    const c = document.createElement('canvas'), h = Math.max(8, Math.round(y1 - y0)), pad = Math.round(h * 0.4);
+    c.width = leinwand.width; c.height = h + 2 * pad;
+    const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(leinwand, 0, Math.max(0, y0 - pad), c.width, c.height, 0, 0, c.width, c.height);
+    const w = await woerter(c);
+    return w.map((x) => ({ ...x, b: { x0: x.b.x0, x1: x.b.x1, y0: x.b.y0 + Math.max(0, y0 - pad), y1: x.b.y1 + Math.max(0, y0 - pad) } }));
+  }
+  return { lade, verfuegbar, finde, hochkant, woerter, mehrfach, streifen, liesKasten: async (c, k) => liesKasten(c, k, await lade()) };
 })();

@@ -169,9 +169,9 @@ window.Bon = (() => {
   const W = {
     summe: /\b(total|totaal|totale|totalt|gesamt|gesamtbetrag|gesamtsumme|summe|endsumme|endbetrag|zu zahlen|zahlbetrag|importe|a pagar|montant|net a payer|te betalen|suma|razem|celkem|osszesen|yhteensa|att betala|i alt|ukupno|toplam|kokku|amount due|balance due)\b/,
     zwischen: /\b(sub-?total|subtotale|subtotaal|sous-?total|zwischensumme|zw\.? ?summe)\b/,
-    steuer: /\b(mwst|mw\.?st|ust|vat|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incidencia|imponibile|imposta|taxa|base)\b/,
+    steuer: /\b(mwst|mw\.?st|ust|vat|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incid|incidencia|incidencias|imponible|imponibile|imposta|taxa|base|tributavel|ht|sem iva|net)\b/,
     service: /\b(service|bedienung|trinkgeld|tip|tips|gratuity|servizio|pourboire|fooi|propina)\b/,
-    zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
+    zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|entregue|valor entregue|pago|pagamento|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
     rueck: /\b(ruckgeld|wechselgeld|change|cambio|vuelto|rendu|resto|troco|wisselgeld)\b/,
     rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|leergut|pfandruckgabe)\b/,
     nein: /\b(capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
@@ -217,14 +217,24 @@ window.Bon = (() => {
   }
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
-    return t.replace(MENGE_VORN, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
+    return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
       .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
+  // Stimmen aus mehreren Lesungen desselben Betrags (z.mehr, aus erkenne): Anteil der Stimmen → Kosten im Abgleich
+  function stimmen(erst, mehr, dez) {
+    const zaehl = new Map(); const add = (v, c) => zaehl.set(v, (zaehl.get(v) || 0) + Math.max(0.2, c / 100));
+    if (erst != null) add(erst, 90);
+    for (const m of mehr || []) { const b = betraege(m.t, dez).pop(); if (b) add(b.v, m.c); }
+    const ges = [...zaehl.values()].reduce((a, x) => a + x, 0) || 1;
+    return [...zaehl].sort((a, b) => b[1] - a[1]).map(([v, x]) => ({ v, k: +(0.7 * (1 - x / ges)).toFixed(3), anteil: x / ges, warum: v === erst ? undefined : 'nachgelesen' }));
+  }
   function liesAllgemein(zeilen, qr, art) {
     const dez = dezimal(zeilen);
     const info = zeilen.map((z, i) => {
       const n = ohneAkz(z.text), bt = betraege(z.text, dez);
+      // Zeile ohne gelesenen Betrag, aber Betrag beim Nachlesen gefunden: am Zeilenende anhängen
+      if (!bt.length && z.mehr && z.mehr.length) { const st = stimmen(null, z.mehr, dez); if (st.length && st[0].anteil >= 0.4) bt.push({ v: st[0].v, start: z.text.length, ende: z.text.length, neg: st[0].v < 0, nach: true }); }
       let mengeVorn = null;
       if (bt.length >= 2 && /^\W*$/.test(z.text.slice(0, bt[0].start)) && /^\s*[A-Za-zÀ-ÿ]/.test(z.text.slice(bt[0].ende)) && bt[0].v > 0 && bt[0].v <= 9900) { mengeVorn = bt[0].v / 100; bt.shift(); }
       const letzter = bt.length ? bt[bt.length - 1] : null;
@@ -245,33 +255,50 @@ window.Bon = (() => {
       else if (mengeVorn) { menge = mengeVorn; if (bt.length >= 2) einzel = bt[bt.length - 2].v; }
       else { const mv = /^\s*(\d{1,2})\s*(?:x|×|stk\.?|st\.?|pcs\.?|un\.?|uni|und\.?|pz\.?)?\s+[A-Za-zÀ-ÿ]/i.exec(z.text); if (mv && +mv[1] > 0) menge = +mv[1]; }
       const name = letzter ? nameAus(z.text.slice(0, (mx ? Math.min(mx.index, bt[0].start) : bt[0].start))) : nameAus(z.text);
-      return { i, z, n, bt, letzter, art, menge, einzel, name, bu: buchst(name), nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
+      const satz = (/\b(\d{1,2})\s*%/.exec(z.text) || [])[1];
+      return { i, z, n, bt, letzter, art, menge, einzel, name, bu: buchst(name), satz: satz != null ? +satz : null, nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
     });
     // Ende des Postenteils: erste Summenzeile mit Betrag (danach kommen Zahlung, Steuer, Fußtext)
     // (steht der Betrag der Summenzeile durch Schräglage eine Zeile tiefer, gilt die Zeile ohne Betrag als Ende)
     let ende = info.findIndex((r, i) => r.art === 'summe' && (r.letzter || (info[i + 1] && info[i + 1].letzter && info[i + 1].bu < 3)));
     if (ende < 0) ende = info.length;
     const kopfZ = info.findIndex((r, i) => i < ende && r.art === 'kopf');
+    // Postenblock endet auch an der Steuertabelle („TAXA IVA INCID.“, „MwSt Netto Brutto“) – deren Beträge sind nie Posten.
+    // Steuer/Service vor der Summe zählen nur, wenn es eine Zwischensumme gibt (USA); in Europa ist die Steuer enthalten.
+    const mitZwischen = info.some((r, i) => i < ende && r.art === 'zwischen');
+    { let gesehen = false; for (let i = kopfZ + 1; i < ende; i++) { const r = info[i]; if (r.letzter && r.art === 'sonst') gesehen = true; if (gesehen && ((r.art === 'steuer' && (!r.letzter || !mitZwischen)) || r.art === 'zwischen' && !mitZwischen)) { ende = i; break; } } }
     const posten = [], zuschlaege = [];
     for (let i = kopfZ + 1; i < ende; i++) {
       const r = info[i];
-      if (!r.letzter || r.art === 'nein' || r.art === 'zwischen') continue;
-      if (r.art === 'steuer' || r.art === 'service') { zuschlaege.push({ t: r.art === 'service' ? (r.name || 'Service') : (r.name || 'Steuer'), art: r.art, zeile: i, kand: [{ v: r.letzter.v, k: 0 }, ...alternativen(r.z, r.letzter, dez)] }); continue; }
+      if (!r.letzter || r.art === 'nein' || r.art === 'zwischen' || (r.art === 'steuer' && !mitZwischen)) {
+        // Zeile im Postenblock mit Namen, aber ohne Betrag: vermutlich ein Posten, dessen Betrag nicht gelesen wurde
+        if (!r.letzter && r.art === 'sonst' && r.bu >= 3 && !r.nurEinzel && !/pre[cç]o|preis|price|prix|precio/i.test(r.n) && posten.length) r.typ = 'unklar';
+        continue;
+      }
+      if ((r.art === 'steuer' && mitZwischen) || r.art === 'service') { zuschlaege.push({ t: r.art === 'service' ? (r.name || 'Service') : (r.name || 'Steuer'), art: r.art, zeile: i, kand: [{ v: r.letzter.v, k: 0 }, ...alternativen(r.z, r.letzter, dez)] }); continue; }
       // Einzelpreis- oder Mengenzeile ohne Namen direkt unter einem Posten: gehört zum Posten darüber
       const vorher = posten[posten.length - 1];
       if (vorher && vorher.zeile === i - 1 && (r.nurEinzel || (r.bu < 2 && r.einzel && r.bt.length === 1))) {
         const e = r.nurEinzel ? r.letzter.v : r.einzel; vorher.einzel = e;
         if (r.einzel && r.menge) vorher.menge = r.menge;
-        const m = vorher.menge || (e ? Math.round(vorher.b / e) : 0);
-        if (e && m && m * e !== vorher.b && m <= 50) vorher.kand.push({ v: Math.round(m * e), k: 0.6, warum: 'Menge × Preis' });
+        // Betrag ist ein Vielfaches des Einzelpreises: Menge daraus (die Mengen-Spalte wird oft nicht gelesen)
+        if (e && vorher.b % e === 0 && vorher.b / e >= 1 && vorher.b / e <= 50) { vorher.menge = vorher.b / e; vorher.mengeSicher = true; }
+        else if (e) {
+          const m = vorher.mengeGelesen || Math.max(1, Math.round(vorher.b / e));
+          if (m * e !== vorher.b && m <= 50) vorher.kand.push({ v: Math.round(m * e), k: vorher.mengeGelesen ? 0.4 : 0.6, warum: 'Menge × Preis' });
+        }
         r.typ = 'teil'; r.zu = posten.length - 1; continue;
       }
       let name = r.name, nameZeile = -1;
       // Name eine Zeile höher (Posten über zwei Zeilen: Name, darunter „2 x 4,90   9,80“)
       if (r.bu < 2) for (let k = i - 1; k >= Math.max(0, i - 2); k--) { const o = info[k]; if (o.letzter || o.art !== 'sonst' || o.typ) break; if (o.bu >= 2) { name = o.name; nameZeile = k; break; } }
       let v = r.letzter.v;
+      // mehrere Lesungen desselben Betrags: Mehrheit gewinnt, Abweichler bleiben als günstige Alternative
+      const st = stimmen(r.letzter.nach ? null : v, r.z.mehr, dez);
+      if (st.length && st[0].v !== v && st[0].anteil > 0.5) v = st[0].v;
       if (r.art === 'rabatt' && v > 0) v = -v;
-      const kand = [{ v, k: 0 }, ...alternativen(r.z, r.letzter, dez).map((a) => ({ ...a, v: r.art === 'rabatt' && a.v > 0 ? -a.v : a.v }))];
+      const kand = [{ v, k: 0 }];
+      for (const a of [...st, ...alternativen(r.z, r.letzter, dez)]) { const w = r.art === 'rabatt' && a.v > 0 ? -a.v : a.v; if (!kand.some((x) => x.v === w)) kand.push({ v: w, k: Math.max(0.15, a.k), warum: a.warum || 'Ziffer unsicher' }); }
       if (r.einzel && r.menge) { const mv = Math.round(r.menge * r.einzel); if (mv !== v && Math.abs(mv) < 1e6) kand.push({ v: mv, k: 0.6, warum: 'Menge × Preis' }); }
       if (nameZeile >= 0) { info[nameZeile].typ = 'teil'; info[nameZeile].zu = posten.length; }
       r.typ = 'posten'; r.zu = posten.length;
@@ -280,12 +307,15 @@ window.Bon = (() => {
       // Einkauf: namenlose Zeilen sind oft Gewicht/Pfand-Infos → leichter streichbar
       const gastro = art && ['restaurant', 'cafe', 'bar'].includes(art.id), einkauf = art && art.id === 'supermarkt';
       // Jede Zeile darf beim Abgleich wegfallen: ohne Namen billig, mit Namen teuer (die Summe muss dann trotzdem genau stimmen)
-      kand.push({ v: 0, k: lesbar ? 1.6 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
-      posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: r.menge && r.menge >= 1 && Number.isInteger(r.menge) ? r.menge : 1, einzel: r.einzel, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand });
+      // Posten mit lesbarem Namen nur im Ausnahmefall streichen (sonst „rechnet“ sich der Abgleich falsche Summen schön)
+      kand.push({ v: 0, k: lesbar ? 2.6 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
+      const mengeOk = r.menge && r.menge >= 1 && Number.isInteger(r.menge);
+      posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: mengeOk ? r.menge : 1, mengeGelesen: mengeOk && r.menge > 1 ? r.menge : 0, einzel: r.einzel, satz: r.satz, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand });
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
     const ziele = [];
-    const ziel = (v, k, quelle) => { if (v > 0 && !ziele.some((z) => z.v === v && z.k <= k)) ziele.push({ v, k, quelle }); };
+    const ziel = (v, k, quelle) => { if (qr && qr.total && quelle !== 'qr') return; if (v > 0 && !ziele.some((z) => z.v === v && z.k <= k)) ziele.push({ v, k, quelle }); };
+    // Rechnungs-QR (Prüfsumme der Steuerbehörde) ist maßgeblich: dann zählt nur seine Summe, nichts anderes
     if (qr && qr.total) ziel(qr.total, 0, 'qr');
     let totalZeile = -1, totalGelesen = null;
     for (let i = ende; i < info.length; i++) {
@@ -293,8 +323,10 @@ window.Bon = (() => {
       // Summenzeile ohne Betrag: Betrag der nächsten Zeile ist ein Kandidat (etwas teurer)
       if (r.art === 'summe' && !r.letzter && info[i + 1] && info[i + 1].letzter) { const q = info[i + 1]; ziel(q.letzter.v, 0.3, 'summe'); if (totalZeile < 0) { totalZeile = i; totalGelesen = q.letzter.v; } r.typ = 'summe'; continue; }
       if (!r.letzter) continue;
-      if (r.art === 'summe') { if (totalZeile < 0) { totalZeile = i; totalGelesen = r.letzter.v; } ziel(r.letzter.v, 0, 'summe'); for (const a of alternativen(r.z, r.letzter, dez)) ziel(a.v, a.k, 'summe'); r.typ = 'summe'; }
+      if (r.art === 'summe') { if (totalZeile < 0) { totalZeile = i; totalGelesen = r.letzter.v; } ziel(r.letzter.v, 0, 'summe'); for (const a of [...stimmen(r.letzter.v, r.z.mehr, dez).slice(1), ...alternativen(r.z, r.letzter, dez)]) ziel(a.v, Math.max(0.2, a.k), 'summe'); r.typ = 'summe'; }
     }
+    // mehrere Summenzeilen: die größte ist die Gesamtsumme, kleinere (Teil-/Nettosummen) kosten mehr
+    { const sz = ziele.filter((z) => z.quelle === 'summe'), max = sz.length ? Math.max(...sz.map((z) => z.v)) : 0; for (const z of sz) if (z.v < max) z.k += 0.8; }
     const gegeben = info.filter((r, i) => i >= ende && r.art === 'zahlung' && r.letzter).map((r) => r.letzter.v);
     const rueck = info.filter((r, i) => i >= ende && r.art === 'rueck' && r.letzter).map((r) => Math.abs(r.letzter.v));
     for (const g of gegeben) { ziel(g, 0.4, 'zahlung'); for (const q of rueck) if (g - q > 0) ziel(g - q, 0.4, 'zahlung'); }
@@ -312,12 +344,12 @@ window.Bon = (() => {
     } else {
       // Beste Summe ohne Abgleich: QR vor Summenzeile vor Zahlung; Posten bleiben unsicher
       total = qr && qr.total ? qr.total : totalGelesen != null ? totalGelesen : gegeben.length ? gegeben[0] - (rueck[0] || 0) : null;
-      for (const p of posten) p.sicher = false;
+      for (const p of posten) { p.sicher = false; if (p.kand.length > 2) p.vorschlag = p.kand.filter((c) => c.warum !== 'weg' && c.v !== p.b).slice(0, 3).map((c) => c.v); }
     }
     // „3 x Espresso 7,50“ ohne gedruckten Einzelpreis: geht der Betrag glatt auf, je Stück teilbar machen
     for (const p of posten) if (!p.zuschlag && p.menge > 1 && !p.einzel && p.b > 0 && p.b % p.menge === 0) p.einzel = p.b / p.menge;
     const summe = posten.reduce((a, p) => a + p.b, 0);
-    return { zeilen: info.map((r) => ({ text: r.z.text, b: r.z.b, c: r.z.c, typ: r.typ || (r.art === 'sonst' ? 'sonst' : r.art), zu: r.zu })), posten, total, totalZeile, summe, dez,
+    return { zeilen: info.map((r) => ({ text: r.z.text, b: r.z.b, c: r.z.c, typ: r.typ || (r.art === 'sonst' ? 'sonst' : r.art), zu: r.zu, block: r.i > kopfZ && r.i < ende })), posten, total, totalZeile, summe, dez,
       pruefung: { gesamtOk: gesamtOk && summe === total, quelle: loesung ? loesung.ziel.quelle : null, korrigiert: posten.filter((p) => p.rep).length, ziele: ziele.length } };
   }
   // Kleinste Zahl an Änderungen, mit der die Posten (plus wahlweise Steuer/Service vor der Summe) eine der Summen ergeben.
@@ -493,7 +525,8 @@ window.Bon = (() => {
     const nichtLesbar = posten.filter((p) => p.b == null).length;
     for (const p of posten) if (p.b == null) p.b = 0;
     return { zeilen: zeilen.map((z, i) => ({ text: z.text, b: z.b, c: z.c, typ: posten.some((p) => p.zeile === i) ? 'posten' : 'sonst', zu: posten.findIndex((p) => p.zeile === i) })), posten, total, totalZeile: -1, summe,
-      pruefung: { klassen, quelle: quelleKl, gesamtOk: total != null && summe === total, nichtLesbar, repariert: posten.filter((p) => p.rep).length } };
+      // Platzhalter „Nicht gelesen“ machen die Summe künstlich passend: dann gilt der Bon NICHT als geprüft
+      pruefung: { klassen, quelle: quelleKl, gesamtOk: total != null && summe === total && !posten.some((p) => p.fehlt) && klassen.every((k) => k.ok), nichtLesbar, repariert: posten.filter((p) => p.rep).length } };
   }
 
   // ---------- Rechnungs-QR-Code (AT-Spezifikation v1.1, Okt. 2020): Felder „Code:Wert“, mit * verbunden;
@@ -640,9 +673,9 @@ window.Bon = (() => {
       let v, woerter, roh = '';
       if (paddle) { v = { canvas: leinwand, winkel: 0 }; woerter = await window.FasanOCR.woerter(leinwand, { melde }); }
       else { v = await vorbereiten(leinwand, !!ecken); const l = await worterLesen(w, v.canvas, psm); woerter = l.woerter; roh = l.roh; }
-      const r = lies(zeilenAus(woerter), qr), g = guete(r, woerter);
+      const z = zeilenAus(woerter), r = lies(z, qr), g = guete(r, woerter);
       versuche.push(`${name}:${Math.round(g)}`);
-      if (!beste || g > beste.g) beste = { g, r, v, roh, name, ecken };
+      if (!beste || g > beste.g) beste = { g, r, v, roh, name, ecken, z };
       lauf.lesbar = woerter.length ? woerter.filter((x) => x.c > 80).length / woerter.length : 0;
       return g;
     };
@@ -659,8 +692,41 @@ window.Bon = (() => {
       if (paddle) { if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; }); await lauf(fotoLeinwand(foto), 11, 'foto', null); }
       else await lauf(daten, 11, 'foto', null);
     }
-    const { r, v, roh, name, ecken } = beste;
+    let { r } = beste; const { v, roh, name, ecken } = beste;
     if (!paddle && name !== 'foto') await nachlesen(w, v.canvas, r.posten.filter((p) => !p.fehlt));
+    // PaddleOCR: geht die Summe nicht auf, jeden Betrag im Postenblock mehrfach lesen und Zeilen ohne Betrag rechts nachlesen
+    if (paddle && !(r.pruefung && r.pruefung.gesamtOk)) {
+      if (melde) melde({ status: 'recognizing paddle nachlesen', progress: 0 });
+      const z = beste.z, gruppe = r.zeilen.map((x, i) => ({ x, i })).filter(({ x }) => x.block || x.typ === 'summe');
+      const betragsWort = (zl) => (zl.w || []).filter((x) => /\d[.,]\s?\d{2}(?!\d)/.test(x.t)).pop();
+      // rechter Rand der Betragsspalte: Median der rechten Kanten aller Beträge im Block
+      const kanten = gruppe.map(({ i }) => betragsWort(z[i])).filter(Boolean).map((x) => x.b.x1).sort((a, b) => a - b);
+      const spalteR = kanten.length ? kanten[kanten.length >> 1] : v.canvas.width * 0.95;
+      let n = 0;
+      for (const { x, i } of gruppe) {
+        const zl = z[i]; if (!zl) continue;
+        const bw = betragsWort(zl);
+        if (bw) {
+          // Ist der Betragskasten deutlich höher als die übrigen Wörter der Zeile, hat die Erkennung ihn mit der Nachbarzeile
+          // verschmolzen: dann auf Höhe der Zeile (Name, Steuersatz) nachlesen, nicht im eigenen Kasten
+          const rest = (zl.w || []).filter((x) => x !== bw), med = (a) => a.sort((p, q) => p - q)[a.length >> 1];
+          let k = bw.b;
+          if (rest.length) { const y0 = med(rest.map((x) => x.b.y0)), y1 = med(rest.map((x) => x.b.y1)); if (bw.b.y1 - bw.b.y0 > 1.3 * (y1 - y0)) k = { x0: bw.b.x0, x1: bw.b.x1, y0, y1 }; }
+          // sehr sicher gelesene Beträge: 3 Ausschnitte genügen, sonst 5 (Zeit auf dem Handy)
+          zl.mehr = await window.FasanOCR.mehrfach(v.canvas, k, bw.c >= 97 && k === bw.b ? { varianten: [[0.12, 0], [0.3, 0], [0.2, 0, true]] } : {});
+          if (k !== bw.b) zl.mehr = zl.mehr.concat(zl.mehr); // Lesungen auf Zeilenhöhe zählen doppelt gegen die verschmolzene
+        }
+        else if (x.typ === 'unklar') {
+          // Betrag fehlt: Bereich in der Betragsspalte auf Höhe der Zeile lesen
+          const hz = zl.b.y1 - zl.b.y0, k = { x0: Math.max(0, spalteR - hz * 4.5), x1: Math.min(v.canvas.width, spalteR + hz * 0.3), y0: zl.b.y0, y1: zl.b.y1 };
+          zl.mehr = await window.FasanOCR.mehrfach(v.canvas, k);
+        }
+        if (melde) melde({ status: 'recognizing paddle nachlesen', progress: ++n / gruppe.length });
+      }
+      window.__bonZeilen = z; // zur Fehlersuche (Testskripte)
+      const r2 = lies(z, qr);
+      if (guete(r2, []) >= guete(r, [])) r = r2;
+    }
     for (const p of r.posten) p.schnipsel = schnipsel(v.canvas, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
     return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: v.canvas.toDataURL('image/jpeg', 0.82), winkel: v.winkel, roh, ecken };
   }

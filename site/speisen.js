@@ -23,14 +23,15 @@ window.Speisen = (() => {
 🥤|Cola|cola,coca-cola,coca cola,coke,pepsi,cola zero,coca zero,coke zero,pepsi max
 🥤|Limonade oder Schorle|limonada,lemonade,limonade,fanta,sprite,7up,seven up,sumol,laranjada,gasosa,schweppes,ginger ale,tonica,tonic,fruchtschorle,schorle,apfelschorle,spezi,mezzo mix,bitter lemon,ice tea,iced tea,ice-tea,lipton,nestea,cha gelado
 🧃|Saft|sumo,sumo natural,juice,saft,jus,succo,zumo,zumo natural,orangensaft,sumo de laranja,orange juice,apfelsaft,jus d orange,spremuta
-🍺|Bier|cerveja,beer,bier,biere,birra,cerveza,imperial,fino,caneca,pint,pils,pilsner,weizen,weizenbier,hefeweizen,helles,radler,super bock,sagres,heineken,estrella,peroni,kronenbourg,stella,guinness,lager,ipa,cana,cervesa,bock,draft,tap
+🍺|Bier|cerveja,beer,bier,biere,birra,cerveza,imperial,fino,tulipa,caneca,pint,pils,pilsner,weizen,weizenbier,hefeweizen,helles,radler,super bock,sagres,heineken,estrella,peroni,kronenbourg,stella,guinness,lager,ipa,cana,cervesa,bock,draft,tap
 🍷|Wein|vinho,wine,wein,vin,vino,vinho tinto,vinho branco,red wine,white wine,rotwein,weisswein,vin rouge,vin blanc,vino rosso,vino blanco,rose,vinho verde,alvarinho,douro,rioja,chianti,prosecco,cava,sekt,champagne,espumante,sangria,tinto de verano,jarra,copo de vinho,glas wein,taca
 🍷|Portwein|porto,port wine,portwein,vinho do porto,tawny,ruby,moscatel,madeira
 🍸|Cocktail|cocktail,mojito,caipirinha,caipiroska,margarita,daiquiri,pina colada,spritz,aperol,aperol spritz,hugo,negroni,cosmopolitan,mai tai,long island,sex on the beach,martini,porto tonico
 🍸|Gin Tonic|gin tonic,gin tonico,gin and tonic,gin-tonic,gin
 🥃|Spirituose|whisky,whiskey,vodka,wodka,rum,ron,tequila,brandy,cognac,aguardente,medronho,ginjinha,ginja,licor,liqueur,likor,grappa,limoncello,amaretto,ouzo,schnaps,sambuca,baileys,jagermeister,shot
 🥐|Gebäck|pastel de nata,pasteis de nata,nata,pastel,croissant,brioche,pain au chocolat,cornetto,bola de berlim,berliner,donut,muffin,queque,bolo,cake,kuchen,tarte,tarta,torta,tart,strudel,brezel,pretzel,laugenbrezel,bretzel,scone,waffel,waffle,gaufre,crepe,crepes,palmier,travesseiro,queijada,pao de deus,croissant misto
-🍞|Brot|pao,bread,brot,pain,pane,pan,broetchen,brotchen,baguette,tosta,toast,torrada,tostada,bruschetta,couvert,coperto,pao com manteiga,manteiga,butter,beurre,mantequilla,azeitonas,olives,oliven
+🍞|Brot|pao,bread,brot,pain,pane,pan,broetchen,brotchen,baguette,tosta,toast,torrada,tostada,bruschetta,couvert,coperto,pao com manteiga,manteiga,butter,beurre,mantequilla
+🫒|Oliven|azeitonas,olives,oliven,aceitunas,olive
 🥪|Sandwich|sandes,sandwich,sanduiche,bocadillo,panino,panini,tramezzino,croque-monsieur,croque monsieur,croque madame,tosta mista,bifana,prego,belegtes brot,wrap,club sandwich,toastie,francesinha,bauru
 🍔|Burger|burger,hamburguer,hamburger,cheeseburger,hamburguesa,veggie burger
 🍕|Pizza|pizza,margherita,margarita pizza,calzone,focaccia

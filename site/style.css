@@ -1020,3 +1020,10 @@ body.rw-offen .toast { z-index: 2100; bottom: calc(env(safe-area-inset-bottom, 0
 .rwb-leute { display: flex; flex-wrap: wrap; gap: 6px; }
 .rwb-p { min-width: 52px; min-height: 48px; border-radius: 12px; border: 3px solid var(--pf); background: var(--surface); color: var(--text); font-weight: 800; }
 .rwb-p[aria-pressed="true"] { background-color: var(--pf); background-image: var(--pm); color: var(--pt); text-shadow: 0 0 3px var(--pf), 0 0 2px var(--pf); }
+/* 3.10: unklare Zeilen (Betrag nicht gelesen) fallen im Bon auf, alle anderen Zeilen sind antippbar */
+.rwb-k.unklar { border: 3px dashed #D55E00; background: rgba(213,94,0,.12); }
+.rwb-k.unklar::after { content: '?'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); background: #D55E00; color: #fff; font-weight: 800; border-radius: 10px; padding: 0 7px; font-size: 13px; }
+.rwb-k.leise { border: 1px dotted rgba(0,0,0,.28); }
+.rwb-vorschlag { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; width: 100%; }
+.rw-zeile .rw-pruef { color: #B35000; }
+@media (prefers-color-scheme: dark) { .rw-zeile .rw-pruef { color: #F2A65A; } }

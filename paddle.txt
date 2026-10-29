@@ -1,0 +1,16 @@
+onnxruntime-web-1.31.1.tgz
+onnxruntime-web: onnxruntime-web-1.31.1.tgz
+-rw-r--r-- 1 runner runner    24738 Oct 26  1985 ort-wasm-simd-threaded.mjs
+-rw-r--r-- 1 runner runner 14848852 Oct 26  1985 ort-wasm-simd-threaded.wasm
+-rw-r--r-- 1 runner runner    77024 Oct 26  1985 ort.wasm.bundle.min.mjs
+-rw-r--r-- 1 runner runner   414141 Oct 26  1985 ort.wasm.bundle.min.mjs.map
+-rw-r--r-- 1 runner runner   632080 Oct 26  1985 ort.wasm.js
+-rw-r--r-- 1 runner runner    53796 Oct 26  1985 ort.wasm.min.js
+-rw-r--r-- 1 runner runner   348793 Oct 26  1985 ort.wasm.min.js.map
+-rw-r--r-- 1 runner runner    53725 Oct 26  1985 ort.wasm.min.mjs
+-rw-r--r-- 1 runner runner   348745 Oct 26  1985 ort.wasm.min.mjs.map
+-rw-r--r-- 1 runner runner   623434 Oct 26  1985 ort.wasm.mjs
+Modell-Repo: 384182c7187c12d4ea181ae3b97c8b7e12089d9d
+m/detection/PP-OCRv5_mobile_det_infer.onnx: OK
+m/recognition/multi/latin/v5/latin_PP-OCRv5_mobile_rec_infer.onnx: OK
+m/recognition/multi/latin/v5/ppocrv5_latin_dict.txt: OK

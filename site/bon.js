@@ -310,7 +310,8 @@ window.Bon = (() => {
       // Posten mit lesbarem Namen nur im Ausnahmefall streichen (sonst „rechnet“ sich der Abgleich falsche Summen schön)
       kand.push({ v: 0, k: lesbar ? 2.6 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
       const mengeOk = r.menge && r.menge >= 1 && Number.isInteger(r.menge);
-      posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: mengeOk ? r.menge : 1, mengeGelesen: mengeOk && r.menge > 1 ? r.menge : 0, einzel: r.einzel, satz: r.satz, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand });
+      posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: mengeOk ? r.menge : 1, mengeGelesen: mengeOk && r.menge > 1 ? r.menge : 0, einzel: r.einzel, satz: r.satz, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand,
+        lesungen: st.map((x) => ({ v: x.v, anteil: +x.anteil.toFixed(3) })), lesbarAmount: r.z.mehr ? r.z.mehr.length + 1 : 1 });
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
     const ziele = [];
@@ -345,6 +346,14 @@ window.Bon = (() => {
       // Beste Summe ohne Abgleich: QR vor Summenzeile vor Zahlung; Posten bleiben unsicher
       total = qr && qr.total ? qr.total : totalGelesen != null ? totalGelesen : gegeben.length ? gegeben[0] - (rueck[0] || 0) : null;
       for (const p of posten) { p.sicher = false; if (p.kand.length > 2) p.vorschlag = p.kand.filter((c) => c.warum !== 'weg' && c.v !== p.b).slice(0, 3).map((c) => c.v); }
+    }
+    // Lesesicherheit je Posten: Anteil der Lesungen (gewichtet nach Konfidenz), die genau diesen Betrag ergaben.
+    // Kein echtes Wahrscheinlichkeitsmaß, aber ehrlich: 100 % nur, wenn alle Lesungen übereinstimmen.
+    for (const p of posten) {
+      if (p.zuschlag) continue;
+      const l = (p.lesungen || []).find((x) => x.v === Math.abs(p.b));
+      p.sicherheit = p.lesbarAmount > 1 ? Math.round((l ? l.anteil : 0.1) * 100) : Math.round(Math.min(95, (p.c || 80) * 0.95));
+      p.vorschlag = [...new Set([...(p.lesungen || []).filter((x) => x.v !== Math.abs(p.b)).map((x) => x.v), ...p.kand.filter((c) => c.warum !== 'weg' && c.v > 0 && c.v !== Math.abs(p.b)).map((c) => c.v)])].slice(0, 4);
     }
     // „3 x Espresso 7,50“ ohne gedruckten Einzelpreis: geht der Betrag glatt auf, je Stück teilbar machen
     for (const p of posten) if (!p.zuschlag && p.menge > 1 && !p.einzel && p.b > 0 && p.b % p.menge === 0) p.einzel = p.b / p.menge;
@@ -416,7 +425,12 @@ window.Bon = (() => {
     if (a.pruefung.gesamtOk) return a;
     // Portugiesische Bons mit Steuerklassen im QR-Code: eigener, an echten Bons geprüfter Weg (Version 3.6)
     let pt = null; try { pt = liesPT(zeilen, qr); } catch (e) { pt = null; }
-    if (pt) pt.art = art;
+    if (pt) {
+      pt.art = art;
+      // Block- und Zeilenarten vom allgemeinen Leser übernehmen (für Nachlesen und Anzeige)
+      pt.zeilen = pt.zeilen.map((z, i) => ({ ...z, block: a.zeilen[i] ? a.zeilen[i].block : false, typ: z.typ === 'posten' ? 'posten' : a.zeilen[i] ? a.zeilen[i].typ : z.typ }));
+      for (const p of pt.posten) if (p.sicherheit == null) p.sicherheit = p.rep || p.fehlt ? 30 : Math.round(Math.min(95, (p.c || 80) * 0.95));
+    }
     if (pt && pt.pruefung && pt.pruefung.gesamtOk) return pt;
     return a.posten.length >= (pt ? pt.posten.length : 0) ? a : pt;
   }
@@ -526,7 +540,8 @@ window.Bon = (() => {
     for (const p of posten) if (p.b == null) p.b = 0;
     return { zeilen: zeilen.map((z, i) => ({ text: z.text, b: z.b, c: z.c, typ: posten.some((p) => p.zeile === i) ? 'posten' : 'sonst', zu: posten.findIndex((p) => p.zeile === i) })), posten, total, totalZeile: -1, summe,
       // Platzhalter „Nicht gelesen“ machen die Summe künstlich passend: dann gilt der Bon NICHT als geprüft
-      pruefung: { klassen, quelle: quelleKl, gesamtOk: total != null && summe === total && !posten.some((p) => p.fehlt) && klassen.every((k) => k.ok), nichtLesbar, repariert: posten.filter((p) => p.rep).length } };
+      // Errechnete Beträge („aus der Steuer-Summe“, Menge × Preis gegen die Lesung) sind nicht gelesen → nicht geprüft
+      pruefung: { klassen, quelle: quelleKl, gesamtOk: total != null && summe === total && !posten.some((p) => p.fehlt || p.rep) && klassen.every((k) => k.ok), nichtLesbar, repariert: posten.filter((p) => p.rep).length } };
   }
 
   // ---------- Rechnungs-QR-Code (AT-Spezifikation v1.1, Okt. 2020): Felder „Code:Wert“, mit * verbunden;
@@ -624,6 +639,24 @@ window.Bon = (() => {
       } catch (e) { /* alter Name bleibt */ }
     }
   }
+  // Bild verbessern für weitere Durchläufe (gleiche Größe, damit Kästen gültig bleiben):
+  //  'kontrast': örtlicher Lichtausgleich (gegen Schatten) halb eingemischt + leichtes Schärfen (gegen Unschärfe)
+  //  'dunkel':   Gammakurve 1,8 – blasser Thermodruck wird dunkler, Papier bleibt hell
+  function verbessern(c, art) {
+    const w = c.width, h = c.height, { y, d, g } = grau(c), p = d.data, n = w * h;
+    let v = new Float32Array(n);
+    if (art === 'dunkel') for (let i = 0; i < n; i++) v[i] = 255 * Math.pow(y[i] / 255, 1.8);
+    else {
+      const flach = lichtAusgleich(y, w, h);
+      for (let i = 0; i < n; i++) v[i] = 0.5 * y[i] + 0.5 * flach[i];
+      const s2 = new Float32Array(n);
+      for (let j = 1; j < h - 1; j++) for (let i = 1; i < w - 1; i++) { const k = j * w + i, m = (v[k - 1] + v[k + 1] + v[k - w] + v[k + w] + v[k]) / 5; s2[k] = v[k] + 0.7 * (v[k] - m); }
+      v = s2;
+    }
+    for (let i = 0; i < n; i++) { const x = Math.max(0, Math.min(255, v[i])); p[i * 4] = p[i * 4 + 1] = p[i * 4 + 2] = x; p[i * 4 + 3] = 255; }
+    const o = document.createElement('canvas'); o.width = w; o.height = h; o.getContext('2d').putImageData(d, 0, 0);
+    return o;
+  }
   // Neuronale Erkennung (ocr.js, PaddleOCR) wenn ihre Dateien da sind, sonst Tesseract wie bisher
   let neuronal = null;
   async function paddleDa() {
@@ -641,7 +674,8 @@ window.Bon = (() => {
   // Bildausschnitt der Zeile je Posten: In der App steht das Original direkt neben der Lesung, ein Blick genügt zum Prüfen
   function schnipsel(c, r) {
     if (!r) return null;
-    const h = r.y1 - r.y0, pad = Math.round(h * 0.25), x0 = Math.max(0, Math.round(r.x0 - pad)), y0 = Math.max(0, Math.round(r.y0 - pad));
+    // eng: PaddleOCR weitet Kästen auf (unclip 1,5), sonst ragen Nachbarzeilen ins Zeilenbild
+    const h0 = r.y1 - r.y0, h = h0 * 0.76, pad = Math.round(h0 * 0.04), x0 = Math.max(0, Math.round(r.x0 - pad)), y0 = Math.max(0, Math.round(r.y0 + h0 * 0.12 - pad));
     const bw = Math.min(c.width - x0, Math.round(r.x1 - r.x0 + 2 * pad)), bh = Math.min(c.height - y0, Math.round(h + 2 * pad));
     if (bw < 8 || bh < 6) return null;
     const f = Math.min(1, 56 / bh), k = document.createElement('canvas'); k.width = Math.round(bw * f); k.height = Math.round(bh * f);
@@ -650,8 +684,13 @@ window.Bon = (() => {
   }
   async function erkenne(daten, melde, opt = {}) {
     const paddle = opt.motor !== 'tesseract' && await paddleDa();
+    // Fortschritt in Stufen (für Ladebalken in der App): jede Stufe meldet 0–1, hier auf den Gesamtweg umgerechnet
+    const stufe = (text, a, b) => (m) => { if (melde) melde({ status: 'stufe', text, progress: a + (b - a) * Math.max(0, Math.min(1, (m && m.progress) || 0)), roh: m }); };
+    const laden = stufe('Erkennung wird geladen', 0, 0.1);
     const w = paddle ? null : await bereit(melde);
+    if (paddle) await window.FasanOCR.lade((m) => laden(m));
     // 1. Bon im Foto finden und entzerren (bonbild.js)
+    stufe('Bon wird im Foto gesucht', 0.1, 0.14)({ progress: 0 });
     let ausschnitt = null, foto = null;
     try {
       await ladeBonbild();
@@ -668,67 +707,82 @@ window.Bon = (() => {
     } catch (e) { ausschnitt = null; }
     let qr = await qrSuchen(daten);
     if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
-    const versuche = []; let beste = null;
-    const lauf = async (leinwand, psm, name, ecken) => {
+    const versuche = [], alle = []; let beste = null;
+    // lauf: leinwand wird gelesen, anzeige ist das Bild für die App (bei verbesserten Durchläufen das Original)
+    const lauf = async (leinwand, psm, name, ecken, fort, anzeige) => {
       let v, woerter, roh = '';
-      if (paddle) { v = { canvas: leinwand, winkel: 0 }; woerter = await window.FasanOCR.woerter(leinwand, { melde }); }
-      else { v = await vorbereiten(leinwand, !!ecken); const l = await worterLesen(w, v.canvas, psm); woerter = l.woerter; roh = l.roh; }
+      if (paddle) { v = { canvas: anzeige || leinwand, lese: leinwand, winkel: 0 }; woerter = await window.FasanOCR.woerter(leinwand, { melde: fort }); }
+      else { v = await vorbereiten(leinwand, !!ecken); v.lese = v.canvas; const l = await worterLesen(w, v.canvas, psm); woerter = l.woerter; roh = l.roh; }
       const z = zeilenAus(woerter), r = lies(z, qr), g = guete(r, woerter);
       versuche.push(`${name}:${Math.round(g)}`);
-      if (!beste || g > beste.g) beste = { g, r, v, roh, name, ecken, z };
+      const e = { g, r, v, roh, name, ecken, z }; alle.push(e);
+      if (!beste || g > beste.g) beste = e;
       lauf.lesbar = woerter.length ? woerter.filter((x) => x.c > 80).length / woerter.length : 0;
       return g;
     };
     // 2. Gerader Ausschnitt, bei schlechtem Ergebnis um 180° gedreht, zuletzt das ganze Foto. Bestes Ergebnis gewinnt.
     if (ausschnitt) {
-      const g1 = await lauf(ausschnitt.canvas, 6, 'ausschnitt', ausschnitt.ecken);
+      const g1 = await lauf(ausschnitt.canvas, 6, 'ausschnitt', ausschnitt.ecken, stufe('Bon wird gelesen', 0.14, 0.4));
       // um 180° nur, wenn die Schrift unlesbar war (auf dem Kopf); sonst lag es am Ausschnitt, nicht an der Richtung
-      if (g1 < 5000 && (!paddle || lauf.lesbar < 0.5)) await lauf(drehen180(ausschnitt.canvas), 6, 'ausschnitt180', ausschnitt.ecken);
+      if (g1 < 5000 && (!paddle || lauf.lesbar < 0.5)) await lauf(drehen180(ausschnitt.canvas), 6, 'ausschnitt180', ausschnitt.ecken, stufe('Bon wird gedreht gelesen', 0.14, 0.4));
     }
     if (!beste || beste.g < 5000) {
-      // ganzes Foto: Schräglage vorher ausgleichen (Projektionsprofil, wie bei Tesseract), sonst rutschen Preise in die Nachbarzeile
-      // PaddleOCR braucht keine Vorverarbeitung; Kontrast-Strecken löscht blassen Druck sogar (Test 29.10.: Preise weg).
-      // Schräge Zeilen fängt die Neigung je Textkasten auf (zeilenAus).
-      if (paddle) { if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; }); await lauf(fotoLeinwand(foto), 11, 'foto', null); }
+      // ganzes Foto: PaddleOCR braucht keine Vorverarbeitung; schräge Zeilen fängt die Neigung je Textkasten auf (zeilenAus)
+      if (paddle) { if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; }); await lauf(fotoLeinwand(foto), 11, 'foto', null, stufe('Ganzes Foto wird gelesen', 0.14, 0.4)); }
       else await lauf(daten, 11, 'foto', null);
     }
-    let { r } = beste; const { v, roh, name, ecken } = beste;
-    if (!paddle && name !== 'foto') await nachlesen(w, v.canvas, r.posten.filter((p) => !p.fehlt));
-    // PaddleOCR: geht die Summe nicht auf, jeden Betrag im Postenblock mehrfach lesen und Zeilen ohne Betrag rechts nachlesen
-    if (paddle && !(r.pruefung && r.pruefung.gesamtOk)) {
-      if (melde) melde({ status: 'recognizing paddle nachlesen', progress: 0 });
-      const z = beste.z, gruppe = r.zeilen.map((x, i) => ({ x, i })).filter(({ x }) => x.block || x.typ === 'summe');
+    // 3. PaddleOCR, Summe noch nicht bestätigt: weitere Durchläufe mit verbessertem Bild (Kontrast/Schärfe, dunkler)
+    if (paddle && !(beste.r.pruefung && beste.r.pruefung.gesamtOk)) {
+      const quelle = beste.v.canvas;
+      await lauf(verbessern(quelle, 'kontrast'), 6, 'kontrast', beste.ecken, stufe('Bild wird verbessert und neu gelesen', 0.4, 0.52), quelle);
+      if (!(beste.r.pruefung && beste.r.pruefung.gesamtOk)) await lauf(verbessern(quelle, 'dunkel'), 6, 'dunkel', beste.ecken, stufe('Blasser Druck wird verstärkt gelesen', 0.52, 0.64), quelle);
+    }
+    if (!paddle && beste.name !== 'foto') await nachlesen(w, beste.v.canvas, beste.r.posten.filter((p) => !p.fehlt));
+    // 4. PaddleOCR: jeden Betrag im Postenblock mehrfach lesen (auch wenn die Summe schon stimmt – zwei Lesefehler können sich
+    //    aufheben, und die Lesesicherheit je Posten braucht mehrere Lesungen); Zeilen ohne Betrag rechts nachlesen
+    // Nachlesen auf dem ersten (Original-)Durchlauf und auf dem besten, falls verschieden; das bessere Endergebnis gewinnt
+    const kandidaten = paddle ? [...new Set([alle[0], beste])] : [];
+    let ende = beste;
+    for (let ki = 0; ki < kandidaten.length; ki++) {
+      const pass = kandidaten[ki], { v } = pass; let { r } = pass;
+      const fort = stufe(kandidaten.length > 1 ? `Beträge werden mehrfach geprüft (${ki + 1}/${kandidaten.length})` : 'Beträge werden mehrfach geprüft', 0.64 + (0.34 * ki) / kandidaten.length, 0.64 + (0.34 * (ki + 1)) / kandidaten.length);
+      const z = pass.z, gruppe = r.zeilen.map((x, i) => ({ x, i })).filter(({ x }) => x.block || x.typ === 'summe');
       const betragsWort = (zl) => (zl.w || []).filter((x) => /\d[.,]\s?\d{2}(?!\d)/.test(x.t)).pop();
-      // rechter Rand der Betragsspalte: Median der rechten Kanten aller Beträge im Block
       const kanten = gruppe.map(({ i }) => betragsWort(z[i])).filter(Boolean).map((x) => x.b.x1).sort((a, b) => a - b);
       const spalteR = kanten.length ? kanten[kanten.length >> 1] : v.canvas.width * 0.95;
+      const dunkel = verbessern(v.canvas, 'dunkel'), kontrast = verbessern(v.canvas, 'kontrast');
       let n = 0;
       for (const { x, i } of gruppe) {
         const zl = z[i]; if (!zl) continue;
         const bw = betragsWort(zl);
+        let k = null, verschmolzen = false;
         if (bw) {
           // Ist der Betragskasten deutlich höher als die übrigen Wörter der Zeile, hat die Erkennung ihn mit der Nachbarzeile
           // verschmolzen: dann auf Höhe der Zeile (Name, Steuersatz) nachlesen, nicht im eigenen Kasten
-          const rest = (zl.w || []).filter((x) => x !== bw), med = (a) => a.sort((p, q) => p - q)[a.length >> 1];
-          let k = bw.b;
-          if (rest.length) { const y0 = med(rest.map((x) => x.b.y0)), y1 = med(rest.map((x) => x.b.y1)); if (bw.b.y1 - bw.b.y0 > 1.3 * (y1 - y0)) k = { x0: bw.b.x0, x1: bw.b.x1, y0, y1 }; }
-          // sehr sicher gelesene Beträge: 3 Ausschnitte genügen, sonst 5 (Zeit auf dem Handy)
-          zl.mehr = await window.FasanOCR.mehrfach(v.canvas, k, bw.c >= 97 && k === bw.b ? { varianten: [[0.12, 0], [0.3, 0], [0.2, 0, true]] } : {});
-          if (k !== bw.b) zl.mehr = zl.mehr.concat(zl.mehr); // Lesungen auf Zeilenhöhe zählen doppelt gegen die verschmolzene
+          const rest = (zl.w || []).filter((y) => y !== bw), med = (a) => a.sort((p, q) => p - q)[a.length >> 1];
+          k = bw.b;
+          if (rest.length) { const y0 = med(rest.map((y) => y.b.y0)), y1 = med(rest.map((y) => y.b.y1)); if (bw.b.y1 - bw.b.y0 > 1.3 * (y1 - y0)) { k = { x0: bw.b.x0, x1: bw.b.x1, y0, y1 }; verschmolzen = true; } }
+        } else if (x.typ === 'unklar') {
+          const hz = zl.b.y1 - zl.b.y0; k = { x0: Math.max(0, spalteR - hz * 4.5), x1: Math.min(v.canvas.width, spalteR + hz * 0.3), y0: zl.b.y0, y1: zl.b.y1 };
         }
-        else if (x.typ === 'unklar') {
-          // Betrag fehlt: Bereich in der Betragsspalte auf Höhe der Zeile lesen
-          const hz = zl.b.y1 - zl.b.y0, k = { x0: Math.max(0, spalteR - hz * 4.5), x1: Math.min(v.canvas.width, spalteR + hz * 0.3), y0: zl.b.y0, y1: zl.b.y1 };
-          zl.mehr = await window.FasanOCR.mehrfach(v.canvas, k);
+        if (k) {
+          // Original (5 Ausschnitte) + dunkler und kontrastreicher (je 2): verschiedene Schriften reagieren verschieden
+          zl.mehr = [...await window.FasanOCR.mehrfach(v.canvas, k),
+            ...await window.FasanOCR.mehrfach(dunkel, k, { varianten: [[0.15, 0], [0.35, 0]] }),
+            ...await window.FasanOCR.mehrfach(kontrast, k, { varianten: [[0.15, 0], [0.35, 0]] })];
+          if (verschmolzen) zl.mehr = zl.mehr.concat(zl.mehr); // Lesungen auf Zeilenhöhe zählen doppelt gegen die verschmolzene
         }
-        if (melde) melde({ status: 'recognizing paddle nachlesen', progress: ++n / gruppe.length });
+        fort({ progress: ++n / gruppe.length });
       }
-      window.__bonZeilen = z; // zur Fehlersuche (Testskripte)
       const r2 = lies(z, qr);
       if (guete(r2, []) >= guete(r, [])) r = r2;
+      const g2 = guete(r, []);
+      if (ki === 0 || g2 > ende.gEnde) { ende = { ...pass, r, gEnde: g2 }; window.__bonZeilen = z; } // __bonZeilen: zur Fehlersuche (Testskripte)
     }
+    if (paddle) { stufe('Fertig', 0.98, 1)({ progress: 1 }); if (window.FasanOCR.frei) window.FasanOCR.frei(); }
+    const { r, v, roh, name, ecken } = ende;
     for (const p of r.posten) p.schnipsel = schnipsel(v.canvas, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
     return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: v.canvas.toDataURL('image/jpeg', 0.82), winkel: v.winkel, roh, ecken };
   }
-  return { erkenne, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
+  return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
 })();

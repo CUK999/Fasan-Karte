@@ -11,13 +11,18 @@
  * unsichere Ziffern, die Summenprüfung wählt dann die passende.
  * Das Foto verlässt das Gerät nie; ohne Threads (GitHub Pages kann keine COOP/COEP-Header setzen).
  */
-window.FasanOCR = (() => {
-  const basis = () => new URL('vendor/paddle/', location.href).href;
+(function (G) {
+const imArbeiter = typeof document === 'undefined';
+// Leinwand für Bildausschnitte: OffscreenCanvas (auch im Web Worker), sonst normales Canvas
+const neueLeinwand = () => (typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1, 1) : neueLeinwand());
+const motor = (() => {
+  const basis = () => new URL('vendor/paddle/', G.location.href).href;
   let laedt = null, M = null;
 
   function skript(src) {
     return new Promise((ok, fehler) => {
-      if (window.ort) { ok(); return; }
+      if (G.ort) { ok(); return; }
+      if (imArbeiter) { try { G.importScripts(src); ok(); } catch (e) { fehler(new Error('onnxruntime fehlt')); } return; }
       const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => fehler(new Error('onnxruntime fehlt'));
       document.head.append(s);
     });
@@ -36,7 +41,7 @@ window.FasanOCR = (() => {
     if (!laedt) {
       laedt = (async () => {
         await skript(basis() + 'ort.wasm.min.js');
-        const ort = window.ort;
+        const ort = G.ort;
         ort.env.wasm.wasmPaths = basis(); ort.env.wasm.numThreads = 1;
         const [det, rec, dictText] = await Promise.all([
           holen(basis() + 'det.onnx', melde, 0.4, 0), holen(basis() + 'rec-latin.onnx', melde, 0.6, 0.4),
@@ -75,7 +80,7 @@ window.FasanOCR = (() => {
   async function finde(leinwand, opt = {}) {
     const m = await lade(opt.melde);
     const { ww, hh, fx, fy } = detGroesse(leinwand.width, leinwand.height);
-    const c = document.createElement('canvas'); c.width = ww; c.height = hh;
+    const c = neueLeinwand(); c.width = ww; c.height = hh;
     const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(leinwand, 0, 0, ww, hh);
     const x = new m.ort.Tensor('float32', bgrTensor(g, ww, hh, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), [1, 3, hh, ww]);
     const aus = await m.sDet.run({ [m.sDet.inputNames[0]]: x });
@@ -119,7 +124,7 @@ window.FasanOCR = (() => {
   async function liesKasten(leinwand, k, m) {
     const kh = k.y1 - k.y0, kw = k.x1 - k.x0; if (kh < 4 || kw < 4) return null;
     const H = 48, W = Math.max(16, Math.min(1600, Math.round((H * kw) / kh)));
-    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const c = neueLeinwand(); c.width = W; c.height = H;
     const g = c.getContext('2d', { willReadFrequently: true }); g.imageSmoothingQuality = 'high'; g.drawImage(leinwand, k.x0, k.y0, kw, kh, 0, 0, W, H);
     const t = bgrTensor(g, W, H, [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]);
     const aus = await m.sRec.run({ [m.sRec.inputNames[0]]: new m.ort.Tensor('float32', t, [1, 3, H, W]) });
@@ -168,7 +173,7 @@ window.FasanOCR = (() => {
   // Liegt der Text quer? Erkennung auf einer kleinen Fassung: Textzeilen sind breite Kästen; überwiegen hohe, schmale Kästen,
   // steht der Bon um 90° gedreht im Bild.
   async function hochkant(leinwand) {
-    const f = Math.min(1, 960 / Math.max(leinwand.width, leinwand.height)), c = document.createElement('canvas');
+    const f = Math.min(1, 960 / Math.max(leinwand.width, leinwand.height)), c = neueLeinwand();
     c.width = Math.round(leinwand.width * f); c.height = Math.round(leinwand.height * f); c.getContext('2d').drawImage(leinwand, 0, 0, c.width, c.height);
     const k = await finde(c); let breit = 0, hoch = 0;
     for (const q of k) { const w = q.x1 - q.x0, h = q.y1 - q.y0; if (w > 1.6 * h) breit++; else if (h > 1.6 * w) hoch++; }
@@ -184,7 +189,7 @@ window.FasanOCR = (() => {
       const r = { x0: Math.max(0, k.x0 - h * rand), x1: Math.min(leinwand.width, k.x1 + h * rand), y0: Math.max(0, k.y0 - h * (rand * 0.5 - ein)), y1: Math.min(leinwand.height, k.y1 + h * (rand * 0.5 - ein)) };
       let quelle = leinwand;
       if (kontrast) {
-        const c = document.createElement('canvas'); c.width = Math.round(r.x1 - r.x0); c.height = Math.round(r.y1 - r.y0);
+        const c = neueLeinwand(); c.width = Math.round(r.x1 - r.x0); c.height = Math.round(r.y1 - r.y0);
         const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(leinwand, r.x0, r.y0, c.width, c.height, 0, 0, c.width, c.height);
         const d = g.getImageData(0, 0, c.width, c.height), px = d.data; let lo = 255, hi = 0;
         for (let i = 0; i < px.length; i += 4) { const v = (px[i] + px[i + 1] + px[i + 2]) / 3; if (v < lo) lo = v; if (v > hi) hi = v; }
@@ -197,7 +202,7 @@ window.FasanOCR = (() => {
   }
   // Einen Streifen quer über den Bon lesen (z. B. eine Zeile, deren Betrag fehlte): erst Kästen finden, dann lesen
   async function streifen(leinwand, y0, y1) {
-    const c = document.createElement('canvas'), h = Math.max(8, Math.round(y1 - y0)), pad = Math.round(h * 0.4);
+    const c = neueLeinwand(), h = Math.max(8, Math.round(y1 - y0)), pad = Math.round(h * 0.4);
     c.width = leinwand.width; c.height = h + 2 * pad;
     const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(leinwand, 0, Math.max(0, y0 - pad), c.width, c.height, 0, 0, c.width, c.height);
     const w = await woerter(c);
@@ -205,3 +210,68 @@ window.FasanOCR = (() => {
   }
   return { lade, verfuegbar, finde, hochkant, woerter, mehrfach, streifen, liesKasten: async (c, k) => liesKasten(c, k, await lade()) };
 })();
+
+// ---------- Im Web Worker: Rechnen, ohne die Oberfläche zu blockieren (Animation und Bedienung bleiben flüssig) ----------
+// Bilder werden einmal als ImageBitmap übergeben und per Nummer angesprochen; nach dem Lesen gibt die App sie wieder frei.
+if (imArbeiter) {
+  const bilder = new Map();
+  G.onmessage = async (e) => {
+    const { n, fn, a } = e.data;
+    const melde = (m) => G.postMessage({ n, melde: { status: m.status, progress: m.progress } });
+    try {
+      let r = null;
+      if (fn === 'bild') bilder.set(a.id, a.bild);
+      else if (fn === 'frei') { for (const b of bilder.values()) if (b.close) b.close(); bilder.clear(); }
+      else if (fn === 'lade') { await motor.lade(melde); r = true; }
+      else {
+        const q = bilder.get(a.id); if (!q) throw new Error('Bild fehlt');
+        if (fn === 'woerter') r = await motor.woerter(q, { ...(a.opt || {}), melde });
+        else if (fn === 'finde') r = await motor.finde(q, a.opt || {});
+        else if (fn === 'hochkant') r = await motor.hochkant(q);
+        else if (fn === 'mehrfach') r = await motor.mehrfach(q, a.k, a.opt || {});
+        else if (fn === 'streifen') r = await motor.streifen(q, a.y0, a.y1);
+        else throw new Error('unbekannt: ' + fn);
+      }
+      G.postMessage({ n, r });
+    } catch (err) { G.postMessage({ n, fehler: String((err && err.message) || err) }); }
+  };
+  return;
+}
+
+// ---------- Im Fenster: FasanOCR leitet an den Worker weiter; geht das nicht (alter Browser), rechnet es hier ----------
+let arbeiter = null, nr = 0, kaputt = false;
+const offen = new Map(); let ids = new WeakMap(), idz = 0;
+function ruf(fn, a, melde, transfer) {
+  if (!arbeiter) {
+    arbeiter = new Worker(new URL('ocr.js', G.location.href));
+    arbeiter.onmessage = (e) => { const d = e.data, o = offen.get(d.n); if (!o) return; if (d.melde) { if (o.melde) o.melde(d.melde); return; } offen.delete(d.n); if (d.fehler) o.nein(new Error(d.fehler)); else o.ja(d.r); };
+    arbeiter.onerror = (e) => { kaputt = true; for (const o of offen.values()) o.nein(new Error('Worker: ' + (e.message || 'Fehler'))); offen.clear(); };
+  }
+  return new Promise((ja, nein) => { const k = ++nr; offen.set(k, { ja, nein, melde }); arbeiter.postMessage({ n: k, fn, a }, transfer || []); });
+}
+async function bildNr(c) {
+  if (ids.has(c)) return ids.get(c);
+  const id = ++idz, bild = await createImageBitmap(c);
+  await ruf('bild', { id, bild }, null, [bild]); ids.set(c, id); return id;
+}
+const moeglich = typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && typeof createImageBitmap !== 'undefined';
+let modus = moeglich ? 'arbeiter' : 'direkt';
+// erster Aufruf entscheidet: lädt der Worker, bleibt es dabei; sonst direkt im Fenster
+async function bereit(melde) {
+  if (modus === 'arbeiter') { try { await ruf('lade', {}, melde); return; } catch (e) { modus = 'direkt'; kaputt = true; } }
+  await motor.lade(melde);
+}
+const ohneFn = (o) => { const x = { ...(o || {}) }; delete x.melde; return x; };
+G.FasanOCR = {
+  verfuegbar: motor.verfuegbar,
+  get modus() { return modus; },
+  lade: (melde) => bereit(melde),
+  async woerter(c, opt = {}) { await bereit(opt.melde); return modus === 'arbeiter' ? ruf('woerter', { id: await bildNr(c), opt: ohneFn(opt) }, opt.melde) : motor.woerter(c, opt); },
+  async finde(c, opt = {}) { await bereit(); return modus === 'arbeiter' ? ruf('finde', { id: await bildNr(c), opt: ohneFn(opt) }) : motor.finde(c, opt); },
+  async hochkant(c) { await bereit(); return modus === 'arbeiter' ? ruf('hochkant', { id: await bildNr(c) }) : motor.hochkant(c); },
+  async mehrfach(c, k, opt = {}) { await bereit(); return modus === 'arbeiter' ? ruf('mehrfach', { id: await bildNr(c), k, opt: ohneFn(opt) }) : motor.mehrfach(c, k, opt); },
+  async streifen(c, y0, y1) { await bereit(); return modus === 'arbeiter' ? ruf('streifen', { id: await bildNr(c), y0, y1 }) : motor.streifen(c, y0, y1); },
+  // Speicher im Worker freigeben (Bilder eines Bons sind zusammen schnell 100 MB)
+  frei() { ids = new WeakMap(); if (arbeiter && !kaputt) ruf('frei', {}).catch(() => null); },
+};
+})(self);

@@ -221,7 +221,7 @@ window.Bon = (() => {
       .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
-  function liesAllgemein(zeilen, qr) {
+  function liesAllgemein(zeilen, qr, art) {
     const dez = dezimal(zeilen);
     const info = zeilen.map((z, i) => {
       const n = ohneAkz(z.text), bt = betraege(z.text, dez);
@@ -276,8 +276,11 @@ window.Bon = (() => {
       if (nameZeile >= 0) { info[nameZeile].typ = 'teil'; info[nameZeile].zu = posten.length; }
       r.typ = 'posten'; r.zu = posten.length;
       const lesbar = buchst(name) >= 2;
+      // Gastronomie: Zeilen ohne lesbaren Namen sind fast immer echte Posten (Tisch-Bons haben keine Gewichts-/Infozeilen);
+      // Einkauf: namenlose Zeilen sind oft Gewicht/Pfand-Infos → leichter streichbar
+      const gastro = art && ['restaurant', 'cafe', 'bar'].includes(art.id), einkauf = art && art.id === 'supermarkt';
       // Jede Zeile darf beim Abgleich wegfallen: ohne Namen billig, mit Namen teuer (die Summe muss dann trotzdem genau stimmen)
-      kand.push({ v: 0, k: lesbar ? 1.6 : 1.2, warum: 'weg' });
+      kand.push({ v: 0, k: lesbar ? 1.6 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
       posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: r.menge && r.menge >= 1 && Number.isInteger(r.menge) ? r.menge : 1, einzel: r.einzel, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand });
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
@@ -344,11 +347,44 @@ window.Bon = (() => {
     for (let i = schichten.length - 1; i >= 0; i--) { const e = schichten[i].get(s); if (i >= posten.length) zw.unshift(e.w); else wahl.unshift(e.w); s = e.vor; }
     return { wahl, zus: zw, ziel: beste.ziel, k: beste.k };
   }
+  // ---------- Welche Art Bon? (Restaurant, Café, Bar, Supermarkt, Tankstelle, Apotheke, Fahrt, Unterkunft, Eintritt)
+  // Stichwörter in vielen Sprachen plus Aufbau (Gewichtszeilen = Einkauf). Ergebnis steuert Regeln beim Lesen und Klassifizieren,
+  // füllt „Wofür?“ vor (Geschäftsname aus dem Kopf) und wird in der App angezeigt.
+  const ARTEN = [
+    ['restaurant', 'Restaurant', /\b(mesa|tisch|table|tavolo|couvert|coperto|servico|servizio|bedienung|kellner|garcom|empregado|gorjeta|trinkgeld|gratuity|restaurante|restaurant|ristorante|trattoria|tasca|taberna|marisqueira|churrasqueira|pizzeria|brasserie|bistro|osteria|gasthaus|gaststatte)\b/g],
+    ['cafe', 'Café', /\b(cafe|caffe|cafetaria|pastelaria|confeitaria|padaria|bakery|backerei|baeckerei|konditorei|patisserie|boulangerie|coffee|gelataria|eiscafe|pasticceria)\b/g],
+    ['bar', 'Bar', /\b(bar|pub|cervejaria|kneipe|cocktail|lounge|taverna|biergarten)\b/g],
+    ['supermarkt', 'Einkauf', /\b(supermercado|supermarket|supermarche|supermarkt|markt|mercado|rewe|edeka|lidl|aldi|pingo doce|continente|carrefour|minipreco|auchan|spar|netto|penny|kaufland|mercadona|coop|migros|tesco|sainsbury|intermarche|pfand|leergut|eur kg|kg x|stk|cartao continente|poupanca|artikel)\b/g],
+    ['tanken', 'Tanken', /\b(diesel|gasoleo|gasolina|benzin|super e10|e10|sp95|sp98|litros|liter|ltr|zapfsaule|bomba|galp|repsol|shell|aral|esso|cepsa|adblue)\b/g],
+    ['apotheke', 'Apotheke', /\b(farmacia|apotheke|pharmacy|pharmacie|parafarmacia|drogerie|dm-drogerie|rossmann)\b/g],
+    ['fahrt', 'Fahrt', /\b(bilhete|fahrkarte|comboios|carris|metropolitano|uber|bolt|taxi|portagem|maut|estacionamento|parking|parkhaus)\b/g],
+    ['unterkunft', 'Unterkunft', /\b(hotel|hostel|alojamento|pousada|check-?in|noites|nights|ubernachtung|city tax|taxa turistica|kurtaxe)\b/g],
+    ['eintritt', 'Eintritt', /\b(museu|museum|museo|bilheteira|admission|eintritt|ingresso|monumento|palacio|castelo)\b/g],
+  ];
+  function bonArt(zeilen) {
+    const kopf = zeilen.slice(0, Math.max(6, Math.ceil(zeilen.length * 0.35))).map((z) => ohneAkz(z.text)).join(' \n ');
+    const alles = zeilen.map((z) => ohneAkz(z.text)).join(' \n ');
+    const punkte = ARTEN.map(([id, name, re]) => {
+      // Kopf (Geschäftsname, Adresse) zählt doppelt
+      let p = (alles.match(re) || []).length + (kopf.match(re) || []).length;
+      if (id === 'supermarkt') p += Math.min(4, (alles.match(/\d[.,]\d{2,3}\s*kg/g) || []).length);
+      return { id, name, p };
+    });
+    // Speisen und Getränke unter den Zeilen sprechen für Gastronomie
+    if (window.Speisen) { let essen = 0; for (const z of zeilen) { const k = window.Speisen.erkenne(z.text); if (k && !/Pfand|Service|Tanken|Fahrt|Eintritt/.test(k.n)) essen++; } punkte[0].p += essen * 0.3; punkte[1].p += essen * 0.3; }
+    punkte.sort((a, b) => b.p - a.p);
+    const beste = punkte[0];
+    // Geschäftsname: erste Zeile im Kopf mit mehreren Buchstaben, die keine Adresse/Nummer ist
+    const name = (zeilen.slice(0, 5).find((z) => buchst(z.text) >= 5 && !/\d{4}|tel|nif|www|@|rua |str\.|avenida|street/i.test(z.text)) || {}).text || '';
+    return beste.p >= 2 ? { id: beste.id, name: beste.name, sicher: beste.p >= 4 && beste.p >= (punkte[1].p || 0) * 2, geschaeft: name.slice(0, 40) } : { id: 'unbekannt', name: '', sicher: false, geschaeft: name.slice(0, 40) };
+  }
   function lies(zeilen, qr) {
-    const a = liesAllgemein(zeilen, qr);
+    const art = bonArt(zeilen);
+    const a = liesAllgemein(zeilen, qr, art); a.art = art;
     if (a.pruefung.gesamtOk) return a;
     // Portugiesische Bons mit Steuerklassen im QR-Code: eigener, an echten Bons geprüfter Weg (Version 3.6)
     let pt = null; try { pt = liesPT(zeilen, qr); } catch (e) { pt = null; }
+    if (pt) pt.art = art;
     if (pt && pt.pruefung && pt.pruefung.gesamtOk) return pt;
     return a.posten.length >= (pt ? pt.posten.length : 0) ? a : pt;
   }
@@ -628,5 +664,5 @@ window.Bon = (() => {
     for (const p of r.posten) p.schnipsel = schnipsel(v.canvas, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
     return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: v.canvas.toDataURL('image/jpeg', 0.82), winkel: v.winkel, roh, ecken };
   }
-  return { erkenne, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
+  return { erkenne, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
 })();

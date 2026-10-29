@@ -1,6 +1,6 @@
 /* Offline zuerst: App-Hülle und Daten liegen im Gerät, Bilder nach dem ersten Ansehen.
    Kartenkacheln regelt der Browser-Cache (OSM-Regeln: kein Vorab-Herunterladen). */
-const KERN = 'fk-kern-v28';
+const KERN = 'fk-kern-v29';
 const BILDER = 'fk-bilder-v1';
 // Bibliotheken und Erkennungs-Modelle (bis ~28 MB): eigener Speicher, Gerät zuerst; bleibt bei App-Updates erhalten
 const VENDOR = 'fk-vendor-v1';

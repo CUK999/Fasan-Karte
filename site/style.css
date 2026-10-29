@@ -975,9 +975,14 @@ body.rw-offen .toast { z-index: 2100; bottom: calc(env(safe-area-inset-bottom, 0
 
 /* ---------- Rechnung teilen 3.8: Personenfarben, Klarnamen, Original-Bon (29.10.2026) ---------- */
 .p-punkt { display: inline-block; width: .8em; height: .8em; border-radius: 50%; background: var(--pf); margin-right: 6px; vertical-align: -.05em; box-shadow: 0 0 0 2px var(--surface); flex: none; }
-.rw-person.farbig { border-top: 6px solid var(--pf); }
+/* Personen: Farbe + Schraffur (--pm) + Kürzel; Schraffur als Leiste oben, damit die Schrift lesbar bleibt */
+.rw-person.farbig { position: relative; overflow: hidden; padding-top: 14px; }
+.rw-person.farbig::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 12px; background-color: var(--pf); background-image: var(--pm); }
 .rw-person.farbig[aria-pressed="true"] { background: var(--pf); border-color: var(--pf); color: var(--pt); }
-.rw-abz { background: var(--pf, var(--accent)); color: var(--pt, var(--on-accent)); min-width: 34px; }
+.rw-abz { background-color: var(--pf, var(--accent)); background-image: var(--pm, none); color: var(--pt, var(--on-accent)); min-width: 34px; text-shadow: 0 0 3px var(--pf, transparent), 0 0 2px var(--pf, transparent); }
+.p-punkt { background-image: var(--pm, none); width: 1em; height: 1em; }
+.rw-entwuerfe { display: grid; gap: 8px; }
+.rw-entwurf { display: grid; gap: 8px; padding: 12px; border: 2px dashed var(--accent); border-radius: var(--r); background: var(--surface); }
 .rw-p { position: relative; overflow: hidden; padding-left: 20px; }
 .rw-band { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; }
 .rw-sym { font-size: 1.15em; margin-right: 6px; }
@@ -1014,4 +1019,4 @@ body.rw-offen .toast { z-index: 2100; bottom: calc(env(safe-area-inset-bottom, 0
 .rwb-kopf .reihe { flex-wrap: nowrap; gap: 4px; } .rwb-kopf .knopf { min-height: 48px; padding: 0 10px; white-space: nowrap; }
 .rwb-leute { display: flex; flex-wrap: wrap; gap: 6px; }
 .rwb-p { min-width: 52px; min-height: 48px; border-radius: 12px; border: 3px solid var(--pf); background: var(--surface); color: var(--text); font-weight: 800; }
-.rwb-p[aria-pressed="true"] { background: var(--pf); color: var(--pt); }
+.rwb-p[aria-pressed="true"] { background-color: var(--pf); background-image: var(--pm); color: var(--pt); text-shadow: 0 0 3px var(--pf), 0 0 2px var(--pf); }

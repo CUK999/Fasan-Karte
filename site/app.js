@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.8';
+  const VERSION = '3.9';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2434,7 +2434,21 @@
     if (andere.includes(n0)) { const gleiche = Object.keys(G.leute).filter((x) => personName(x).trim().toLowerCase() === n0).sort(); k = name.slice(0, 3) + (gleiche.indexOf(id) + 1); }
     return k.charAt(0).toUpperCase() + k.slice(1);
   }
-  const personStil = (id) => { const f = personFarbe(id); return `--pf:${f};--pt:${schriftAuf(f)}`; };
+  // Schraffur je Person zusätzlich zu Farbe und Kürzel: unterscheidbar auch ohne Farbsehen und in Graustufen.
+  // Linien in der Schriftfarbe auf der Personenfarbe (color-mix), feste Zuordnung wie bei der Farbe.
+  const ML = 'color-mix(in srgb, var(--pt) 40%, transparent)';
+  const MUSTER = [
+    `repeating-linear-gradient(45deg, ${ML} 0 2px, transparent 2px 8px)`,
+    `repeating-linear-gradient(0deg, ${ML} 0 2px, transparent 2px 7px)`,
+    `repeating-linear-gradient(90deg, ${ML} 0 2px, transparent 2px 7px)`,
+    `repeating-linear-gradient(-45deg, ${ML} 0 2px, transparent 2px 8px)`,
+    `repeating-linear-gradient(45deg, ${ML} 0 1.5px, transparent 1.5px 7px), repeating-linear-gradient(-45deg, ${ML} 0 1.5px, transparent 1.5px 7px)`,
+    `repeating-linear-gradient(0deg, ${ML} 0 1.5px, transparent 1.5px 7px), repeating-linear-gradient(90deg, ${ML} 0 1.5px, transparent 1.5px 7px)`,
+    `repeating-linear-gradient(45deg, ${ML} 0 5px, transparent 5px 12px)`,
+    'none',
+  ];
+  const personMuster = (id) => { personFarbe(id); return MUSTER[farbCache.m.has(id) ? farbCache.m.get(id) % MUSTER.length : 0]; };
+  const personStil = (id) => { const f = personFarbe(id); return `--pf:${f};--pt:${schriftAuf(f)};--pm:${personMuster(id)}`; };
   const personPunkt = (id) => el('span', { class: 'p-punkt', style: personStil(id), 'aria-hidden': 'true' });
   function salden() {
     const s2 = {};
@@ -2582,20 +2596,55 @@
   const rwNamen = { summe: 'Summe', art: 'Wer war dabei?', posten: 'Wer hatte was?', zahler: 'Wer hat bezahlt?' };
   const rwPostenSumme = () => RW.posten.reduce((a, q) => a + (q.aus ? 0 : q.b || 0), 0);
   // Was war es? (speisen.js) – Klarname mit Symbol; der Name vom Bon bleibt klein darunter stehen
-  const rwKlasse = (t) => (t && window.Speisen ? window.Speisen.erkenne(t) : null);
+  const rwKlasse = (t) => (t && window.Speisen ? window.Speisen.erkenne(t, RW && RW.bon && RW.bon.art ? RW.bon.art.id : '') : null);
   const rwTitel = (q) => (q.k ? q.k.n : q.t || 'Posten') + (q.teil ? ` (${q.teil})` : '');
   const rwSpeichername = (q) => ((q.k ? q.k.n + (q.t ? ` – ${q.t}` : '') : q.t) || 'Posten') + (q.teil ? ` (${q.teil})` : '');
   const rwSicher = (bon) => !!bon && bon.posten.length >= 2 && (bon.qr ? bon.qr.total : bon.total) != null && bon.summe === (bon.qr ? bon.qr.total : bon.total);
-  function rwOeffnen(foto, zweck) {
+  // ---- Angefangene Rechnungen (Entwürfe): nach jeder Änderung auf diesem Handy gespeichert (Daten in localStorage, Foto in
+  // IndexedDB). Schließen heißt nicht mehr Verwerfen; fortsetzen unter „Kosten“. Gespeichert = gebucht → Entwurf weg.
+  const rwEntwuerfe = () => speicher.get('rwEntwuerfe', {});
+  function rwMerken() {
+    if (!RW || (!RW.foto && !RW.posten.length && !RW.summe)) return;
+    const b = RW.bon;
+    const e = { id: RW.id, z: RW.z, summe: RW.summe, summeHand: RW.summeHand, quelle: RW.quelle, schritt: RW.schritt, modus: RW.modus, dabei: RW.dabei, posten: RW.posten,
+      aktiv: RW.aktiv, tipArt: RW.tipArt, tip: RW.tip, tipName: RW.tipName || '', v: RW.v, mehr: RW.mehr, zahler: RW.zahler, geladen: RW.geladen, t: Date.now(),
+      bon: b ? { zeilen: b.zeilen, breite: b.breite, hoehe: b.hoehe, total: b.total, summe: b.summe, qr: b.qr ? { total: b.qr.total } : null, pruefung: b.pruefung, art: b.art || null,
+        posten: b.posten.map((p) => ({ zuschlag: p.zuschlag ? 1 : 0, sicher: !!p.sicher })) } : null };
+    const alle = rwEntwuerfe(); alle[RW.id] = e; speicher.set('rwEntwuerfe', alle);
+    if (RW.foto && RW.fotoGemerkt !== RW.foto) { RW.fotoGemerkt = RW.foto; fotoSpeichern('rw-' + RW.id, RW.foto); }
+  }
+  function rwEntwurfWeg(id) { const alle = rwEntwuerfe(); delete alle[id]; speicher.set('rwEntwuerfe', alle); }
+  async function rwFortsetzen(id) {
+    const e = rwEntwuerfe()[id]; if (!e) return;
+    const foto = await fotoLaden('rw-' + id);
+    rwOeffnen(foto, e.z, { ohneLesen: true, id });
+    Object.assign(RW, e, { foto, fotoGemerkt: foto, lesen: null, edit: -1, bon: e.bon ? { ...e.bon, bild: foto } : null });
+    if (e.modus === 'posten' && e.posten.length) RW.schritt = 'posten'; // dort weitermachen, wo die Arbeit steckt
+    if (!window.Speisen) { const sc = document.createElement('script'); sc.src = 'speisen.js'; document.head.append(sc); }
+    rwZeichnen(true);
+  }
+  function rwEntwurfListe() {
+    const l = Object.values(rwEntwuerfe()).sort((a, b) => b.t - a.t);
+    if (!l.length) return null;
+    return el('div', { class: 'rw-entwuerfe' }, el('h3', { class: 'rw-h' }, 'Angefangen'), l.map((e) => {
+      const n = e.posten.filter((q) => !q.aus).length, fertig = e.posten.filter((q) => !q.aus && q.w && q.w.length).length;
+      return el('div', { class: 'rw-entwurf' },
+        el('div', {}, el('strong', {}, e.z || 'Rechnung'), el('div', { class: 'leise klein' }, `${e.summe ? euro(e.summe) : 'ohne Summe'}${n ? ` · ${fertig} von ${n} Posten zugeordnet` : ''} · ${new Date(e.t).toLocaleString('de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}`)),
+        el('div', { class: 'reihe' },
+          el('button', { type: 'button', class: 'knopf haupt', onclick: () => rwFortsetzen(e.id) }, 'Weiter'),
+          el('button', { type: 'button', class: 'knopf flach', 'aria-label': `${e.z || 'Rechnung'} verwerfen`, onclick: () => { const alt = rwEntwuerfe()[e.id]; rwEntwurfWeg(e.id); zeichne({ karte: false }); toast('Angefangene Rechnung verworfen.', { aktion: 'Rückgängig', fn: () => { const a2 = rwEntwuerfe(); a2[e.id] = alt; speicher.set('rwEntwuerfe', a2); zeichne({ karte: false }); } }); } }, 'Verwerfen')));
+    }));
+  }
+  function rwOeffnen(foto, zweck, opt = {}) {
     const ids = personenListe();
-    RW = { foto, z: zweck || '', summe: null, summeHand: false, quelle: '', schritt: 'summe', modus: 'gleich', dabei: ids.slice(), posten: [], aktiv: G.ich.id, tipArt: '€', tip: 0, v: G.ich.id, mehr: false, zahler: {},
+    RW = { id: opt.id || neueId(), foto, z: zweck || '', summe: null, summeHand: false, quelle: '', schritt: 'summe', modus: 'gleich', dabei: ids.slice(), posten: [], aktiv: G.ich.id, tipArt: '€', tip: 0, v: G.ich.id, mehr: false, zahler: {},
       bon: null, lesen: foto ? 'Texterkennung startet …' : null, geladen: false, edit: -1 };
     let box = $('#rechnung');
     if (!box) { box = el('div', { id: 'rechnung', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Rechnung teilen' }); document.body.append(box); }
     box.hidden = false; document.body.classList.add('rw-offen');
     try { history.pushState({ rw: 1 }, '', '#rechnung'); } catch (e) { /* egal */ }
     rwZeichnen(true);
-    if (foto) rwLesen(RW);
+    if (foto && !opt.ohneLesen) rwLesen(RW);
   }
   function rwSchliessen(merken) {
     if (!RW) return;
@@ -2618,7 +2667,12 @@
     if (i > 0) { RW.schritt = folge[i - 1]; rwZeichnen(true); return; }
     rwAbbrechen();
   }
-  function rwAbbrechen() { rwSchliessen(true); toast('Rechnung verworfen.', { aktion: 'Rückgängig', fn: rwWieder }); }
+  function rwAbbrechen() {
+    const id = RW.id, hatWas = RW.foto || RW.posten.length || RW.summe; rwMerken(); rwSchliessen(false);
+    if (!hatWas) { rwEntwurfWeg(id); return; }
+    if (S.tab === 'gruppe' && S.gTeil === 'kosten') zeichne({ karte: false });
+    toast('Gespeichert. Unter „Kosten“ kannst du weitermachen.', { aktion: 'Verwerfen', fn: () => { rwEntwurfWeg(id); zeichne({ karte: false }); } });
+  }
   async function rwLesen(r) {
     const status = (t) => { r.lesen = t; const e = $('.rw-status'); if (e && RW === r) e.textContent = t; };
     try {
@@ -2631,6 +2685,8 @@
         else if (/recogniz/i.test(m.status || '')) status(`Bon wird gelesen … ${pz} %`);
       });
       r.bon = b; window.__bonLetzte = b; r.foto = b.bild; r.lesen = null;
+      // „Wofür?“ vorbelegen: Art + Geschäftsname vom Bon (nur wenn noch leer)
+      if (!r.z && b.art && (b.art.name || b.art.geschaeft)) r.z = [b.art.name, b.art.geschaeft].filter(Boolean).join(' · ').slice(0, 60);
       const total = b.qr ? b.qr.total : b.total;
       if (total != null && !r.summeHand) { r.summe = total; r.quelle = b.qr ? 'Aus dem QR-Code auf dem Bon gelesen.' : b.pruefung && b.pruefung.gesamtOk ? 'Gelesen und geprüft: Die Posten ergeben genau diese Summe.' : 'Von der Summenzeile gelesen. Bitte mit dem Foto vergleichen.'; }
     } catch (e) { r.lesen = 'Die Erkennung hat nicht geklappt. Du kannst alles von Hand eintragen.'; r.bonFehler = true; }
@@ -2651,6 +2707,7 @@
     const ansicht = { summe: rwSumme, art: rwArt, posten: rwPosten, zahler: rwZahler }[RW.schritt]();
     const alt = box.querySelector('.rw-inhalt'), scroll = alt && !fokus ? alt.scrollTop : 0;
     setze(box, rwKopf(), ansicht.inhalt, ansicht.fuss || el('div', { class: 'rw-fuss leer' }));
+    rwMerken();
     const neu = box.querySelector('.rw-inhalt'); if (neu) neu.scrollTop = scroll;
     if (fokus) { const t = $('#rw-titel'); if (t) t.focus({ preventScroll: true }); }
   }
@@ -2668,6 +2725,7 @@
       inhalt: el('div', { class: 'rw-inhalt' },
         RW.foto ? el('button', { type: 'button', class: 'rw-foto', 'aria-label': 'Kassenzettel groß ansehen', onclick: () => zeigeFoto(RW.foto) }, el('img', { src: RW.foto, alt: 'Foto vom Kassenzettel' }), el('span', {}, 'Tippen zum Vergrößern')) : null,
         RW.lesen ? el('p', { class: 'rw-status', role: 'status' }, RW.lesen) : null,
+        RW.bon && RW.bon.art && RW.bon.art.name ? el('p', { class: 'leise klein' }, `Erkannt: ${RW.bon.art.name}${RW.bon.art.sicher ? '' : ' (vermutlich)'}${RW.bon.art.geschaeft ? ` · ${RW.bon.art.geschaeft}` : ''}`) : null,
         el('label', { class: 'rw-label', for: 'rw-summe' }, 'Gesamtsumme laut Bon'), el('div', { class: 'rw-geld' }, Object.assign(feld, { id: 'rw-summe' }), el('span', { 'aria-hidden': 'true' }, '€')), hinweis,
         el('div', { class: 'feld' }, zweck),
         el('p', { class: 'leise klein' }, 'Das Foto bleibt auf diesem Handy. Die Erkennung läuft im Handy.')),
@@ -2872,6 +2930,7 @@
       }
     }
     const S2 = rwPostenSumme(), diff = RW.summe - S2;
+    rwMerken();
     setze(box,
       el('div', { class: 'rwb-kopf' },
         el('button', { type: 'button', class: 'knopf flach', onclick: () => rwBonZu() }, ic('haken'), 'Fertig'),
@@ -2909,6 +2968,7 @@
       const id = kostenSpeichern({ v, b: rr.b, z: RW.z, f: Object.keys(rr.an), an: rr.an, za: rr.za, art: f.art,
         pos: f.art === 'posten' ? f.posten.filter((q) => q.b > 0).map((q) => [q.t, q.b, q.w]) : null, tip: f.art === 'posten' && f.tip ? [f.tipArt, f.tip] : null });
       if (RW.foto) fotoSpeichern(id, RW.foto);
+      rwEntwurfWeg(RW.id);
       rwSchliessen(false); RW_ALT = null;
       S.tab = 'gruppe'; S.gTeil = 'kosten'; speicher.set('tab', 'gruppe'); speicher.set('gTeil', 'kosten'); S.kostenForm = null; haptik(15); hoehe('gross'); zeichne({ karte: false });
       toast(`${euro(rr.b)} gespeichert.`, { aktion: 'Rückgängig', fn: () => { kostenLoeschen(id, true); zeichne({ scroll: true, karte: false }); } });
@@ -3188,7 +3248,7 @@
         el('small', {}, 'Dein Stand'),
         el('strong', {}, mein > 0 ? `Du bekommst ${euro(mein)}` : mein < 0 ? `Du schuldest ${euro(mein)}` : 'Ausgeglichen'),
         el('small', {}, `Ausgaben der Gruppe: ${euro(summe)}`)),
-      S.kostenForm ? kostenForm() : el('div', { style: 'display:grid;gap:8px;margin-top:10px' }, bonKnopf(), el('button', { type: 'button', class: 'knopf breit', onclick: neu }, '+ Ausgabe ohne Kassenzettel eintragen')),
+      S.kostenForm ? kostenForm() : el('div', { style: 'display:grid;gap:8px;margin-top:10px' }, rwEntwurfListe(), bonKnopf(), el('button', { type: 'button', class: 'knopf breit', onclick: neu }, '+ Ausgabe ohne Kassenzettel eintragen')),
       S.personNeu ? personOhneApp() : null,
       wege.length ? el('div', { class: 'abschnitt' }, el('h3', {}, 'So gleicht ihr aus'),
         el('ul', { class: 'liste' }, wege.map((w) => el('li', { class: 'eintrag kosten-weg' },

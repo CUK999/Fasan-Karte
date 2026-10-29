@@ -51,6 +51,9 @@ window.Speisen = (() => {
 🍨|Eis|gelado,ice cream,eis,glace,gelato,helado,sorvete,sorbet,sundae,eisbecher,milkshake,batido,frappe
 🍎|Obst|fruta,fruit,obst,frucht,fruits,frutta,fruta da epoca,macedonia,salada de fruta,ananas,banana,banane,laranja,orange,maca,apple,apfel,melao,melon,morangos,strawberries,erdbeeren
 🍬|Süßes|chocolate,schokolade,chocolat,cioccolato,bolacha,cookie,cookies,keks,biscuit,biscotti,gomas,candy,bonbon,snack,croquete,croquetes,rissol,rissois,pastel de bacalhau,bolinho de bacalhau,empada,coxinha,samosa,empanada
+⛽|Tanken|diesel,gasoleo,gasolina,benzin,super e10,e10,super 95,super 98,sp95,sp98,adblue,gpl,lpg,autogas
+🎟️|Eintritt|bilhete,entrada,eintritt,admission,ingresso,eintrittskarte,museu,museum
+🚕|Fahrt|taxi,uber,bolt,fahrt,viagem,portagem,maut,estacionamento,parken,parking,parkhaus
 🛍️|Pfand und Tüte|pfand,leergut,deposit,tara,saco,sacola,bag,tute,tragetasche,sac
 💶|Service|servico,service,bedienung,servizio,taxa de servico,gorjeta,trinkgeld,tip,pourboire,propina,coperto
 `;
@@ -96,7 +99,8 @@ window.Speisen = (() => {
     return -1;
   }
   // Ergebnis: { s: Symbol, n: Klarname (mit Zusätzen), grund: gefundener Begriff } oder null
-  function erkenne(text) {
+  // art: Bon-Art aus bon.js (z. B. 'supermarkt'): im Einkauf sind „Kaffee 500 g“ oder „Milch 1 l“ Packungen, keine Getränke am Tisch
+  function erkenne(text, art) {
     const woerter = norm(text).split(' ').filter(Boolean); if (!woerter.length) return null;
     let treffer = null;
     // erst genaue Treffer, dann unscharfe (Lesefehler)
@@ -106,7 +110,8 @@ window.Speisen = (() => {
     if (!treffer) return null;
     // „Kaffee“ + „koffeinfrei“ → „Kaffee, koffeinfrei“; „Wasser mit Kohlensäure“ bleibt ohne „groß“ usw. nur wenn passend
     const n = treffer.n + (zus.length ? ', ' + zus.filter((z, i, a) => a.indexOf(z) === i).slice(0, 2).join(', ') : '');
-    return { s: treffer.s, n, grund: treffer.w };
+    const packung = art === 'supermarkt' && /\d\s*(g|kg|ml|cl|l|lt)\b/i.test(String(text)) && !/Pfand/.test(n) ? ', Packung' : '';
+    return { s: treffer.s, n: n + packung, grund: treffer.w };
   }
   return { erkenne, norm };
 })();

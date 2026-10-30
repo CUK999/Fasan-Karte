@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.11';
+  const VERSION = '3.12';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2787,7 +2787,7 @@
           const pruef = !ok && !p.sicher ? 'Bitte mit dem Bild vergleichen' : p.rep ? 'Nachgelesen – bitte kurz mit dem Bild vergleichen' : p.nameUnsicher ? 'Name bitte prüfen' : '';
           const vorschlag = (p.vorschlag || (p.kand || []).filter((c) => c.warum !== 'weg' && c.v !== p.b).map((c) => c.v)).filter((v) => v > 0).slice(0, 3);
           // Menge > 1 und Menge × Einzelpreis = Zeilenbetrag: je Stück eine Zeile, damit jede Person ihr Stück bekommt
-          const basis = { t: p.nameUnsicher ? '' : p.t, w: [], bild: p.schnipsel || null, pruef, vorschlag, zl: p.zeile, k: rwKlasse(p.nameUnsicher ? '' : p.t), sicherheit: p.sicherheit, lesungen: p.lesungen || [] };
+          const basis = { t: p.nameUnsicher ? '' : p.t, w: [], bild: p.schnipsel || null, pruef, vorschlag, zl: p.zeile, zl2: p.zeile2 ?? null, pfand: p.pfand || 0, k: rwKlasse(p.nameUnsicher ? '' : p.t), sicherheit: p.sicherheit, lesungen: p.lesungen || [] };
           return p.menge > 1 && p.menge <= 12 && p.einzel && p.einzel * p.menge === p.b
             ? Array.from({ length: p.menge }, (_, k) => ({ ...basis, b: p.einzel, teil: `${k + 1}/${p.menge}` }))
             : [{ ...basis, b: p.b }];
@@ -2835,7 +2835,7 @@
           el('span', { class: 'rw-band', style: `background:${q.aus ? 'transparent' : band(q)}`, 'aria-hidden': 'true' }),
           q.bild ? el('img', { class: 'rw-zeilenbild', src: q.bild, alt: '', 'aria-hidden': 'true', draggable: 'false' }) : null,
           el('span', { class: 'rw-pn' }, q.k ? el('span', { class: 'rw-sym', 'aria-hidden': 'true' }, q.k.s) : null, titel,
-            q.k && q.t ? el('small', { class: 'rw-orig' }, q.t) : null, q.pruef && !q.aus ? el('em', { class: 'rw-pruef' }, q.pruef) : null),
+            q.k && q.t ? el('small', { class: 'rw-orig' }, q.t) : null, q.pfand ? el('small', { class: 'rw-orig rw-pfand' }, `inkl. ${euro(q.pfand)} Pfand`) : null, q.pruef && !q.aus ? el('em', { class: 'rw-pruef' }, q.pruef) : null),
           el('span', { class: 'rw-pb' }, (q.b < 0 ? '−' : '') + euro(q.b), rwSicherPill(q)),
           el('span', { class: 'rw-wer' }, q.aus ? 'ausgeblendet · antippen zum Einblenden' : frei ? 'noch offen' : alle ? 'Alle' : q.w.map(initial))),
         el('button', { type: 'button', class: 'haken', 'aria-label': `${titel} bearbeiten`, onclick: () => { if (q.zl != null && RW.bon) rwBon(q.zl); else { RW.edit = i; rwZeichnen(false); } } }, '✎'));
@@ -2912,8 +2912,8 @@
   async function rwBilderNach() { if (!RW) return; for (const q of RW.posten) if (!q.bild && q.zl != null) q.bild = await rwSchnipsel(q.zl); if (RW) { if ($('#rw-bon')) rwBonZeichnen(false); else rwZeichnen(false); } }
   const rwBetragAus = (t) => { const m = [...String(t).matchAll(/(-?\d{1,3}(?:[.,' ]\d{3})*[.,]\d{2})(?!\d)/g)].pop(); if (!m) return 0; const r = m[1], neg = r.startsWith('-'), x = r.replace(/^-/, ''); const v = Math.round(parseFloat(`${x.slice(0, -3).replace(/[.,' ]/g, '')}.${x.slice(-2)}`) * 100); return neg ? -v : v; };
   // Stelle im Bild antippen, wo kein Kasten ist: dort eine Zeile anlegen und (wenn die Erkennung geladen ist) lesen
-  async function rwBonStelle(e) {
-    const img = e.currentTarget, b = RW.bon, y = (e.offsetY / img.clientHeight) * b.hoehe;
+  async function rwBonStelle(y) {
+    const b = RW.bon;
     const hs = b.zeilen.filter((z) => z.b).map((z) => z.b.y1 - z.b.y0).sort((p, q) => p - q), h = hs.length ? hs[hs.length >> 1] : b.hoehe / 60;
     const z = { text: '', b: { x0: b.breite * 0.02, x1: b.breite * 0.98, y0: Math.max(0, y - h * 0.55), y1: Math.min(b.hoehe, y + h * 0.55) }, typ: 'neu', block: true };
     b.zeilen.push(z); RW.bonSel = b.zeilen.length - 1; haptik(); rwBonZeichnen(false);
@@ -3042,6 +3042,71 @@
     if (frei) frei.w = [id];
     else { const mein = [...ps].reverse().find((q) => q.w.includes(id)); if (mein) mein.w = mein.w.filter((x) => x !== id); else { const l = ps[ps.length - 1]; l.w = l.w.concat(id); } }
   }
+  const rwLetztText = (i) => { const ps = RW.posten.filter((q) => q.zl === i), jetzt = [...new Set(ps.flatMap((q) => (q.aus ? [] : q.w)))]; return ps.length ? `${rwTitel({ ...ps[0], teil: '' })} → ${jetzt.length ? jetzt.map(personName).join(', ') : 'niemand'}` : ''; };
+  // Leiste nach jedem Tipp im Bon: Zeilenbild zur Kontrolle (welche Zeile wurde getroffen?), ▲/▼ verschiebt die Zuordnung auf
+  // den Posten darüber/darunter (schmale Zeilen: daneben tippen passiert, Korrigieren muss ein Tipp sein), Rückgängig.
+  function rwBonLetztLeiste(neu) {
+    const l = RW.bonLetzt, ps = RW.posten.filter((q) => q.zl === l.i);
+    const reihe = [...new Set(RW.posten.filter((q) => q.zl != null && !q.aus).map((q) => q.zl))].sort((a, c) => a - c), pos = reihe.indexOf(l.i);
+    const zurueck = () => RW.posten.filter((q) => q.zl === l.i && !q.aus).forEach((q, k) => { q.w = l.vorher[k] || []; });
+    const schieben = (d) => {
+      const ziel = reihe[pos + d]; if (ziel == null) return;
+      zurueck(); const vorher = RW.posten.filter((q) => q.zl === ziel && !q.aus).map((q) => q.w.slice());
+      rwZuordnenZeile(ziel, l.modus); RW.bonLetzt = { ...l, i: ziel, vorher, text: rwLetztText(ziel) }; RW.bonPop = ziel; haptik(12); neu();
+      const k = document.querySelector('#rw-bon .rwb-k.pop'); if (k) k.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    };
+    return el('div', { class: 'rwb-letzt', role: 'status' },
+      ps[0] && ps[0].bild ? el('img', { class: 'rwb-letzt-bild', src: ps[0].bild, alt: '', 'aria-hidden': 'true' }) : null,
+      el('span', { class: 'rwb-letzt-text' }, '✓ ', l.text),
+      el('span', { class: 'rwb-letzt-knoepfe' },
+        l.modus ? el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-label': 'Daneben getippt: Posten darüber nehmen', disabled: pos <= 0 ? true : null, onclick: () => schieben(-1) }, '▲') : null,
+        l.modus ? el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-label': 'Daneben getippt: Posten darunter nehmen', disabled: pos < 0 || pos >= reihe.length - 1 ? true : null, onclick: () => schieben(1) }, '▼') : null,
+        el('button', { type: 'button', class: 'knopf flach', onclick: () => { zurueck(); RW.bonLetzt = null; RW.bonPop = l.i; haptik(); neu(); } }, 'Rückgängig')));
+  }
+  // Zoomen im Bon wie in Foto- und Karten-Apps (Apple HIG „Gestures“, Material Design „Gestures“, Stand 2026): Aufziehen mit
+  // zwei Fingern, Doppeltippen (WCAG 2.5.1: Alternative mit einem Zeiger), am Rechner Strg/⌘ + Mausrad bzw. Trackpad-Zoom.
+  // Die Stelle unter den Fingern bleibt stehen. Ein „Ganze Breite“-Knopf erscheint nur, solange vergrößert ist.
+  // Doppeltippen auf einen Posten mit mehreren Stücken bleibt Zuordnen (jeder Tipp ein Stück).
+  let rwZoomT = 0;
+  function rwBonZoomGesten(roll, neu) {
+    const fenster = roll && roll.querySelector('.rwb-fenster'); if (!fenster) return;
+    let z = RW.bonZoom || 1;
+    const setzeZoom = (nz, cx, cy) => {
+      nz = Math.max(1, Math.min(4, nz)); if (Math.abs(nz - z) < 0.001) return;
+      const a = fenster.getBoundingClientRect(), ax = (cx - a.left) / a.width, ay = (cy - a.top) / a.height;
+      fenster.style.width = `${nz * 100}%`; z = nz;
+      const b = fenster.getBoundingClientRect();
+      roll.scrollLeft += b.left + ax * b.width - cx; roll.scrollTop += b.top + ay * b.height - cy;
+    };
+    const fertig = () => { RW.bonZoom = z; RW.bonGeste = Date.now(); neu(); };
+    let p0 = null;
+    const ab = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY), mi = (t) => [(t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2];
+    roll.addEventListener('touchstart', (e) => { if (e.touches.length === 2) { e.preventDefault(); p0 = { d: ab(e.touches) || 1, z, m: mi(e.touches) }; RW.bonPinch = true; roll.classList.add('zoomt'); } }, { passive: false });
+    roll.addEventListener('touchmove', (e) => {
+      if (!p0 || e.touches.length !== 2) return; e.preventDefault();
+      const m = mi(e.touches); roll.scrollLeft -= m[0] - p0.m[0]; roll.scrollTop -= m[1] - p0.m[1]; p0.m = m;
+      setzeZoom((p0.z * ab(e.touches)) / p0.d, m[0], m[1]);
+    }, { passive: false });
+    const ende = (e) => { if (p0 && e.touches.length < 2) { p0 = null; RW.bonPinch = false; roll.classList.remove('zoomt'); fertig(); } };
+    roll.addEventListener('touchend', ende); roll.addEventListener('touchcancel', ende);
+    roll.addEventListener('gesturestart', (e) => e.preventDefault()); // Safari: nicht die ganze Seite zoomen
+    roll.addEventListener('wheel', (e) => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); setzeZoom(z * Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY); clearTimeout(rwZoomT); rwZoomT = setTimeout(fertig, 200); }, { passive: false });
+    // Doppeltippen: der erste Tipp hat schon zugeordnet oder ausgewählt → zurücknehmen, dann zoomen (1× ↔ 2,5×)
+    roll.addEventListener('click', (e) => {
+      const jetzt = Date.now();
+      if (RW.bonGeste && jetzt - RW.bonGeste < 350) { e.stopPropagation(); e.preventDefault(); return; }
+      // mehrere Stücke (3 × Cola): schnelles Mehrfachtippen verteilt Stücke, ist also kein Zoom
+      const kk = e.target.closest && e.target.closest('.rwb-k'); if (kk && +kk.dataset.n > 1) { RW.bonTipp = null; return; }
+      const l = RW.bonTipp;
+      if (l && jetzt - l.t < 330 && Math.hypot(e.clientX - l.x, e.clientY - l.y) < 36) {
+        e.stopPropagation(); e.preventDefault(); RW.bonTipp = null; clearTimeout(RW.bonStelleT);
+        if (l.stand.w.length === RW.posten.length) l.stand.w.forEach((w, k) => { RW.posten[k].w = w; });
+        RW.bonSel = l.stand.sel; RW.bonLetzt = l.stand.letzt;
+        setzeZoom(z > 1.3 ? 1 : 2.5, e.clientX, e.clientY); haptik(); fertig(); return;
+      }
+      RW.bonTipp = { t: jetzt, x: e.clientX, y: e.clientY, stand: { w: RW.posten.map((q) => q.w.slice()), sel: RW.bonSel, letzt: RW.bonLetzt } };
+    }, true);
+  }
   function rwBonZeichnen(zurAuswahl) {
     const box = $('#rw-bon'); if (!box || !RW) return;
     const b = RW.bon, W = b.breite, H = b.hoehe, wer = RW.dabei, an = rwSummen();
@@ -3051,7 +3116,7 @@
     const modus = RW.bonModus;
     // Ausschnitt: nur Postenblock bis Summe (Kopf und Fuß erst auf Wunsch)
     const hs = b.zeilen.filter((z) => z.b).map((z) => z.b.y1 - z.b.y0).sort((p, q) => p - q), lh = hs.length ? hs[hs.length >> 1] : H / 60;
-    const wichtig = b.zeilen.map((z, i) => ({ z, i })).filter(({ z, i }) => z.b && (z.block || z.typ === 'summe' || z.typ === 'neu' || RW.posten.some((q) => q.zl === i)));
+    const wichtig = b.zeilen.map((z, i) => ({ z, i })).filter(({ z, i }) => z.b && (z.block || z.typ === 'summe' || z.typ === 'neu' || RW.posten.some((q) => q.zl === i || q.zl2 === i)));
     let yA = 0, yB = H, xA = 0, xB = W;
     if (!RW.bonGanz && wichtig.length) {
       yA = Math.max(0, Math.min(...wichtig.map((o) => o.z.b.y0)) - 2.2 * lh); yB = Math.min(H, Math.max(...wichtig.map((o) => o.z.b.y1)) + 2.2 * lh);
@@ -3062,7 +3127,8 @@
     // Zoom beim Öffnen: Zeilenabstand mindestens ~30 px auf dem Bildschirm, damit jede Zeile sicher antippbar ist
     const pz = wichtig.map((o) => (o.z.b.y0 + o.z.b.y1) / 2).sort((a, c) => a - c), abst = pz.slice(1).map((y, k) => y - pz[k]).filter((d) => d > lh * 0.4).sort((a, c) => a - c);
     const pitch = abst.length ? abst[abst.length >> 1] : lh;
-    // ganze Breite beim Öffnen (Name, Betrag und Kürzel sichtbar); vergrößern per 🔍. Fehltipps zeigt die Meldung unten sofort.
+    // ganze Breite beim Öffnen (Name, Betrag und Kürzel sichtbar); vergrößern mit zwei Fingern, Doppeltippen oder Strg + Mausrad
+    // (rwBonZoomGesten). Fehltipps zeigt die Leiste unten sofort, mit ▲/▼ zur Nachbarzeile.
     if (!RW.bonZoom) RW.bonZoom = 1;
     // Tippflächen ohne Überlappung: jede Zeile reicht bis zur Mitte zur Nachbarzeile (in Bildkoordinaten)
     const pxCss = (Math.min(innerWidth, 640) * RW.bonZoom) / breit; // Bildpixel → Bildschirmpixel
@@ -3074,33 +3140,33 @@
     const lang = { t: 0, id: 0 };
     const kaesten = !RW.bonMarken ? [] : b.zeilen.map((z, i) => {
       if (!z.b || z.b.y1 < yA || z.b.y0 > yB) return null;
-      const ps = RW.posten.filter((q) => q.zl === i), istP = ps.length > 0;
+      // Pfandzeile unter einem Artikel gehört zu ihm: gleicher Posten, Antippen wirkt auf die Artikelzeile
+      const ps = RW.posten.filter((q) => q.zl === i || q.zl2 === i), istP = ps.length > 0, haupt = istP ? ps[0].zl : i, neben = istP && haupt !== i;
       const art2 = istP ? '' : z.typ === 'unklar' ? ' unklar' : z.block || z.typ === 'neu' ? ' z' : ' leise';
       const aus = istP && ps.every((q) => q.aus), leute = [...new Set(ps.flatMap((q) => (q.aus ? [] : q.w)))];
       const mix = (f) => `color-mix(in srgb, ${f} 34%, transparent)`;
-      const flaeche = leute.length ? `background-image:linear-gradient(90deg, ${leute.map((id, k) => `${mix(personFarbe(id))} ${(k / leute.length) * 100}% ${((k + 1) / leute.length) * 100}%`).join(', ')});border-color:${personFarbe(leute[0])};` : '';
+      const flaeche = leute.length ? `background-image:linear-gradient(90deg, ${leute.map((id, k) => `${mix(personFarbe(id))} ${(k / leute.length) * 100}% ${((k + 1) / leute.length) * 100}%`).join(', ')});border-color:${personFarbe(leute[0])};--rand:${personFarbe(leute[0])};` : '';
       const [fy0, fy1] = flaechen.get(i) || [z.b.y0, z.b.y1];
       const stufe = istP ? ps.map(rwStufe).sort((a, c) => ['tief', 'mittel', 'hoch', ''].indexOf(a) - ['tief', 'mittel', 'hoch', ''].indexOf(c))[0] : '';
       const tippen = () => {
         if (istP && !aus && modus !== 'bearbeiten') {
-          const vorher = ps.map((q) => q.w.slice()); rwZuordnenZeile(i, modus);
-          const jetzt = [...new Set(ps.flatMap((q) => q.w))];
-          RW.bonLetzt = { i, vorher, text: `${rwTitel({ ...ps[0], teil: '' })} → ${jetzt.length ? jetzt.map(personName).join(', ') : 'niemand'}` };
-          RW.bonPop = i; haptik(12); neu(); return;
+          const vorher = ps.filter((q) => !q.aus).map((q) => q.w.slice()); rwZuordnenZeile(haupt, modus);
+          RW.bonLetzt = { i: haupt, vorher, modus, text: rwLetztText(haupt) };
+          RW.bonPop = haupt; haptik(12); neu(); return;
         }
-        RW.bonSel = RW.bonSel === i ? null : i; RW.bonBlattNeu = true; haptik(); neu();
+        RW.bonSel = RW.bonSel === haupt ? null : haupt; RW.bonBlattNeu = true; haptik(); neu();
       };
-      const k = el('div', { role: 'button', tabindex: '0', class: 'rwb-k' + (istP ? ' p' : art2) + (aus ? ' aus' : '') + (istP && !aus && !leute.length ? ' frei' : '') + (RW.bonSel === i ? ' sel' : '') + (RW.bonPop === i ? ' pop' : '') + (stufe ? ` s-${stufe}` : ''),
+      const k = el('div', { role: 'button', tabindex: '0', 'data-n': String(ps.filter((q) => !q.aus).length), class: 'rwb-k' + (istP ? ' p' : art2) + (neben ? ' neben' : istP && ps.some((q) => q.zl2 != null) ? ' oben' : '') + (aus ? ' aus' : '') + (istP && !aus && !leute.length ? ' frei' : '') + (RW.bonSel === haupt ? ' sel' : '') + (RW.bonPop === haupt ? ' pop' : '') + (stufe ? ` s-${stufe}` : ''),
         // Kästen liegen in der Fläche (ganzes Bild): Lage relativ zur ganzen Bildhöhe, der Ausschnitt verschiebt nur die Fläche
         style: `left:${(z.b.x0 / W) * 100}%;top:${(fy0 / H) * 100}%;width:${((z.b.x1 - z.b.x0) / W) * 100}%;height:${((fy1 - fy0) / H) * 100}%;--zh:${((fy1 - fy0) * pxCss).toFixed(1)}px;${flaeche}`,
         'aria-label': `${istP ? rwTitel(ps[0]) : 'Zeile'}: ${z.text}${aus ? ', ausgeblendet' : ''}${istP && modus !== 'bearbeiten' && !aus ? `. Antippen ordnet ${modus === 'alle' ? 'allen' : personName(modus)} zu` : ''}`,
         onclick: () => { if (lang.t) { lang.t = 0; return; } tippen(); },
         onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tippen(); } },
         // Lange drücken öffnet immer das Bearbeiten (auch im Zuordnen-Modus)
-        onpointerdown: () => { clearTimeout(lang.id); lang.id = setTimeout(() => { lang.t = 1; RW.bonSel = i; RW.bonBlattNeu = true; haptik(20); neu(); }, 480); },
+        onpointerdown: () => { clearTimeout(lang.id); lang.id = setTimeout(() => { if (RW.bonPinch) return; lang.t = 1; RW.bonSel = haupt; RW.bonBlattNeu = true; haptik(20); neu(); }, 480); },
         onpointerup: () => clearTimeout(lang.id), onpointerleave: () => clearTimeout(lang.id), onpointercancel: () => clearTimeout(lang.id) },
-        istP && (RW.bonSel === i || (RW.bonLetzt && RW.bonLetzt.i === i)) ? el('button', { type: 'button', class: 'rwb-edit', 'aria-label': `${rwTitel(ps[0])} bearbeiten`, onclick: (e) => { e.stopPropagation(); RW.bonSel = i; RW.bonBlattNeu = true; haptik(); neu(); } }, '✎') : null,
-        istP && leute.length ? el('span', { class: 'rwb-wer' }, leute.map((id) => el('span', { class: 'rw-abz', style: personStil(id) }, kuerzel(id)))) : null,
+        istP && !neben && (RW.bonSel === i || (RW.bonLetzt && RW.bonLetzt.i === i)) ? el('button', { type: 'button', class: 'rwb-edit', 'aria-label': `${rwTitel(ps[0])} bearbeiten`, onclick: (e) => { e.stopPropagation(); RW.bonSel = i; RW.bonBlattNeu = true; haptik(); neu(); } }, '✎') : null,
+        istP && !neben && leute.length ? el('span', { class: 'rwb-wer' }, leute.map((id) => el('span', { class: 'rw-abz', style: personStil(id) }, kuerzel(id)))) : null,
         null);
       return k;
     });
@@ -3126,7 +3192,7 @@
         blatt = el('div', { class: 'rwb-blatt' + (RW.bonBlattNeu ? ' neu' : '') },
           el('div', { class: 'rwb-titel' }, q0.k ? el('span', { class: 'rw-sym', 'aria-hidden': 'true' }, q0.k.s) : null, el('strong', {}, rwTitel({ ...q0, teil: '' })),
             el('button', { type: 'button', class: 'knopf flach rwb-zu', 'aria-label': 'Schließen', onclick: () => { RW.bonSel = null; neu(); } }, '✕'),
-            el('span', { class: 'leise klein rwb-text' }, z.text)),
+            el('span', { class: 'leise klein rwb-text' }, z.text), q0.pfand ? el('span', { class: 'leise klein rwb-text' }, `inkl. ${euro(q0.pfand)} Pfand (Zeile darunter)`) : null),
           el('label', { class: 'leise klein' }, 'Name vom Bon (für die Erkennung „Was war es?“)'), nm, ...reihen,
           el('div', { class: 'reihe' },
             el('button', { type: 'button', class: 'knopf', onclick: () => { for (const q of ps) q.aus = !aus; haptik(); neu(); } }, aus ? 'Einblenden' : 'Ausblenden'),
@@ -3163,21 +3229,22 @@
         el('span', { class: 'rwb-stand ' + (diff === 0 ? 'ok' : 'warn'), role: 'status' }, diff === 0 ? `✓ ${euro(RW.summe)}` : `${centText(S2)} / ${euro(RW.summe)}`),
         el('div', { class: 'reihe' },
           el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(!!RW.bonGanz), 'aria-label': RW.bonGanz ? 'Nur Posten zeigen' : 'Ganzen Bon zeigen (Kopf und Fuß)', onclick: () => { RW.bonGanz = !RW.bonGanz; neu(); } }, '↕'),
-          el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(RW.bonMarken), 'aria-label': RW.bonMarken ? 'Kästen ausblenden' : 'Kästen einblenden', onclick: () => { RW.bonMarken = !RW.bonMarken; neu(); } }, '▭'),
-          el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-label': RW.bonZoom >= 2.5 ? 'Normale Größe' : 'Vergrößern', onclick: () => { RW.bonZoom = RW.bonZoom >= 2.4 ? 1 : Math.min(2.5, RW.bonZoom + 0.6); neu(); } }, RW.bonZoom >= 2.4 ? '1×' : '🔍'))),
+          el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(RW.bonMarken), 'aria-label': RW.bonMarken ? 'Kästen ausblenden' : 'Kästen einblenden', onclick: () => { RW.bonMarken = !RW.bonMarken; neu(); } }, '▭'))),
       leiste,
-      el('div', { class: 'rwb-roll' },
+      el('div', { class: 'rwb-bereich' }, el('div', { class: 'rwb-roll' },
         !RW.bonGanz && yA > 0 ? el('button', { type: 'button', class: 'rwb-mehr', onclick: () => { RW.bonGanz = true; neu(); } }, '↑ Kopf des Bons zeigen') : null,
         el('div', { class: 'rwb-fenster', style: `width:${RW.bonZoom * 100}%;aspect-ratio:${breit} / ${hoch}` },
           el('div', { class: 'rwb-flaeche', style: `top:${(-yA / hoch) * 100}%;height:${(H / hoch) * 100}%;left:${(-xA / breit) * 100}%;width:${(W / breit) * 100}%` },
-            el('img', { src: RW.foto, alt: 'Original-Bon', draggable: 'false', onclick: (e) => rwBonStelle(e) }), ...kaesten.filter(Boolean))),
+            // leere Stelle: erst nach kurzer Wartezeit lesen (ein zweiter Tipp ist Doppeltippen = Zoom)
+            el('img', { src: RW.foto, alt: 'Original-Bon', draggable: 'false', onclick: (e) => { const y = (e.offsetY / e.currentTarget.clientHeight) * H; clearTimeout(RW.bonStelleT); RW.bonStelleT = setTimeout(() => rwBonStelle(y), 330); } }), ...kaesten.filter(Boolean))),
         !RW.bonGanz && yB < H ? el('button', { type: 'button', class: 'rwb-mehr', onclick: () => { RW.bonGanz = true; neu(); } }, '↓ Fuß des Bons zeigen') : null),
+        RW.bonZoom > 1.05 ? el('button', { type: 'button', class: 'rwb-zoom-zurueck', 'aria-label': 'Zoom zurücksetzen, ganze Breite zeigen', onclick: () => { RW.bonZoom = 1; haptik(); neu(); } }, '⤢ Ganze Breite') : null),
       el('div', { class: 'rwb-unten' }, rwHinweis(),
-        !blatt && RW.bonLetzt ? el('div', { class: 'rwb-letzt', role: 'status' }, el('span', {}, '✓ ', RW.bonLetzt.text),
-          el('button', { type: 'button', class: 'knopf flach', onclick: () => { const l = RW.bonLetzt; RW.posten.filter((q) => q.zl === l.i && !q.aus).forEach((q, k) => { q.w = l.vorher[k] || []; }); RW.bonLetzt = null; RW.bonPop = l.i; haptik(); neu(); } }, 'Rückgängig')) : null,
-        blatt || el('p', { class: 'rwb-hilfe leise klein' }, !RW.bonMarken ? 'Kästen sind aus. Oben wieder einschalten.' : modus === 'bearbeiten' ? 'Kasten antippen: korrigieren, ausblenden, löschen. Leere Stelle antippen: Zeile neu lesen.' : `Kasten antippen ordnet ${modus === 'alle' ? 'allen' : personName(modus)} zu. Lange drücken oder ✎: bearbeiten.`)));
+        !blatt && RW.bonLetzt ? rwBonLetztLeiste(neu) : null,
+        blatt || el('p', { class: 'rwb-hilfe leise klein' }, !RW.bonMarken ? 'Kästen sind aus. Oben wieder einschalten.' : modus === 'bearbeiten' ? 'Kasten antippen: korrigieren, ausblenden, löschen. Leere Stelle antippen: Zeile neu lesen. Zoomen: zwei Finger oder doppelt tippen.' : `Kasten antippen ordnet ${modus === 'alle' ? 'allen' : personName(modus)} zu. Lange drücken oder ✎: bearbeiten. Zoomen: zwei Finger oder doppelt tippen.`)));
     const r = box.querySelector('.rwb-roll');
     if (roll) { r.scrollLeft = roll[0]; r.scrollTop = roll[1]; }
+    rwBonZoomGesten(r, neu);
     if (zurAuswahl && RW.bonSel != null) { const k = box.querySelector('.rwb-k.sel'); if (k) requestAnimationFrame(() => k.scrollIntoView({ block: 'center', inline: 'nearest' })); }
   }
   // ---- Schritt 4: Wer hat bezahlt, Speichern

@@ -1110,3 +1110,36 @@ button:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--a
 @media (prefers-reduced-motion: reduce) { .rwb-letzt { animation: none; } }
 .rwb-wer .rw-abz { height: min(26px, max(14px, calc(var(--zh, 26px) - 2px))); min-width: 0; padding: 0 5px; font-size: min(14px, max(10px, calc(var(--zh, 26px) * .62))); border-width: 1.5px; }
 .rwb-edit { width: min(28px, max(20px, var(--zh, 28px))); height: min(28px, max(20px, var(--zh, 28px))); }
+
+/* 3.12: Zoomen mit Gesten statt Lupe, Leiste nach dem Tippen mit Zeilenbild und ▲/▼, Pfand */
+.rwb-bereich { position: relative; min-height: 0; display: grid; }
+.rwb-bereich > .rwb-roll { min-height: 0; touch-action: pan-x pan-y; }
+.rwb-roll.zoomt .rwb-k { transition: none; animation: none; }
+.rwb-zoom-zurueck { position: absolute; right: 12px; bottom: 12px; z-index: 5; min-height: 44px; padding: 0 16px; border: 0; border-radius: 22px; background: rgba(24,24,24,.82); color: #fff; font: inherit; font-weight: 800; box-shadow: 0 4px 14px rgba(0,0,0,.35); cursor: pointer; animation: rw-rein 240ms var(--feder-sanft); }
+.rwb-zoom-zurueck:active { scale: .95; }
+.rwb-letzt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.rwb-letzt-bild { height: 40px; max-width: 38vw; object-fit: contain; object-position: left center; border-radius: 6px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+.rwb-letzt-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rwb-letzt-knoepfe { display: flex; gap: 2px; align-items: center; }
+.rwb-letzt-knoepfe .rwb-ik { min-height: 44px; min-width: 44px; }
+.rwb-letzt-knoepfe .rwb-ik[disabled] { opacity: .35; }
+.rwb-k.p.neben { border-style: dashed; border-width: 2px; box-shadow: none; }
+.rw-pfand { color: var(--text); opacity: .75; }
+@media (prefers-reduced-motion: reduce) { .rwb-zoom-zurueck { animation: none; } }
+#rw-bon { grid-template-columns: minmax(0, 1fr); }
+.rwb-bereich { min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.rwb-letzt { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "text text" "bild knoepfe"; row-gap: 4px; }
+.rwb-letzt-text { grid-area: text; }
+.rwb-letzt-bild { grid-area: bild; max-width: 100%; justify-self: start; }
+.rwb-letzt-knoepfe { grid-area: knoepfe; }
+/* ruhigere Kästen: dünne Linie statt 3 px gestrichelt (die Zeilenbänder liegen dicht, dicke Ränder verdeckten die Schrift);
+   zugeordnet: Farbe der Person als Fläche (mit Schraffur-Verlauf) und Balken links */
+.rwb-k.p { --rand: rgba(132,63,23,.62); border: 0; border-radius: 4px; background-color: rgba(132,63,23,.07); box-shadow: inset 0 0 0 1.5px var(--rand); }
+.rwb-k.p.frei { border-style: none; }
+.rwb-k.p[style*="background-image"] { border: 0; box-shadow: inset 6px 0 0 var(--rand), inset 0 0 0 2px var(--rand); }
+.rwb-k.p.oben { border-radius: 4px 4px 0 0; box-shadow: inset 0 1.5px 0 var(--rand), inset 1.5px 0 0 var(--rand), inset -1.5px 0 0 var(--rand); }
+.rwb-k.p.neben { border: 0; border-radius: 0 0 4px 4px; box-shadow: inset 0 -1.5px 0 var(--rand), inset 1.5px 0 0 var(--rand), inset -1.5px 0 0 var(--rand); margin-top: 0; }
+.rwb-k.p.oben[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset 0 2px 0 var(--rand), inset -2px 0 0 var(--rand); }
+.rwb-k.p.neben[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset 0 -2px 0 var(--rand), inset -2px 0 0 var(--rand); }
+.rwb-k.p:active { background-color: rgba(132,63,23,.16); }
+.rwb-mehr { position: sticky; left: 0; }

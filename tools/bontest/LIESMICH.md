@@ -13,3 +13,5 @@ node e2e.mjs paddle bons/*.png bons/*-hart.jpg bons/*-extrem.jpg     # oder: tes
 node einheit.mjs                                                      # Summenprüfung mit eingebauten Lesefehlern
 ```
 Playwright wird unter `/opt/node-tools/node_modules/playwright` erwartet (Pfad in den .mjs-Dateien anpassen).
+
+Pfand hängt die Erkennung an den Artikel darüber (Betrag inkl. Pfand, Feld `pfand`); `e2e.mjs` trennt ihn für den Vergleich wieder ab.

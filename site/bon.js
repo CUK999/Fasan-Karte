@@ -106,7 +106,10 @@ window.Bon = (() => {
   }
 
   // Wörter zu Zeilen: gleiche Mittelhöhe (± 0,55 × Wort-Höhe), bezogen auf das nächste Wort links (verträgt Schräglage)
-  function zeilenAus(woerter) {
+  // opt.gerade: Bild ist schon entzerrt/gerade gedreht. Dann stammt eine gemessene Neigung meist von gewelltem Papier (links
+  // schräg, rechts flach) und darf nicht über die ganze Breite fortgesetzt werden (Test 30.10., REWE: Namen mit Neigung 0,05
+  // → Betrag 40 px tiefer gesucht → jede Zeile bekam den Betrag der nächsten). Darum dort höchstens ±0,02 (≈ 1°).
+  function zeilenAus(woerter, opt = {}) {
     // Höhe ohne den Anteil, den die Schräglage zum Rahmen beiträgt (sonst würden Nachbarzeilen mitgefangen)
     const w = woerter.filter((x) => x.t.trim() && x.c > 15).map((x) => ({ ...x, cy: (x.b.y0 + x.b.y1) / 2, h: Math.max(4, x.b.y1 - x.b.y0 - (x.neig ? Math.abs(x.neig) * (x.b.x1 - x.b.x0) : 0)) }));
     w.sort((a, b) => a.b.x0 - b.b.x0);
@@ -115,7 +118,8 @@ window.Bon = (() => {
     const lang = w.filter((x) => x.neig != null && x.b.x1 - x.b.x0 > 6 * x.h);
     const med = (v) => { v.sort((a, b) => a - b); return v.length ? v[v.length >> 1] : 0; };
     const alle = med(lang.map((q) => q.neig));
-    const neigBei = (y, h) => { const v = lang.filter((q) => Math.abs(q.cy - y) < 5 * h).map((q) => q.neig); return v.length ? med(v) : alle; };
+    const grenze = opt.gerade ? 0.02 : 1;
+    const neigBei = (y, h) => { const v = lang.filter((q) => Math.abs(q.cy - y) < 5 * h).map((q) => q.neig); const n = v.length ? med(v) : alle; return Math.max(-grenze, Math.min(grenze, n)); };
     const zeilen = [];
     for (const x of w) {
       let beste = null, bestD = Infinity;
@@ -129,21 +133,97 @@ window.Bon = (() => {
       }
       if (beste) beste.w.push(x); else zeilen.push({ w: [x] });
     }
-    for (const z of zeilen) {
-      z.b = { x0: Math.min(...z.w.map((x) => x.b.x0)), y0: Math.min(...z.w.map((x) => x.b.y0)), x1: Math.max(...z.w.map((x) => x.b.x1)), y1: Math.max(...z.w.map((x) => x.b.y1)) };
-      z.c = Math.min(...z.w.map((x) => x.c));
-      // Zeichen mit Sicherheit und zweitbester Lesung (PaddleOCR); Text und Zeichenliste bleiben Stelle für Stelle gleich lang
-      const zz = [];
-      for (const x of z.w) {
-        if (zz.length) zz.push({ z: ' ', p: 1 });
-        const eigene = x.zeichen && x.zeichen.length ? x.zeichen.filter((q) => q.z) : [...x.t].map((ch) => ({ z: ch, p: (x.c || 0) / 100 }));
-        let s = 0, e = eigene.length; while (s < e && eigene[s].z === ' ') s++; while (e > s && eigene[e - 1].z === ' ') e--;
-        for (let k = s; k < e; k++) zz.push(eigene[k]);
-      }
-      z.zeichen = zz;
-      z.text = zz.map((q) => q.z).join('');
-    }
+    for (const z of zeilen) zeileFertig(z);
     return zeilen.sort((a, b) => (a.b.y0 + a.b.y1) - (b.b.y0 + b.b.y1));
+  }
+  function zeileFertig(z) {
+    z.w.sort((a, b) => a.b.x0 - b.b.x0);
+    z.b = { x0: Math.min(...z.w.map((x) => x.b.x0)), y0: Math.min(...z.w.map((x) => x.b.y0)), x1: Math.max(...z.w.map((x) => x.b.x1)), y1: Math.max(...z.w.map((x) => x.b.y1)) };
+    z.c = Math.min(...z.w.map((x) => x.c));
+    // Zeichen mit Sicherheit und zweitbester Lesung (PaddleOCR); Text und Zeichenliste bleiben Stelle für Stelle gleich lang.
+    // Schmale Bon-Schrift: die Erkennung trennt Beträge am Komma („1,“ | „11 B“) – dicht beieinander wieder ohne Leerzeichen.
+    const zz = []; let vorher = null;
+    for (const x of z.w) {
+      const eigene = x.zeichen && x.zeichen.length ? x.zeichen.filter((q) => q.z) : [...x.t].map((ch) => ({ z: ch, p: (x.c || 0) / 100 }));
+      let s = 0, e = eigene.length; while (s < e && eigene[s].z === ' ') s++; while (e > s && eigene[e - 1].z === ' ') e--;
+      const teil = eigene.slice(s, e), hz = Math.max(4, x.b.y1 - x.b.y0);
+      const kleben = vorher && /[.,]$/.test(vorher.t.trim()) && /^\d/.test(x.t.trim()) && x.b.x0 - vorher.b.x1 < hz * 0.9;
+      if (zz.length && !kleben) zz.push({ z: ' ', p: 1 });
+      zz.push(...teil); vorher = x;
+    }
+    z.zeichen = zz;
+    z.text = zz.map((q) => q.z).join('');
+    return z;
+  }
+  // ---------- Bon aus der Lage der Schrift finden (wie ein Dokumentscanner, aber ohne Papierkanten): Wenn der weiße Bon auf
+  // hellem Grund liegt, findet bonbild.js ihn nicht. Dann bilden die Textzeilen das Viereck: linke Kante aus den linken
+  // Zeilenanfängen, rechte aus den Zeilenenden (je robuste Gerade), oben/unten aus der Neigung der Textkästen.
+  function textViereck(zeilen, W, H) {
+    let z = zeilen.filter((q) => q.w.length && q.b.x1 - q.b.x0 > 2 * (q.b.y1 - q.b.y0));
+    if (z.length < 6) return null;
+    const med = (a) => { const v = [...a].sort((p, q) => p - q); return v.length ? v[v.length >> 1] : 0; };
+    const h = med(z.map((q) => q.b.y1 - q.b.y0)), cy = (q) => (q.b.y0 + q.b.y1) / 2;
+    // größte zusammenhängende Gruppe (Lücken unter 5 Zeilenhöhen) – Text außerhalb des Bons fällt weg
+    z.sort((a, b) => cy(a) - cy(b)); const gruppen = [[z[0]]];
+    for (let i = 1; i < z.length; i++) { if (cy(z[i]) - cy(z[i - 1]) > 5 * h) gruppen.push([]); gruppen[gruppen.length - 1].push(z[i]); }
+    z = gruppen.sort((a, b) => b.length - a.length)[0]; if (z.length < 6) return null;
+    const gerade = (pk) => { // x = a + b·y, zweimal Ausreißer entfernen
+      let p = pk; for (let it = 0; it < 3; it++) {
+        const n = p.length, sy = p.reduce((s2, q) => s2 + q[1], 0) / n, sx = p.reduce((s2, q) => s2 + q[0], 0) / n;
+        let num = 0, den = 0; for (const [x, y] of p) { num += (y - sy) * (x - sx); den += (y - sy) ** 2; }
+        const b = den ? num / den : 0, a = sx - b * sy, res = p.map(([x, y]) => Math.abs(x - (a + b * y))), m2 = med(res) * 2.5 + 1;
+        if (it === 2 || p.length < 5) return { a, b }; p = p.filter((q, k) => res[k] <= m2);
+      } return { a: 0, b: 0 };
+    };
+    const x0s = z.map((q) => q.b.x0), x1s = z.map((q) => q.b.x1), q30 = [...x0s].sort((a, b) => a - b)[Math.floor(z.length * 0.4)], q70 = [...x1s].sort((a, b) => a - b)[Math.floor(z.length * 0.6)];
+    const li = gerade(z.filter((q) => q.b.x0 <= q30).map((q) => [q.b.x0 - 1.2 * h, cy(q)])), re = gerade(z.filter((q) => q.b.x1 >= q70).map((q) => [q.b.x1 + 1.2 * h, cy(q)]));
+    const neig = (rows) => med(rows.flatMap((q) => q.w.filter((x) => x.neig != null && x.b.x1 - x.b.x0 > 4 * h).map((x) => x.neig))) || 0;
+    const k4 = Math.max(2, Math.floor(z.length / 4)), oben = z.slice(0, k4), unten = z.slice(-k4), xc = med(z.map((q) => (q.b.x0 + q.b.x1) / 2));
+    const yO = Math.min(...oben.map((q) => q.b.y0)) - 1.5 * h, yU = Math.max(...unten.map((q) => q.b.y1)) + 1.5 * h, sO = neig(oben), sU = neig(unten);
+    const schnitt = (g, y0, sl) => { const x = (g.a + g.b * y0 - g.b * sl * xc) / (1 - g.b * sl); return [Math.max(0, Math.min(W, x)), Math.max(0, Math.min(H, y0 + sl * (x - xc)))]; };
+    const ecken = [schnitt(li, yO, sO), schnitt(re, yO, sO), schnitt(re, yU, sU), schnitt(li, yU, sU)];
+    const breite = Math.hypot(ecken[1][0] - ecken[0][0], ecken[1][1] - ecken[0][1]);
+    return breite > 10 * h ? ecken : null;
+  }
+  // ---------- Spaltenabgleich: Namen links und Beträge rechts getrennt zu Reihen bündeln und der Reihe nach paaren.
+  // Hilft, wenn der Bon schräg/gewölbt fotografiert ist und die Betragsspalte gegenüber den Namen um bis zu eine Zeile
+  // verrutscht (Test 30.10., REWE-Bon: Beträge eine halbe Zeile höher). Der beste gleichbleibende Versatz wird gesucht,
+  // die Paarung ist eine Sequenz-Ausrichtung (Needleman-Wunsch) mit Lücken für Zeilen ohne Partner.
+  function zeilenSpalten(woerter) {
+    const w = woerter.filter((x) => x.t.trim() && x.c > 15);
+    const istBetrag = (t) => /-?\d+[.,]\s?\d{2}(?!\d)/.test(t) && !/[a-z]{4,}/i.test(t.replace(/euro?/gi, ''));
+    const bet = w.filter((x) => istBetrag(x.t)); if (bet.length < 3) return null;
+    const hs = w.map((x) => x.b.y1 - x.b.y0).sort((a, b) => a - b), h = hs[hs.length >> 1];
+    const kanten = bet.map((x) => x.b.x1).sort((a, b) => a - b), kante = kanten[Math.floor(kanten.length * 0.7)];
+    const rechts = w.filter((x) => (istBetrag(x.t) && Math.abs(x.b.x1 - kante) < 3 * h) || (x.b.x0 > kante - 0.6 * h && x.t.replace(/[^A-Za-z0-9*€]/g, '').length <= 3));
+    if (rechts.filter((x) => istBetrag(x.t)).length < 3) return null;
+    const links = w.filter((x) => !rechts.includes(x));
+    const L = zeilenAus(links, { gerade: true }), R = zeilenAus(rechts, { gerade: true }); if (!L.length || !R.length) return null;
+    const cy = (z) => (z.b.y0 + z.b.y1) / 2;
+    const ly = L.map(cy), ab = ly.slice(1).map((y, i) => y - ly[i]).filter((d) => d > h * 0.4).sort((a, b) => a - b);
+    const pitch = ab.length ? ab[ab.length >> 1] : h * 1.3;
+    let best = null;
+    for (let o = -1.2; o <= 1.2001; o += 0.05) { const a = reihenAbgleich(L, R, o * pitch, pitch); if (!best || a.kosten < best.kosten) best = a; }
+    const out = [], nimmR = new Set();
+    for (const [i, j] of best.paare) { out.push(zeileFertig({ w: [...L[i].w, ...R[j].w] })); nimmR.add(j); L[i].genommen = true; }
+    for (const z of L) if (!z.genommen) out.push(z);
+    R.forEach((z, j) => { if (!nimmR.has(j)) out.push(z); });
+    out.spalten = { versatz: +(best.off / pitch).toFixed(2), paare: best.paare.length };
+    return out.sort((a, b) => cy(a) - cy(b));
+  }
+  function reihenAbgleich(L, R, off, pitch) {
+    const n = L.length, m = R.length, cy = (z) => (z.b.y0 + z.b.y1) / 2, LUECKE_L = 0.45, LUECKE_R = 0.6;
+    const D = Array.from({ length: n + 1 }, () => new Float64Array(m + 1)), W = Array.from({ length: n + 1 }, () => new Int8Array(m + 1));
+    for (let i = 1; i <= n; i++) { D[i][0] = i * LUECKE_L; W[i][0] = 1; }
+    for (let j = 1; j <= m; j++) { D[0][j] = j * LUECKE_R; W[0][j] = 2; }
+    for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+      const d = Math.abs(cy(R[j - 1]) - cy(L[i - 1]) - off) / pitch, paar = d < 0.6 ? D[i - 1][j - 1] + d * d * 2 : Infinity;
+      const a = D[i - 1][j] + LUECKE_L, b = D[i][j - 1] + LUECKE_R;
+      if (paar <= a && paar <= b) { D[i][j] = paar; W[i][j] = 0; } else if (a <= b) { D[i][j] = a; W[i][j] = 1; } else { D[i][j] = b; W[i][j] = 2; }
+    }
+    const paare = []; let i = n, j = m;
+    while (i > 0 || j > 0) { const w = W[i][j]; if (w === 0) { paare.push([i - 1, j - 1]); i--; j--; } else if (w === 1) i--; else j--; }
+    return { kosten: D[n][m], paare: paare.reverse(), off };
   }
 
   // Preise: 1,50 / 12,90 / 1.234,50 / -0,20; Buchstaben-Verwechsler zwischen Ziffern werden korrigiert
@@ -174,7 +254,7 @@ window.Bon = (() => {
     zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|entregue|valor entregue|pago|pagamento|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
     rueck: /\b(ruckgeld|wechselgeld|change|cambio|vuelto|rendu|resto|troco|wisselgeld)\b/,
     rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|leergut|pfandruckgabe)\b/,
-    nein: /\b(capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
+    nein: /\b(uid|ust-?idnr|ust-?id|vat no|capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
     // Spaltenüberschrift über den Posten („Qt Descrição P.Unit. Tx Valor“, „Menge Artikel Preis Betrag“)
     kopf: /\b(qt|qtd|qty|qte|quant|quantidade|menge|anz|anzahl|descri[cç]?[aã]?o|descricao|descripcion|description|bezeichnung|artikel|artigo|article|articulo|produkt|produto|p\.?\s?unit|p\.?\s?u|preco|preis|price|prix|precio|prezzo|valor|betrag|amount|montant|importe|importo|tx|vat|mwst|einzel)\b/g,
     // Einzelpreis-Zeilen unter dem Posten („Preco: 12,90/Uni“, „à 2,50“, „je 1,99“, „@ 3.50“)
@@ -191,12 +271,12 @@ window.Bon = (() => {
   // Der Dezimaltrenner ist immer der letzte Trenner vor genau zwei Ziffern; die Erkennung liest ein Komma auch mal als Punkt
   // („34.90“ auf einem Bon mit Kommas). Tausender-Gruppen nur mit dem jeweils anderen Zeichen (oder ' bzw. Leerzeichen).
   function betraege(t, dez) {
-    const re = /(^|[^\d.,])(-\s?)?((?:\d{1,3}(?:[.,' ]\d{3})+|\d+)[.,]\d{2})(?!\d|[.,]\d)(\s?-(?![\d]))?/g;
+    const re = /(^|[^\d.,])(-\s?)?((?:\d{1,3}(?:[.,' ]\d{3})+|\d+)[.,] ?\d{2})(?!\d|[.,]\d)(\s?-(?![\d]))?/g;
     const out = []; let m;
     while ((m = re.exec(t))) {
       const start = m.index + m[1].length + (m[2] ? m[2].length : 0), ende = start + m[3].length;
       if (/^\s*%/.test(t.slice(ende))) continue;
-      const roh = m[3], d = roh.length - 3, ganz = roh.slice(0, d).replace(/[.,' ]/g, '');
+      const roh = m[3].replace(/([.,]) (\d{2})$/, '$1$2'), d = roh.length - 3, ganz = roh.slice(0, d).replace(/[.,' ]/g, '');
       if (/[.,]/.test(roh.slice(0, d)) && roh.slice(0, d).replace(/\d/g, '').split('').some((c) => c === roh[d])) continue; // 1.234.56: unklar
       const v = Math.round(parseFloat(`${ganz}.${roh.slice(d + 1)}`) * 100);
       out.push({ v: m[2] || m[4] ? -v : v, start, ende, neg: !!(m[2] || m[4]) });
@@ -239,7 +319,7 @@ window.Bon = (() => {
       if (bt.length >= 2 && /^\W*$/.test(z.text.slice(0, bt[0].start)) && /^\s*[A-Za-zÀ-ÿ]/.test(z.text.slice(bt[0].ende)) && bt[0].v > 0 && bt[0].v <= 9900) { mengeVorn = bt[0].v / 100; bt.shift(); }
       const letzter = bt.length ? bt[bt.length - 1] : null;
       let art = 'sonst';
-      if (!bt.length && (n.match(W.kopf) || []).length >= 2) art = 'kopf';
+      if (!bt.length && ((n.match(W.kopf) || []).length >= 2 || /^\W*(eur|euro|€|usd|chf|gbp)\W*$/.test(n))) art = 'kopf';
       else if (W.zwischen.test(n)) art = 'zwischen';
       else if (W.summe.test(n) && !W.steuer.test(n.replace(W.summe, ''))) art = 'summe';
       else if (W.rueck.test(n)) art = 'rueck';
@@ -294,7 +374,7 @@ window.Bon = (() => {
       if (r.bu < 2) for (let k = i - 1; k >= Math.max(0, i - 2); k--) { const o = info[k]; if (o.letzter || o.art !== 'sonst' || o.typ) break; if (o.bu >= 2) { name = o.name; nameZeile = k; break; } }
       let v = r.letzter.v;
       // mehrere Lesungen desselben Betrags: Mehrheit gewinnt, Abweichler bleiben als günstige Alternative
-      const st = stimmen(r.letzter.nach ? null : v, r.z.mehr, dez);
+      const st = stimmen(r.letzter.nach || r.z.erstUnsicher ? null : v, r.z.mehr, dez);
       if (st.length && st[0].v !== v && st[0].anteil > 0.5) v = st[0].v;
       if (r.art === 'rabatt' && v > 0) v = -v;
       const kand = [{ v, k: 0 }];
@@ -354,6 +434,17 @@ window.Bon = (() => {
       const l = (p.lesungen || []).find((x) => x.v === Math.abs(p.b));
       p.sicherheit = p.lesbarAmount > 1 ? Math.round((l ? l.anteil : 0.1) * 100) : Math.round(Math.min(95, (p.c || 80) * 0.95));
       p.vorschlag = [...new Set([...(p.lesungen || []).filter((x) => x.v !== Math.abs(p.b)).map((x) => x.v), ...p.kand.filter((c) => c.warum !== 'weg' && c.v > 0 && c.v !== Math.abs(p.b)).map((c) => c.v)])].slice(0, 4);
+    }
+    // Pfand gehört zum Artikel direkt darüber (Einweg-/Mehrwegpfand wird je Flasche direkt nach ihr berechnet)
+    for (let k = posten.length - 1; k > 0; k--) {
+      const p = posten[k], vor = posten[k - 1];
+      if (p.zuschlag || vor.zuschlag || !/^\W*(pfand|einweg|mehrweg|deposit|depot|vasilhame|tara)(?![a-z])/i.test(ohneAkz(p.t)) || p.b <= 0) continue;
+      // nicht an Rabatt-/Pfandzeilen oder negative Beträge hängen (Test 30.10.: „Rabatt −0,30“ + „Pfand 0,25“ wurde −0,05)
+      if (/^\W*(pfand|einweg|mehrweg|deposit|depot)(?![a-z])/i.test(ohneAkz(vor.t)) || W.rabatt.test(ohneAkz(vor.t)) || vor.b <= 0 || p.zeile - vor.zeile > 2) continue;
+      vor.pfand = (vor.pfand || 0) + p.b; vor.b += p.b; vor.zeile2 = p.zeile; vor.sicherheit = Math.min(vor.sicherheit ?? 100, p.sicherheit ?? 100);
+      if (vor.einzel) vor.einzel = null; // Stückpreis gilt nicht mehr für den Betrag inkl. Pfand
+      vor.rahmen = vor.rahmen && p.rahmen ? { x0: Math.min(vor.rahmen.x0, p.rahmen.x0), y0: Math.min(vor.rahmen.y0, p.rahmen.y0), x1: Math.max(vor.rahmen.x1, p.rahmen.x1), y1: Math.max(vor.rahmen.y1, p.rahmen.y1) } : vor.rahmen;
+      vor.vorschlag = []; info[p.zeile].typ = 'pfand'; info[p.zeile].zu = k - 1; posten.splice(k, 1);
     }
     // „3 x Espresso 7,50“ ohne gedruckten Einzelpreis: geht der Betrag glatt auf, je Stück teilbar machen
     for (const p of posten) if (!p.zuschlag && p.menge > 1 && !p.einzel && p.b > 0 && p.b % p.menge === 0) p.einzel = p.b / p.menge;
@@ -616,7 +707,9 @@ window.Bon = (() => {
   // Güte eines Ergebnisses: Summe stimmt mit QR/Tabelle > sichere Posten > viele Posten > sichere Wörter
   function guete(r, woerter) {
     const sicher = r.posten.filter((p) => p.sicher).length, gut = woerter.filter((x) => x.c > 70).length;
-    return (r.pruefung && r.pruefung.gesamtOk ? 10000 : 0) + (r.total != null && r.summe === r.total ? 5000 : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1;
+    // verrutschte Zuordnung (Betrag der Nachbarzeile) erzeugt Posten ohne Namen und Namenszeilen ohne Betrag – beides kostet
+    const namenlos = r.posten.filter((p) => p.nameUnsicher && !p.fehlt).length, waisen = (r.zeilen || []).filter((z) => z.typ === 'unklar').length;
+    return (r.pruefung && r.pruefung.gesamtOk ? 10000 : 0) + (r.total != null && r.summe === r.total ? 5000 : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1 - 150 * (namenlos + waisen);
   }
   // Name aus einer neu gelesenen Zeile ziehen („… Uni NAME 13% …“)
   function nameAusZeile(t) {
@@ -642,7 +735,41 @@ window.Bon = (() => {
   // Bild verbessern für weitere Durchläufe (gleiche Größe, damit Kästen gültig bleiben):
   //  'kontrast': örtlicher Lichtausgleich (gegen Schatten) halb eingemischt + leichtes Schärfen (gegen Unschärfe)
   //  'dunkel':   Gammakurve 1,8 – blasser Thermodruck wird dunkler, Papier bleibt hell
+  // Scan-Bild wie ein Dokumentscanner („Dokument“-Filter): Papierhelligkeit samt Schatten und Knicken schätzen und
+  // herausrechnen → weißes Papier, gleichmäßig dunkle Schrift. Hintergrund = örtliches Maximum (die Schrift verschwindet,
+  // Radius ≈ Zeilenhöhe) und Mittelung auf 1/6 Größe, wieder hochskaliert; dann Pixel ÷ Hintergrund, Kontrast gestreckt.
+  function scanBild(c) {
+    const w = c.width, h = c.height, { y, d } = grau(c), p = d.data, n = w * h;
+    const sw = Math.max(8, Math.round(w / 6)), sh = Math.max(8, Math.round(h / 6));
+    const k = document.createElement('canvas'); k.width = sw; k.height = sh;
+    const kg = k.getContext('2d', { willReadFrequently: true }); kg.imageSmoothingQuality = 'high'; kg.drawImage(c, 0, 0, sw, sh);
+    const kd = kg.getImageData(0, 0, sw, sh), kp = kd.data, m = sw * sh;
+    let b = new Float32Array(m); for (let i = 0; i < m; i++) b[i] = 0.299 * kp[i * 4] + 0.587 * kp[i * 4 + 1] + 0.114 * kp[i * 4 + 2];
+    const r = Math.max(2, Math.round(Math.min(sw, sh) / 40));
+    const lauf = (src, max, waag) => { // trennbarer Max- bzw. Mittelwertfilter
+      const o = new Float32Array(m), L = waag ? sw : sh, Q = waag ? sh : sw;
+      for (let q = 0; q < Q; q++) for (let l = 0; l < L; l++) {
+        let a = max ? 0 : 0, z = 0;
+        for (let t = Math.max(0, l - r); t <= Math.min(L - 1, l + r); t++) { const v = src[waag ? q * sw + t : t * sw + q]; if (max) { if (v > a) a = v; } else { a += v; z++; } }
+        o[waag ? q * sw + l : l * sw + q] = max ? a : a / z;
+      }
+      return o;
+    };
+    b = lauf(lauf(lauf(lauf(b, true, true), true, false), false, true), false, false);
+    for (let i = 0; i < m; i++) { kp[i * 4] = kp[i * 4 + 1] = kp[i * 4 + 2] = b[i]; kp[i * 4 + 3] = 255; }
+    kg.putImageData(kd, 0, 0);
+    const gross = document.createElement('canvas'); gross.width = w; gross.height = h;
+    const gg = gross.getContext('2d', { willReadFrequently: true }); gg.imageSmoothingQuality = 'high'; gg.drawImage(k, 0, 0, w, h);
+    const bg = gg.getImageData(0, 0, w, h).data;
+    for (let i = 0; i < n; i++) {
+      const v = (255 * y[i]) / Math.max(24, bg[i * 4]), x = Math.max(0, Math.min(255, ((v - 40) * 255) / 200));
+      p[i * 4] = p[i * 4 + 1] = p[i * 4 + 2] = x; p[i * 4 + 3] = 255;
+    }
+    gg.putImageData(d, 0, 0);
+    return gross;
+  }
   function verbessern(c, art) {
+    if (art === 'scan') return scanBild(c);
     const w = c.width, h = c.height, { y, d, g } = grau(c), p = d.data, n = w * h;
     let v = new Float32Array(n);
     if (art === 'dunkel') for (let i = 0; i < n; i++) v[i] = 255 * Math.pow(y[i] / 255, 1.8);
@@ -709,13 +836,15 @@ window.Bon = (() => {
     if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
     const versuche = [], alle = []; let beste = null;
     // lauf: leinwand wird gelesen, anzeige ist das Bild für die App (bei verbesserten Durchläufen das Original)
-    const lauf = async (leinwand, psm, name, ecken, fort, anzeige) => {
+    const lauf = async (leinwand, psm, name, ecken, fort, anzeige, gerade = name !== 'foto') => {
       let v, woerter, roh = '';
       if (paddle) { v = { canvas: anzeige || leinwand, lese: leinwand, winkel: 0 }; woerter = await window.FasanOCR.woerter(leinwand, { melde: fort }); }
       else { v = await vorbereiten(leinwand, !!ecken); v.lese = v.canvas; const l = await worterLesen(w, v.canvas, psm); woerter = l.woerter; roh = l.roh; }
-      const z = zeilenAus(woerter), r = lies(z, qr), g = guete(r, woerter);
+      let z = zeilenAus(woerter, { gerade }), r = lies(z, qr), g = guete(r, woerter);
+      const z2 = zeilenSpalten(woerter);
+      if (z2) { const r2 = lies(z2, qr), g2 = guete(r2, woerter); if (g2 > g) { z = z2; r = r2; g = g2; name += `+spalten(${z2.spalten.versatz})`; } }
       versuche.push(`${name}:${Math.round(g)}`);
-      const e = { g, r, v, roh, name, ecken, z }; alle.push(e);
+      const e = { g, r, v, roh, name, ecken, z, gerade }; alle.push(e);
       if (!beste || g > beste.g) beste = e;
       lauf.lesbar = woerter.length ? woerter.filter((x) => x.c > 80).length / woerter.length : 0;
       return g;
@@ -728,18 +857,31 @@ window.Bon = (() => {
     }
     if (!beste || beste.g < 5000) {
       // ganzes Foto: PaddleOCR braucht keine Vorverarbeitung; schräge Zeilen fängt die Neigung je Textkasten auf (zeilenAus)
-      if (paddle) { if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; }); await lauf(fotoLeinwand(foto), 11, 'foto', null, stufe('Ganzes Foto wird gelesen', 0.14, 0.4)); }
+      if (paddle) {
+        if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; });
+        const fl = fotoLeinwand(foto); await lauf(fl, 11, 'foto', null, stufe('Ganzes Foto wird gelesen', 0.14, 0.3));
+        // Bon aus der Schrift bestimmen, entzerren und in voller Auflösung neu lesen (Dokumentscanner-Prinzip)
+        const fp = alle[alle.length - 1], ec = fp && textViereck(fp.z, fl.width, fl.height);
+        if (ec && window.BonBild) {
+          const f = fl.width / foto.width, ecO = ec.map(([x, y]) => [x / f, y / f]);
+          const e = window.BonBild.entzerre(foto, ecO), sc = window.BonBild.gerade(e.canvas);
+          await lauf(sc.canvas, 6, 'begradigt', ecO, stufe('Bon wird begradigt und neu gelesen', 0.3, 0.4));
+        }
+      }
       else await lauf(daten, 11, 'foto', null);
     }
     // 3. PaddleOCR, Summe noch nicht bestätigt: weitere Durchläufe mit verbessertem Bild (Kontrast/Schärfe, dunkler)
     if (paddle && !(beste.r.pruefung && beste.r.pruefung.gesamtOk)) {
       const quelle = beste.v.canvas;
-      await lauf(verbessern(quelle, 'kontrast'), 6, 'kontrast', beste.ecken, stufe('Bild wird verbessert und neu gelesen', 0.4, 0.52), quelle);
-      if (!(beste.r.pruefung && beste.r.pruefung.gesamtOk)) await lauf(verbessern(quelle, 'dunkel'), 6, 'dunkel', beste.ecken, stufe('Blasser Druck wird verstärkt gelesen', 0.52, 0.64), quelle);
+      const gerade = beste.gerade;
+      await lauf(verbessern(quelle, 'scan'), 6, 'scan', beste.ecken, stufe('Bon wird wie gescannt aufbereitet und neu gelesen', 0.4, 0.46), quelle, gerade);
+      if (!(beste.r.pruefung && beste.r.pruefung.gesamtOk)) await lauf(verbessern(quelle, 'kontrast'), 6, 'kontrast', beste.ecken, stufe('Bild wird verbessert und neu gelesen', 0.46, 0.55), quelle, gerade);
+      if (!(beste.r.pruefung && beste.r.pruefung.gesamtOk)) await lauf(verbessern(quelle, 'dunkel'), 6, 'dunkel', beste.ecken, stufe('Blasser Druck wird verstärkt gelesen', 0.55, 0.64), quelle, gerade);
     }
     if (!paddle && beste.name !== 'foto') await nachlesen(w, beste.v.canvas, beste.r.posten.filter((p) => !p.fehlt));
     // 4. PaddleOCR: jeden Betrag im Postenblock mehrfach lesen (auch wenn die Summe schon stimmt – zwei Lesefehler können sich
     //    aufheben, und die Lesesicherheit je Posten braucht mehrere Lesungen); Zeilen ohne Betrag rechts nachlesen
+    window.__bonAlle = alle; // zur Fehlersuche (Testskripte)
     // Nachlesen auf dem ersten (Original-)Durchlauf und auf dem besten, falls verschieden; das bessere Endergebnis gewinnt
     const kandidaten = paddle ? [...new Set([alle[0], beste])] : [];
     let ende = beste;
@@ -750,13 +892,25 @@ window.Bon = (() => {
       const betragsWort = (zl) => (zl.w || []).filter((x) => /\d[.,]\s?\d{2}(?!\d)/.test(x.t)).pop();
       const kanten = gruppe.map(({ i }) => betragsWort(z[i])).filter(Boolean).map((x) => x.b.x1).sort((a, b) => a - b);
       const spalteR = kanten.length ? kanten[kanten.length >> 1] : v.canvas.width * 0.95;
+      // Betragsspalte (x-Bereich) aus allen Ziffernkästen im Block – auch aus Bruchstücken wie „2,“ und „59“
+      const ziffern = gruppe.flatMap(({ i }) => (z[i] && z[i].w ? z[i].w : []).filter((x) => /\d/.test(x.t) && !/[a-z]{3,}/i.test(x.t) && x.b.x0 > v.canvas.width * 0.45));
+      const pct = (a, q) => { const s2 = [...a].sort((p, r) => p - r); return s2.length ? s2[Math.min(s2.length - 1, Math.floor(s2.length * q))] : null; };
+      const spX0 = pct(ziffern.map((x) => x.b.x0), 0.15), spX1 = pct(ziffern.filter((x) => /\d$/.test(x.t.trim())).map((x) => x.b.x1), 0.85);
       const dunkel = verbessern(v.canvas, 'dunkel'), kontrast = verbessern(v.canvas, 'kontrast');
       let n = 0;
       for (const { x, i } of gruppe) {
         const zl = z[i]; if (!zl) continue;
         const bw = betragsWort(zl);
         let k = null, verschmolzen = false;
-        if (bw) {
+        // Zeilenhöhe aus den Wörtern links der Betragsspalte (Name): die Namen sind verlässlich, Betragskästen nicht immer
+        const namen = (zl.w || []).filter((y) => spX0 == null || y.b.x1 < spX0 - 2), med2 = (a) => [...a].sort((p, q) => p - q)[a.length >> 1];
+        if (namen.length && spX0 != null && spX1 != null && spX1 > spX0) {
+          const y0 = med2(namen.map((y) => y.b.y0)), y1 = med2(namen.map((y) => y.b.y1)), hz = y1 - y0;
+          k = { x0: Math.max(0, spX0 - hz * 0.3), x1: Math.min(v.canvas.width, spX1 + hz * 0.3), y0, y1 };
+          // hängt an der Zeile ein Betrag aus der Nachbarzeile (Mitte deutlich verschoben), zählt seine Erstlesung nicht
+          if (bw) { const versatz = Math.abs((bw.b.y0 + bw.b.y1) / 2 - (y0 + y1) / 2); zl.erstUnsicher = versatz > 0.35 * hz; }
+          verschmolzen = !!(bw && zl.erstUnsicher);
+        } else if (bw) {
           // Ist der Betragskasten deutlich höher als die übrigen Wörter der Zeile, hat die Erkennung ihn mit der Nachbarzeile
           // verschmolzen: dann auf Höhe der Zeile (Name, Steuersatz) nachlesen, nicht im eigenen Kasten
           const rest = (zl.w || []).filter((y) => y !== bw), med = (a) => a.sort((p, q) => p - q)[a.length >> 1];
@@ -781,8 +935,10 @@ window.Bon = (() => {
     }
     if (paddle) { stufe('Fertig', 0.98, 1)({ progress: 1 }); if (window.FasanOCR.frei) window.FasanOCR.frei(); }
     const { r, v, roh, name, ecken } = ende;
-    for (const p of r.posten) p.schnipsel = schnipsel(v.canvas, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
-    return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: v.canvas.toDataURL('image/jpeg', 0.82), winkel: v.winkel, roh, ecken };
+    // Anzeige: begradigter Bon als „Scan“ (weißes Papier, ohne Schatten) – besser lesbar als das Foto; Original bleibt als foto
+    let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas); } catch (e) { anzeige = v.canvas; } }
+    for (const p of r.posten) p.schnipsel = schnipsel(anzeige, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
+    return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), winkel: v.winkel, roh, ecken };
   }
   return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
 })();

@@ -72,14 +72,21 @@ const motor = (() => {
     return t;
   }
   // Größe für die Erkennung: höchstens ~2,4 Mio. Pixel und 2560 px lange Seite (Speicher im Handy), mindestens 32
-  function detGroesse(w, h) {
-    let f = Math.min(1, 2560 / Math.max(w, h), Math.sqrt(2.4e6 / (w * h)));
-    const ww = Math.max(32, Math.round((w * f) / 32) * 32), hh = Math.max(32, Math.round((h * f) / 32) * 32);
+  // dehnen > 1: Bild für die Erkennung senkrecht strecken. Kassenbons in Festbreitenschrift haben weite Zeichen- und enge
+  // Zeilenabstände; dann verbindet die Texterkennung übereinander stehende Ziffern zu senkrechten „Zeilen“ (Spalte „1 2 1 0 …“).
+  // Gestreckt wird der Zeilenabstand größer als der Zeichenabstand und jede Zeile wird wieder ein eigener Kasten.
+  function detGroesse(w, h, dehnen = 1) {
+    let f = Math.min(1, 2560 / Math.max(w, h * dehnen), Math.sqrt(2.4e6 / (w * h * dehnen)));
+    const ww = Math.max(32, Math.round((w * f) / 32) * 32), hh = Math.max(32, Math.round((h * f * dehnen) / 32) * 32);
     return { ww, hh, fx: ww / w, fy: hh / h };
   }
   async function finde(leinwand, opt = {}) {
     const m = await lade(opt.melde);
-    const { ww, hh, fx, fy } = detGroesse(leinwand.width, leinwand.height);
+    let ww, hh, fx, fy;
+    if (opt.skala) { // feste Maßstäbe [x, y] (Ausschnitt einer Betragsspalte, siehe woerter)
+      ww = Math.max(32, Math.round((leinwand.width * opt.skala[0]) / 32) * 32); hh = Math.max(32, Math.round((leinwand.height * opt.skala[1]) / 32) * 32);
+      fx = ww / leinwand.width; fy = hh / leinwand.height;
+    } else ({ ww, hh, fx, fy } = detGroesse(leinwand.width, leinwand.height, opt.dehnen || 1));
     const c = neueLeinwand(); c.width = ww; c.height = hh;
     const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(leinwand, 0, 0, ww, hh);
     const x = new m.ort.Tensor('float32', bgrTensor(g, ww, hh, [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]), [1, 3, hh, ww]);
@@ -148,7 +155,56 @@ const motor = (() => {
   // Ganze Seite: Kästen finden, jeden lesen. Ergebnis wie Tesseract-Wörter: { t, c (0–100), b: {x0,y0,x1,y1}, zeichen }
   async function woerter(leinwand, opt = {}) {
     const m = await lade(opt.melde);
-    const k = await finde(leinwand, opt), out = [];
+    let k = await finde(leinwand, opt); const out = [];
+    // Festbreitenschrift mit engem Zeilenabstand (deutsche Supermarkt-Bons): übereinander stehende Ziffern/Steuerbuchstaben
+    // werden zu hohen, schmalen Kästen verbunden (Test 30.10., REWE: Spalte „1 2 1 0 0 0 1 0“ als ein Kasten, Beträge fehlten).
+    // Dann die Erkennung auf einem senkrecht gestreckten Bild wiederholen und nur diese Bereiche durch deren Kästen ersetzen
+    // (gestreckt trennen sich die Zeilen; doppelt hohe Schrift wie „SUMME“ zerfällt dort aber, darum nicht überall).
+    if (opt.dehnen == null) {
+      const fl = (q) => Math.max(1, (q.x1 - q.x0) * (q.y1 - q.y0));
+      const schnitt = (q, r) => Math.max(0, Math.min(q.x1, r.x1) - Math.max(q.x0, r.x0)) * Math.max(0, Math.min(q.y1, r.y1) - Math.max(q.y0, r.y0));
+      const hs0 = k.filter((q) => q.x1 - q.x0 > 1.5 * (q.y1 - q.y0)).map((q) => q.y1 - q.y0).sort((a, b) => a - b), med0 = hs0.length ? hs0[hs0.length >> 1] : 0;
+      const hoch = med0 ? k.filter((q) => q.y1 - q.y0 > 2.2 * med0 && q.y1 - q.y0 > 0.8 * (q.x1 - q.x0)) : [];
+      if (hoch.length) {
+        const k2 = await finde(leinwand, { ...opt, dehnen: 2.2 });
+        let neu = k2.filter((q) => hoch.some((t) => schnitt(q, t) > 0.25 * fl(q)));
+        // oben/unten anschließende Kästen derselben Spalte mitnehmen (die senkrechte Fläche beginnt oft erst in der 2. Zeile)
+        const sx0 = Math.min(...hoch.map((q) => q.x0)), sx1 = Math.max(...hoch.map((q) => q.x1));
+        for (let mehr = neu.length > 0; mehr;) {
+          mehr = false; const oben = Math.min(...neu.map((q) => q.y0)), unten = Math.max(...neu.map((q) => q.y1)), tol = 0.05 * med0;
+          for (const q of k2) {
+            if (neu.includes(q) || Math.min(q.x1, sx1) - Math.max(q.x0, sx0) < 0.5 * (q.x1 - q.x0)) continue;
+            if ((q.y0 < oben && q.y1 >= oben - tol) || (q.y1 > unten && q.y0 <= unten + tol)) { neu.push(q); mehr = true; }
+          }
+        }
+        // auch gestreckt bleiben manchmal zwei Zeilen verbunden (Kopf „EUR“ über dem ersten Betrag): solche hohen Kästen am
+        // Zeilenraster der gut getrennten Nachbarn teilen (Mitte = Nachbarmitte + k × Zeilenabstand)
+        const hN = neu.map((q) => q.y1 - q.y0).sort((a, b) => a - b)[neu.length >> 1] || 0;
+        const gut = neu.filter((q) => q.y1 - q.y0 < 1.5 * hN).sort((a, b) => a.y0 + a.y1 - b.y0 - b.y1);
+        const abst = gut.slice(1).map((q, i) => (q.y0 + q.y1 - gut[i].y0 - gut[i].y1) / 2).filter((d) => d > 0.5 * hN && d < 1.6 * hN).sort((a, b) => a - b);
+        const p = abst[abst.length >> 1];
+        if (p) neu = neu.flatMap((t) => {
+          if (t.y1 - t.y0 < 1.5 * hN) return [t];
+          const g = gut.reduce((b, q) => (!b || Math.abs(q.y0 + q.y1 - t.y0 - t.y1) < Math.abs(b.y0 + b.y1 - t.y0 - t.y1) ? q : b), null); if (!g) return [];
+          const out2 = [], c0 = (g.y0 + g.y1) / 2;
+          for (let j = Math.ceil((t.y0 + 0.3 * p - c0) / p); c0 + j * p <= t.y1 - 0.3 * p; j++) { const c = c0 + j * p; out2.push({ ...t, y0: c - hN / 2, y1: c + hN / 2, geteiltRaster: true }); }
+          return out2;
+        });
+        if (neu.length >= hoch.length) k = k.filter((q) => !hoch.includes(q) && !neu.some((n) => schnitt(q, n) > 0.3 * fl(q))).concat(neu);
+      }
+    }
+    // Dicht gedruckte Bons: aufgeweitete Kästen (unclip) reichen in die Nachbarzeilen, besonders auf vergrößerten Bildern
+    // (Test 30.10.: Kästen 90 px hoch bei 46 px Zeilenabstand → Lesung aus zwei Zeilen gemischt). Höhe jedes Kastens auf
+    // den Abstand zur nächsten Zeile darüber/darunter (mit waagrechter Überlappung) begrenzen.
+    for (const q of k) {
+      const cy = (q.y0 + q.y1) / 2; let ab = Infinity;
+      for (const r of k) {
+        if (r === q) continue;
+        const ueber = Math.min(q.x1, r.x1) - Math.max(q.x0, r.x0); if (ueber < 0.3 * Math.min(q.x1 - q.x0, r.x1 - r.x0)) continue;
+        const d = Math.abs((r.y0 + r.y1) / 2 - cy); if (d > 2 && d < ab) ab = d;
+      }
+      if (ab < Infinity && q.y1 - q.y0 > 1.12 * ab) { const hh = Math.max(ab * 1.04, 8) / 2; q.y0 = cy - hh; q.y1 = cy + hh; q.begrenzt = true; }
+    }
     // Typische Zeilenhöhe (Median der breiten Kästen). Dicht gedruckte Bons: die Erkennung verschmilzt manchmal zwei
     // übereinander stehende Beträge zu einem hohen Kasten, der dann Unsinn liest (Test 29.10., „2,50“ → „1,50“).
     const hs = k.filter((q) => q.x1 - q.x0 > 1.5 * (q.y1 - q.y0)).map((q) => q.y1 - q.y0).sort((a, b) => a - b);

@@ -1,2 +1,1 @@
-Artikel mit Koordinaten: 243
-Gespeichert: 241 Artikel; Beispiele: ['Bairro Alto', 'Palácio Valada-Azambuja', 'Igreja de São Roque (Lissabon)', 'Igreja de Santa Catarina (Lissabon)', 'Santa Catarina (Lissabon)', 'Encarnação (Lissabon)', 'São Paulo (Lissabon)', 'São Mamede (Lissabon)', 'Sacramento (Lissabon)', 'Mártires (Lissabon)', 'Misericórdia', 'Mercês (Lissabon)', 'Farmácia Barreto', 'Cervejaria da Trindade', 'Teatro da Trindade']
+stadtfuehrer.json ist jünger als 6 Tage, kein neuer Abruf

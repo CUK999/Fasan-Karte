@@ -14,4 +14,4 @@ node einheit.mjs                                                      # Summenpr
 ```
 Playwright wird unter `/opt/node-tools/node_modules/playwright` erwartet (Pfad in den .mjs-Dateien anpassen).
 
-Pfand hängt die Erkennung an den Artikel darüber (Betrag inkl. Pfand, Feld `pfand`); `e2e.mjs` trennt ihn für den Vergleich wieder ab.
+Pfand, Rabatt und Extras hängt die Erkennung an einen Artikel (Betrag inklusive, Feld `zusaetze`); `e2e.mjs` trennt sie für den Vergleich wieder ab.

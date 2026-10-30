@@ -109,9 +109,15 @@ window.Bon = (() => {
   // opt.gerade: Bild ist schon entzerrt/gerade gedreht. Dann stammt eine gemessene Neigung meist von gewelltem Papier (links
   // schräg, rechts flach) und darf nicht über die ganze Breite fortgesetzt werden (Test 30.10., REWE: Namen mit Neigung 0,05
   // → Betrag 40 px tiefer gesucht → jede Zeile bekam den Betrag der nächsten). Darum dort höchstens ±0,02 (≈ 1°).
+  // Krümel: kleine Kästen mit geringer Sicherheit (Knick, Fleck, Stempelrest → „o“, „opi“). Sie stahlen beim Spaltenabgleich
+  // den Betrag einer echten Zeile (Test 30.10., REWE gedreht: „o“ auf Höhe von „1,11“ → EXQUISA ohne Betrag).
+  function ohneKrumen(woerter) {
+    const w = woerter.filter((x) => x.t.trim() && x.c > 15), hs = w.map((x) => x.b.y1 - x.b.y0).sort((a, b) => a - b), mh = hs[hs.length >> 1] || 0;
+    return w.filter((x) => !(x.c < 60 && x.t.replace(/[^A-Za-z0-9]/g, '').length <= 3 && x.b.y1 - x.b.y0 < 0.6 * mh));
+  }
   function zeilenAus(woerter, opt = {}) {
     // Höhe ohne den Anteil, den die Schräglage zum Rahmen beiträgt (sonst würden Nachbarzeilen mitgefangen)
-    const w = woerter.filter((x) => x.t.trim() && x.c > 15).map((x) => ({ ...x, cy: (x.b.y0 + x.b.y1) / 2, h: Math.max(4, x.b.y1 - x.b.y0 - (x.neig ? Math.abs(x.neig) * (x.b.x1 - x.b.x0) : 0)) }));
+    const w = ohneKrumen(woerter).map((x) => ({ ...x, cy: (x.b.y0 + x.b.y1) / 2, h: Math.max(4, x.b.y1 - x.b.y0 - (x.neig ? Math.abs(x.neig) * (x.b.x1 - x.b.x0) : 0)) }));
     w.sort((a, b) => a.b.x0 - b.b.x0);
     // Neigung am Ort: Median der Neigungen langer Kästen in der Nähe (kurze Wörter haben keine verlässliche Richtung);
     // bei Perspektive ändert sich die Neigung über die Höhe des Bons, darum örtlich statt einer für alle.
@@ -190,7 +196,7 @@ window.Bon = (() => {
   // verrutscht (Test 30.10., REWE-Bon: Beträge eine halbe Zeile höher). Der beste gleichbleibende Versatz wird gesucht,
   // die Paarung ist eine Sequenz-Ausrichtung (Needleman-Wunsch) mit Lücken für Zeilen ohne Partner.
   function zeilenSpalten(woerter) {
-    const w = woerter.filter((x) => x.t.trim() && x.c > 15);
+    const w = ohneKrumen(woerter);
     const istBetrag = (t) => /-?\d+[.,]\s?\d{2}(?!\d)/.test(t) && !/[a-z]{4,}/i.test(t.replace(/euro?/gi, ''));
     const bet = w.filter((x) => istBetrag(x.t)); if (bet.length < 3) return null;
     const hs = w.map((x) => x.b.y1 - x.b.y0).sort((a, b) => a - b), h = hs[hs.length >> 1];
@@ -208,7 +214,7 @@ window.Bon = (() => {
     for (const [i, j] of best.paare) { out.push(zeileFertig({ w: [...L[i].w, ...R[j].w] })); nimmR.add(j); L[i].genommen = true; }
     for (const z of L) if (!z.genommen) out.push(z);
     R.forEach((z, j) => { if (!nimmR.has(j)) out.push(z); });
-    out.spalten = { versatz: +(best.off / pitch).toFixed(2), paare: best.paare.length };
+    out.spalten = { versatz: +(best.off / pitch).toFixed(2), paare: best.paare.length, pitch, L: L.map((z) => Math.round(cy(z)) + ':' + z.text.slice(0, 12)), R: R.map((z) => Math.round(cy(z)) + ':' + z.text.slice(0, 12)), P: best.paare.map(([i, j]) => i + '-' + j).join(' ') };
     return out.sort((a, b) => cy(a) - cy(b));
   }
   function reihenAbgleich(L, R, off, pitch) {
@@ -217,7 +223,8 @@ window.Bon = (() => {
     for (let i = 1; i <= n; i++) { D[i][0] = i * LUECKE_L; W[i][0] = 1; }
     for (let j = 1; j <= m; j++) { D[0][j] = j * LUECKE_R; W[0][j] = 2; }
     for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
-      const d = Math.abs(cy(R[j - 1]) - cy(L[i - 1]) - off) / pitch, paar = d < 0.6 ? D[i - 1][j - 1] + d * d * 2 : Infinity;
+      const d = Math.abs(cy(R[j - 1]) - cy(L[i - 1]) - off) / pitch, ohneName = (L[i - 1].text.match(/[A-Za-zÀ-ÿ]/g) || []).length < 2 ? 0.5 : 0;
+      const paar = d < 0.6 ? D[i - 1][j - 1] + d * d * 2 + ohneName : Infinity;
       const a = D[i - 1][j] + LUECKE_L, b = D[i][j - 1] + LUECKE_R;
       if (paar <= a && paar <= b) { D[i][j] = paar; W[i][j] = 0; } else if (a <= b) { D[i][j] = a; W[i][j] = 1; } else { D[i][j] = b; W[i][j] = 2; }
     }
@@ -249,11 +256,23 @@ window.Bon = (() => {
   const W = {
     summe: /\b(total|totaal|totale|totalt|gesamt|gesamtbetrag|gesamtsumme|summe|endsumme|endbetrag|zu zahlen|zahlbetrag|importe|a pagar|montant|net a payer|te betalen|suma|razem|celkem|osszesen|yhteensa|att betala|i alt|ukupno|toplam|kokku|amount due|balance due)\b/,
     zwischen: /\b(sub-?total|subtotale|subtotaal|sous-?total|zwischensumme|zw\.? ?summe)\b/,
-    steuer: /\b(mwst|mw\.?st|ust|vat|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incid|incidencia|incidencias|imponible|imponibile|imposta|taxa|base|tributavel|ht|sem iva|net)\b/,
+    steuer: /\b(mwst|mw\.?st|ust|vat|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incid|incidencia|incidencias|imponible|imponibile|imposta|taxa iva|base|tributavel|ht|sem iva|net)\b/,
     service: /\b(service|bedienung|trinkgeld|tip|tips|gratuity|servizio|pourboire|fooi|propina)\b/,
     zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|entregue|valor entregue|pago|pagamento|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
     rueck: /\b(ruckgeld|wechselgeld|change|cambio|vuelto|rendu|resto|troco|wisselgeld)\b/,
-    rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|leergut|pfandruckgabe)\b/,
+    rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|preisvorteil|sofortrabatt|ersparnis|sie sparen|you save|reduziert|mhd|aktion|promo|promocao|oferta)\b/,
+    // Rückgabe von Leergut: Gutschrift für früher gekaufte Flaschen, gehört keinem Artikel auf diesem Bon
+    leergut: /\b(leergut|leergutbon|pfandbon|pfandruckgabe|pfand-?ruckgabe|pfandgutschrift|bottle return|statiegeld retour|retorno de vasilhame|devolucao de tara)\b/,
+    // Storno: hebt einen Artikel weiter oben auf (beide Zeilen stehen auf dem Bon)
+    storno: /\b(storno|storniert|stornierung|void|voided|anulad[oa]|anulacao|anulacion|annullat[oa]|annulation|annule|cancelled|canceled|cancelado|ruckbuchung|correcao)\b/,
+    // Kaution: wird erstattet (Fahrrad, Schlüssel, Wohnung) – steht sie als Posten auf dem Bon, ist sie keine geteilte Ausgabe
+    kaution: /\b(kaution|caucao|fianza|cauzione|security deposit|damage deposit|deposito de garantia|deposito caucao)\b/,
+    // Nur blockiert/reserviert (Mietwagen, Hotel): wird nicht abgebucht, zählt nie
+    vorab: /\b(vorautorisierung|vorautorisiert|pre-?auth\w*|pre-?autoriza\w*|blockiert|blockierung|reserviert|reservierung des betrags|hold|retencao|retid[oa]|cativo|cativa|bloqueado)\b/,
+    // Anzahlung/Vorauszahlung: schon bezahlt, kein Artikel (Hotel, Mietwagen, Ferienwohnung)
+    anzahlung: /\b(anzahlung|vorauszahlung|vorauskasse|bereits bezahlt|bereits gezahlt|advance payment|advance deposit|prepaid|pre-?payment|deposit paid|sinal|adiantamento|pagamento antecipado|acconto|anticipo|arrhes|acompte)\b/,
+    ortstaxe: /\b(kurtaxe|ortstaxe|kurbeitrag|gastetaxe|city tax|tourist tax|tourism tax|taxa turistica|taxa municipal turistica|tassa di soggiorno|taxe de sejour|tasa turistica|toeristenbelasting)\b/,
+    rundung: /\b(rundung|gerundet|rounding|arredondamento|redondeo|arrotondamento|arrondi|afronding|pyoristys|avrundning|oresavrundning)\b/,
     nein: /\b(uid|ust-?idnr|ust-?id|vat no|capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
     // Spaltenüberschrift über den Posten („Qt Descrição P.Unit. Tx Valor“, „Menge Artikel Preis Betrag“)
     kopf: /\b(qt|qtd|qty|qte|quant|quantidade|menge|anz|anzahl|descri[cç]?[aã]?o|descricao|descripcion|description|bezeichnung|artikel|artigo|article|articulo|produkt|produto|p\.?\s?unit|p\.?\s?u|preco|preis|price|prix|precio|prezzo|valor|betrag|amount|montant|importe|importo|tx|vat|mwst|einzel)\b/g,
@@ -298,7 +317,7 @@ window.Bon = (() => {
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
     return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
-      .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
+      .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+\d{3,5}\s?[A-D]\s*\*?\s*$/, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
   // Stimmen aus mehreren Lesungen desselben Betrags (z.mehr, aus erkenne): Anteil der Stimmen → Kosten im Abgleich
@@ -308,6 +327,78 @@ window.Bon = (() => {
     for (const m of mehr || []) { const b = betraege(m.t, dez).pop(); if (b) add(b.v, m.c); }
     const ges = [...zaehl.values()].reduce((a, x) => a + x, 0) || 1;
     return [...zaehl].sort((a, b) => b[1] - a[1]).map(([v, x]) => ({ v, k: +(0.7 * (1 - x / ges)).toFixed(3), anteil: x / ges, warum: v === erst ? undefined : 'nachgelesen' }));
+  }
+  // ---------- Zusatzzeilen: Pfand, Rabatt gehören zu einem Artikel – darüber oder darunter ----------
+  const PFAND = /^\W*(pfand|einweg|mehrweg|einwegpfand|mehrwegpfand|flaschenpfand|dosenpfand|deposit|bottle deposit|crv|depot|statiegeld|pant|vasilhame|tara|dpg)(?![a-z])/;
+  const GETRAENK = /\b(cola|coke|pepsi|fanta|sprite|limo\w*|lemon\w*|koffein|energy|red ?bull|monster|iso\w*|saft|nektar|juice|smoothie|wasser|water|sprudel|mineral\w*|bier|beer|pils\w*|radler|weizen|helles|lager|wein|wine|sekt|prosecco|tee|tea|eistee|mate|schorle|spezi|drink|getranke?|sumo|agua|cerveja|vinho|refrigerante)\b|\b\d[.,]?\d{0,2}\s?(l|ltr|ml|cl)\b|\b(pet|dose|flasche|fl\.|can|btl)\b/;
+  const BON_RABATT = /\b(coupon|gutschein|bon-?rabatt|einkauf|gesamteinkauf|mitarbeiter|treue|payback|lidl plus|app-?rabatt|bonus|punkte|club|member|mitglied|warenkorb|einkaufswert)\b/;
+  function getraenk(t) {
+    const n = ohneAkz(t || '');
+    if (GETRAENK.test(n)) return 1;
+    // Obst zählt nicht als „kein Getränk“: Saft- und Limonadennamen heißen oft nach Früchten („TG Orange Mango“)
+    if (typeof window !== 'undefined' && window.Speisen) { const r = window.Speisen.erkenne(t || ''); if (r) return /☕|🫖|🥛|💧|🥤|🧃|🍺|🍻|🍷|🥂|🍸|🍹|🥃|🧉/u.test(r.s) ? 1 : /🍎|🍏|🍊|🍋|🍓|🫐|🍇|🍑|🥭|🍍|🍒|🍌|🥥|🍉|🍐|🥝/u.test(r.s) ? 0 : -1; }
+    return 0;
+  }
+  // Storno: „Artikel 1,29“ … „Storno 1,29-“ heben sich auf; beide verschwinden aus den Posten (Zeilen bleiben im Bild markiert)
+  function stornoPaare(posten, info) {
+    for (let k = posten.length - 1; k >= 0; k--) {
+      const s = posten[k]; if (s.art2 !== 'storno' || s.weg) continue;
+      let best = -1, bs = -1;
+      for (let j = k - 1; j >= 0; j--) { const q = posten[j]; if (q.art2 || q.storniert || q.b !== -s.b) continue; const sim = woerterGleich(q.t, s.t); if (sim > bs) { bs = sim; best = j; } }
+      if (best < 0) continue;
+      const q = posten[best]; q.storniert = s.storniert = true; info[q.zeile].typ = info[s.zeile].typ = 'storno';
+    }
+    for (let k = posten.length - 1; k >= 0; k--) if (posten[k].storniert) posten.splice(k, 1);
+  }
+  const woerterGleich = (a, b) => { const A = new Set(ohneAkz(a || '').split(/\W+/).filter((x) => x.length > 2)), B = ohneAkz(b || '').split(/\W+/).filter((x) => x.length > 2); return B.filter((x) => A.has(x)).length; };
+  // Abwägung je Zusatzzeile (Pfand > 0, Rabatt < 0) zwischen dem Artikel darüber und darunter (höchstens 2 Zeilen entfernt):
+  // Lage (Pfand/Rabatt stehen meist unter dem Artikel), gleicher Steuerbuchstabe (Pfand hat den Steuersatz des Getränks),
+  // Getränk (nur Getränke haben Pfand), Name im Rabatt-Text, Rabatt nie größer als der Artikel, Menge, schon belegt.
+  // Unter einer Schwelle bleibt die Zeile ein eigener Posten; die App bietet die Kandidaten zum Zuordnen an.
+  function zusaetzeZuordnen(posten, info) {
+    const istPfand = (p) => p.b > 0 && p.b <= 1500 && PFAND.test(ohneAkz(p.t || '')) && !p.art2;
+    const istRabatt = (p) => p.b < 0 && (p.art2 === 'rabatt' || (!p.art2 && p.nameUnsicher)) && !BON_RABATT.test(ohneAkz(info[p.zeile].z.text));
+    const artikel = (p) => p && !p.zuschlag && !p.art2 && !istPfand(p) && p.b > 0;
+    const istExtra = (p) => p.b > 0 && !p.art2 && /^\s*(\+|extra\b|zusatz\b|mit\b|add\b|com\b|con\b|avec\b|plus\b|suppl\w*)/i.test(info[p.zeile].z.text);
+    const zus = posten.filter((p) => istPfand(p) || istRabatt(p) || istExtra(p));
+    for (const z of zus) {
+      const k = posten.indexOf(z), art = istPfand(z) ? 'pfand' : istRabatt(z) ? 'rabatt' : 'extra';
+      const letzteZeile = (p) => Math.max(p.zeile, ...info.filter((r) => r.typ === 'teil' && r.zu === posten.indexOf(p)).map((r) => r.i));
+      const oben = [...posten.slice(0, k)].reverse().find((p) => artikel(p)), unten = posten.slice(k + 1).find((p) => artikel(p));
+      const kand = [];
+      if (oben && z.zeile - letzteZeile(oben) <= 2) kand.push({ p: oben, lage: 'oben', ab: z.zeile - letzteZeile(oben) });
+      if (unten && unten.zeile - z.zeile <= 2 && art !== 'extra') kand.push({ p: unten, lage: 'unten', ab: unten.zeile - z.zeile });
+      for (const c of kand) {
+        let s = c.lage === 'oben' ? 1 : 0.3;
+        s += c.ab === 1 ? 0.4 : -0.2;
+        if (z.stb && c.p.stb) s += z.stb === c.p.stb ? 1.5 : -2;
+        if (art === 'pfand') {
+          const g = getraenk(c.p.t); s += g > 0 ? 1.2 : g < 0 ? -1 : 0;
+          if ((c.p.zusaetze || []).some((x) => x.art === 'pfand') && !(c.p.menge > 1)) s -= 0.8;
+          const n = z.menge > 1 ? z.menge : Math.round(z.b / 25) === z.b / 25 && z.b / 25 > 1 && z.b / 25 <= 24 ? z.b / 25 : 1;
+          if (n > 1 && c.p.menge === n) s += 0.8;
+        } else if (art === 'extra') {
+          s += 1;
+        } else {
+          s += woerterGleich(c.p.t, info[z.zeile].z.text) ? 2 : 0;
+          s += Math.abs(z.b) < c.p.b ? 0.5 : -3;
+        }
+        c.s = +s.toFixed(2);
+      }
+      kand.sort((a, b) => b.s - a.s);
+      const wahl = kand[0] && kand[0].s >= 0.8 ? kand[0] : null;
+      const alt = kand.filter((c) => c !== wahl).map((c) => ({ zeile: c.p.zeile, s: c.s }));
+      if (!wahl) { z.zuKand = kand.map((c) => ({ zeile: c.p.zeile, s: c.s })); z.zusArt = art; continue; }
+      const q = wahl.p;
+      q.zusaetze = q.zusaetze || [];
+      q.zusaetze.push({ art, b: z.b, zeile: z.zeile, t: art === 'pfand' ? 'Pfand' : art === 'extra' ? z.t.replace(/^\W+/, '') : (z.nameUnsicher ? 'Rabatt' : z.t), alt, s: wahl.s, sicher: !alt.length || wahl.s - alt[0].s >= 1.5, rahmen: z.rahmen });
+      q.b += z.b; if (q.einzel) q.einzel = null; // Stückpreis gilt nicht mehr für den Betrag inkl. Pfand/Rabatt
+      q.sicherheit = Math.min(q.sicherheit ?? 100, z.sicherheit ?? 100);
+      q.rahmen = q.rahmen && z.rahmen ? { x0: Math.min(q.rahmen.x0, z.rahmen.x0), y0: Math.min(q.rahmen.y0, z.rahmen.y0), x1: Math.max(q.rahmen.x1, z.rahmen.x1), y1: Math.max(q.rahmen.y1, z.rahmen.y1) } : q.rahmen;
+      q.vorschlag = []; info[z.zeile].typ = art; z.weg2 = true;
+    }
+    for (let k = posten.length - 1; k >= 0; k--) if (posten[k].weg2) posten.splice(k, 1);
+    posten.forEach((p, i) => { info[p.zeile].zu = i; for (const x of p.zusaetze || []) info[x.zeile].zu = i; });
   }
   function liesAllgemein(zeilen, qr, art) {
     const dez = dezimal(zeilen);
@@ -323,20 +414,33 @@ window.Bon = (() => {
       else if (W.zwischen.test(n)) art = 'zwischen';
       else if (W.summe.test(n) && !W.steuer.test(n.replace(W.summe, ''))) art = 'summe';
       else if (W.rueck.test(n)) art = 'rueck';
+      else if (W.vorab.test(n)) art = 'vorab';
+      else if (W.anzahlung.test(n)) art = 'anzahlung';
       else if (W.zahlung.test(n) && !/\d\s*[x×*]\s*\d/.test(n)) art = 'zahlung';
+      else if (W.rundung.test(n)) art = 'rundung';
+      else if (W.leergut.test(n)) art = 'leergut';
+      else if (W.storno.test(n)) art = 'storno';
+      else if (W.kaution.test(n)) art = 'kaution';
+      else if (W.ortstaxe.test(n)) art = 'sonst'; // Kurtaxe/City Tax ist ein Posten (je Person und Nacht), keine Mehrwertsteuer
       else if (W.service.test(n)) art = 'service';
       else if (W.steuer.test(n) || /^\W*\d{1,2}([.,]\d+)?\s*%/.test(n)) art = 'steuer';
       else if (W.rabatt.test(n)) art = 'rabatt';
       else if (W.nein.test(n)) art = 'nein';
       // Menge × Einzelpreis in der Zeile: „2 x 4,90“, „3 X 0,79 2,37“, „0,512 kg x 2,99 €/kg“
       let menge = null, einzel = null;
-      const mx = new RegExp(`(\\d{1,3}(?:[.,]\\d{1,3})?)\\s*(?:stk\\.?|st\\.?|kg|pcs|un\\.?|uni)?\\s*[x×*]\\s*(\\d+\\${dez}\\d{2})`, 'i').exec(z.text);
-      if (mx) { menge = parseFloat(mx[1].replace(',', '.')); einzel = Math.round(parseFloat(mx[2].replace(dez, '.')) * 100); }
+      const mx = new RegExp(`(\\d{1,3}(?:[.,]\\d{1,3})?)\\s*(?:stk\\.?|st\\.?|kg|pcs|un\\.?|uni|l|ltr|lt|liter|litros|lts|gal|n[aä]chte?|noites|nights|n\\.|tage|dias|days|pers\\.?|personen|pax)?\\s*[x×*]\\s*(\\d+\\${dez}\\d{2,3})(?!\\d)`, 'i').exec(z.text);
+      const mx2 = !mx && new RegExp(`(\\d+\\${dez}\\d{2,3})\\s*(?:€|eur)?\\s*[x×*]\\s*(\\d{1,3})(?![.,]\\d)\\b`, 'i').exec(z.text); // „1,29 x 2“
+      if (mx) { menge = parseFloat(mx[1].replace(',', '.')); einzel = parseFloat(mx[2].replace(dez, '.')) * 100; if (Math.abs(einzel - Math.round(einzel)) < 1e-6) einzel = Math.round(einzel); }
+      else if (mx2) { menge = +mx2[2]; einzel = Math.round(parseFloat(mx2[1].replace(dez, '.')) * 100); }
       else if (mengeVorn) { menge = mengeVorn; if (bt.length >= 2) einzel = bt[bt.length - 2].v; }
       else { const mv = /^\s*(\d{1,2})\s*(?:x|×|stk\.?|st\.?|pcs\.?|un\.?|uni|und\.?|pz\.?)?\s+[A-Za-zÀ-ÿ]/i.exec(z.text); if (mv && +mv[1] > 0) menge = +mv[1]; }
-      const name = letzter ? nameAus(z.text.slice(0, (mx ? Math.min(mx.index, bt[0].start) : bt[0].start))) : nameAus(z.text);
+      const mxi = mx ? mx.index : mx2 ? mx2.index : Infinity;
+      const name = letzter ? nameAus(z.text.slice(0, Math.min(mxi, bt[0].start))) : nameAus(z.text);
       const satz = (/\b(\d{1,2})\s*%/.exec(z.text) || [])[1];
-      return { i, z, n, bt, letzter, art, menge, einzel, name, bu: buchst(name), satz: satz != null ? +satz : null, nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
+      let stb = letzter && !letzter.nach ? (/^\s*([A-D1-4])(?![A-Za-z0-9])/.exec(z.text.slice(letzter.ende)) || [])[1] || null : null;
+      // Betrag erst beim Nachlesen gefunden: Steuerbuchstabe aus den Nachlesungen („1,39 A“)
+      if (letzter && letzter.nach && z.mehr) { const zz = new Map(); for (const m of z.mehr) { const x = /\d[.,]\s?\d{2}\s*([A-D])(?![A-Za-z0-9])/.exec(m.t); if (x) zz.set(x[1], (zz.get(x[1]) || 0) + 1); } const top = [...zz].sort((p2, q2) => q2[1] - p2[1])[0]; if (top && top[1] >= 2) stb = top[0]; }
+      return { i, z, n, bt, letzter, art, menge, einzel, name, stb, bu: buchst(name), satz: satz != null ? +satz : null, nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
     });
     // Ende des Postenteils: erste Summenzeile mit Betrag (danach kommen Zahlung, Steuer, Fußtext)
     // (steht der Betrag der Summenzeile durch Schräglage eine Zeile tiefer, gilt die Zeile ohne Betrag als Ende)
@@ -348,17 +452,36 @@ window.Bon = (() => {
     const mitZwischen = info.some((r, i) => i < ende && r.art === 'zwischen');
     { let gesehen = false; for (let i = kopfZ + 1; i < ende; i++) { const r = info[i]; if (r.letzter && r.art === 'sonst') gesehen = true; if (gesehen && ((r.art === 'steuer' && (!r.letzter || !mitZwischen)) || r.art === 'zwischen' && !mitZwischen)) { ende = i; break; } } }
     const posten = [], zuschlaege = [];
+    // Einrückung: Zeilen deutlich rechts vom üblichen Zeilenanfang (Menü-Bestandteile, Extras) gehören zum Posten darüber
+    const anfaenge = info.filter((r, i) => i > kopfZ && i < ende && r.letzter && r.z.b).map((r) => r.z.b.x0).sort((a, b) => a - b);
+    const hBlock = info.filter((r) => r.z.b).map((r) => r.z.b.y1 - r.z.b.y0).sort((a, b) => a - b)[0] || 20;
+    const einrueck = anfaenge.length >= 3 ? anfaenge[anfaenge.length >> 1] + 1.2 * hBlock : null;
+    const letzteBelegt = (p) => Math.max(p.zeile, ...info.filter((r) => r.typ === 'teil' && r.zu === posten.indexOf(p)).map((r) => r.i));
     for (let i = kopfZ + 1; i < ende; i++) {
       const r = info[i];
-      if (!r.letzter || r.art === 'nein' || r.art === 'zwischen' || (r.art === 'steuer' && !mitZwischen)) {
+      if (!r.letzter || r.art === 'nein' || r.art === 'zwischen' || r.art === 'vorab' || r.art === 'anzahlung' || (r.art === 'steuer' && !mitZwischen)) {
         // Zeile im Postenblock mit Namen, aber ohne Betrag: vermutlich ein Posten, dessen Betrag nicht gelesen wurde
+        const vor = posten[posten.length - 1];
+        if (!r.letzter && r.art === 'sonst' && vor && i - letzteBelegt(vor) <= 3 && (/^\s*[-+*•>·]/.test(r.z.text) || (einrueck && r.z.b.x0 > einrueck))) { r.typ = 'teil'; r.zu = posten.length - 1; r.bestandteil = true; continue; }
         if (!r.letzter && r.art === 'sonst' && r.bu >= 3 && !r.nurEinzel && !/pre[cç]o|preis|price|prix|precio/i.test(r.n) && posten.length) r.typ = 'unklar';
         continue;
       }
-      if ((r.art === 'steuer' && mitZwischen) || r.art === 'service') { zuschlaege.push({ t: r.art === 'service' ? (r.name || 'Service') : (r.name || 'Steuer'), art: r.art, zeile: i, kand: [{ v: r.letzter.v, k: 0 }, ...alternativen(r.z, r.letzter, dez)] }); continue; }
-      // Einzelpreis- oder Mengenzeile ohne Namen direkt unter einem Posten: gehört zum Posten darüber
+      if ((r.art === 'steuer' && mitZwischen) || r.art === 'service' || r.art === 'rundung') { zuschlaege.push({ t: r.art === 'service' ? (r.name || 'Service') : r.art === 'rundung' ? 'Rundung' : (r.name || 'Steuer'), art: r.art, zeile: i, kand: [{ v: r.letzter.v, k: 0 }, ...alternativen(r.z, r.letzter, dez)] }); continue; }
+      // Einzelpreis- oder Mengenzeile ohne Namen („2 Stk x 1,29“, „à 1,29“): gehört zum Posten darüber oder darunter.
+      // Entschieden wird nach der Rechnung (Menge × Preis = Betrag des Postens), sonst gilt der Posten darüber.
       const vorher = posten[posten.length - 1];
-      if (vorher && vorher.zeile === i - 1 && (r.nurEinzel || (r.bu < 2 && r.einzel && r.bt.length === 1))) {
+      const mengenZeile = r.nurEinzel || (r.bu < 2 && r.einzel && r.bt.length === 1);
+      if (mengenZeile) {
+        const e0 = r.nurEinzel ? r.letzter.v : r.einzel, gesamt = r.menge && e0 ? Math.round(r.menge * e0) : null;
+        const oben = vorher && vorher.zeile === i - 1 ? vorher : null;
+        const unten = info[i + 1] && info[i + 1].letzter && info[i + 1].bu >= 2 && !['nein', 'summe', 'zwischen', 'steuer'].includes(info[i + 1].art) ? info[i + 1] : null;
+        const passt = (b) => gesamt != null && Math.abs(Math.abs(b) - gesamt) <= 1;
+        if (unten && !(oben && passt(oben.b)) && (passt(unten.letzter.v) || !oben)) {
+          // gehört zum Posten darunter (Menge steht über dem Artikel)
+          r.typ = 'teil'; r.mengeFuer = { menge: r.menge, einzel: e0, zeile: i }; info[i + 1].mengeVon = r.mengeFuer; continue;
+        }
+      }
+      if (vorher && vorher.zeile === i - 1 && mengenZeile) {
         const e = r.nurEinzel ? r.letzter.v : r.einzel; vorher.einzel = e;
         if (r.einzel && r.menge) vorher.menge = r.menge;
         // Betrag ist ein Vielfaches des Einzelpreises: Menge daraus (die Mengen-Spalte wird oft nicht gelesen)
@@ -374,12 +497,14 @@ window.Bon = (() => {
       if (r.bu < 2) for (let k = i - 1; k >= Math.max(0, i - 2); k--) { const o = info[k]; if (o.letzter || o.art !== 'sonst' || o.typ) break; if (o.bu >= 2) { name = o.name; nameZeile = k; break; } }
       let v = r.letzter.v;
       // mehrere Lesungen desselben Betrags: Mehrheit gewinnt, Abweichler bleiben als günstige Alternative
-      const st = stimmen(r.letzter.nach || r.z.erstUnsicher ? null : v, r.z.mehr, dez);
+      const st = stimmen(r.letzter.nach ? null : v, r.z.mehr, dez);
       if (st.length && st[0].v !== v && st[0].anteil > 0.5) v = st[0].v;
       if (r.art === 'rabatt' && v > 0) v = -v;
       const kand = [{ v, k: 0 }];
       for (const a of [...st, ...alternativen(r.z, r.letzter, dez)]) { const w = r.art === 'rabatt' && a.v > 0 ? -a.v : a.v; if (!kand.some((x) => x.v === w)) kand.push({ v: w, k: Math.max(0.15, a.k), warum: a.warum || 'Ziffer unsicher' }); }
+      if (r.art === 'storno' || r.art === 'leergut') v = -Math.abs(v);
       if (r.einzel && r.menge) { const mv = Math.round(r.menge * r.einzel); if (mv !== v && Math.abs(mv) < 1e6) kand.push({ v: mv, k: 0.6, warum: 'Menge × Preis' }); }
+      if (r.mengeVon && !r.menge) { r.menge = r.mengeVon.menge; r.einzel = r.mengeVon.einzel; info[r.mengeVon.zeile].zu = posten.length; const mv = Math.round(r.menge * r.einzel); if (mv !== v && Math.abs(mv) < 1e6) kand.push({ v: mv, k: 0.6, warum: 'Menge × Preis' }); }
       if (nameZeile >= 0) { info[nameZeile].typ = 'teil'; info[nameZeile].zu = posten.length; }
       r.typ = 'posten'; r.zu = posten.length;
       const lesbar = buchst(name) >= 2;
@@ -388,9 +513,13 @@ window.Bon = (() => {
       const gastro = art && ['restaurant', 'cafe', 'bar'].includes(art.id), einkauf = art && art.id === 'supermarkt';
       // Jede Zeile darf beim Abgleich wegfallen: ohne Namen billig, mit Namen teuer (die Summe muss dann trotzdem genau stimmen)
       // Posten mit lesbarem Namen nur im Ausnahmefall streichen (sonst „rechnet“ sich der Abgleich falsche Summen schön)
-      kand.push({ v: 0, k: lesbar ? 2.6 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
+      // Zeilen mit lesbarem Namen und gelesenem Betrag werden nie gestrichen (Kosten über dem Höchstwert): lieber zeigt die App
+      // eine Differenz, als dass sie Artikel und Preise falsch zuordnet (Handy-Test 30.10.: „TG ORANGE MANGO“ gestrichen,
+      // dafür 1,11 → 2,50 – Summe stimmte, Zuordnung nicht)
+      kand.push({ v: 0, k: lesbar ? 99 : gastro ? 1.5 : einkauf ? 0.9 : 1.2, warum: 'weg' });
       const mengeOk = r.menge && r.menge >= 1 && Number.isInteger(r.menge);
-      posten.push({ t: lesbar ? name : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: mengeOk ? r.menge : 1, mengeGelesen: mengeOk && r.menge > 1 ? r.menge : 0, einzel: r.einzel, satz: r.satz, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar, kand,
+      posten.push({ t: lesbar ? name : r.art === 'leergut' ? 'Leergut' : (v < 0 ? 'Rabatt' : 'Posten'), b: v, menge: mengeOk ? r.menge : 1, mengeGelesen: mengeOk && r.menge > 1 ? r.menge : 0, einzel: r.einzel, satz: r.satz, stb: r.stb, zeile: i, c: r.z.c, rahmen: r.z.b, nameZeile, nameUnsicher: !lesbar && r.art !== 'leergut', kand,
+        art2: ['rabatt', 'leergut', 'storno', 'kaution'].includes(r.art) ? r.art : null, kaution: r.art === 'kaution' || undefined,
         lesungen: st.map((x) => ({ v: x.v, anteil: +x.anteil.toFixed(3) })), lesbarAmount: r.z.mehr ? r.z.mehr.length + 1 : 1 });
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
@@ -398,9 +527,12 @@ window.Bon = (() => {
     const ziel = (v, k, quelle) => { if (qr && qr.total && quelle !== 'qr') return; if (v > 0 && !ziele.some((z) => z.v === v && z.k <= k)) ziele.push({ v, k, quelle }); };
     // Rechnungs-QR (Prüfsumme der Steuerbehörde) ist maßgeblich: dann zählt nur seine Summe, nichts anderes
     if (qr && qr.total) ziel(qr.total, 0, 'qr');
-    let totalZeile = -1, totalGelesen = null;
+    let totalZeile = -1, totalGelesen = null, anzahlung = 0;
     for (let i = ende; i < info.length; i++) {
       const r = info[i];
+      // nach der Summe: Trinkgeld und Rundung kommen anteilig dazu (wahlweise), Anzahlung ist schon bezahlt (Hinweis für „Wer zahlt“)
+      if (r.letzter && (r.art === 'service' || r.art === 'rundung')) { zuschlaege.push({ t: r.art === 'rundung' ? 'Rundung' : (r.name || 'Trinkgeld'), art: r.art === 'rundung' ? 'rundung' : 'trinkgeld', zeile: i, kand: [{ v: r.letzter.v, k: 0 }] }); r.typ = 'zuschlag'; continue; }
+      if (r.letzter && r.art === 'anzahlung') { anzahlung += Math.abs(r.letzter.v); r.typ = 'anzahlung'; continue; }
       // Summenzeile ohne Betrag: Betrag der nächsten Zeile ist ein Kandidat (etwas teurer)
       if (r.art === 'summe' && !r.letzter && info[i + 1] && info[i + 1].letzter) { const q = info[i + 1]; ziel(q.letzter.v, 0.3, 'summe'); if (totalZeile < 0) { totalZeile = i; totalGelesen = q.letzter.v; } r.typ = 'summe'; continue; }
       if (!r.letzter) continue;
@@ -435,21 +567,12 @@ window.Bon = (() => {
       p.sicherheit = p.lesbarAmount > 1 ? Math.round((l ? l.anteil : 0.1) * 100) : Math.round(Math.min(95, (p.c || 80) * 0.95));
       p.vorschlag = [...new Set([...(p.lesungen || []).filter((x) => x.v !== Math.abs(p.b)).map((x) => x.v), ...p.kand.filter((c) => c.warum !== 'weg' && c.v > 0 && c.v !== Math.abs(p.b)).map((c) => c.v)])].slice(0, 4);
     }
-    // Pfand gehört zum Artikel direkt darüber (Einweg-/Mehrwegpfand wird je Flasche direkt nach ihr berechnet)
-    for (let k = posten.length - 1; k > 0; k--) {
-      const p = posten[k], vor = posten[k - 1];
-      if (p.zuschlag || vor.zuschlag || !/^\W*(pfand|einweg|mehrweg|deposit|depot|vasilhame|tara)(?![a-z])/i.test(ohneAkz(p.t)) || p.b <= 0) continue;
-      // nicht an Rabatt-/Pfandzeilen oder negative Beträge hängen (Test 30.10.: „Rabatt −0,30“ + „Pfand 0,25“ wurde −0,05)
-      if (/^\W*(pfand|einweg|mehrweg|deposit|depot)(?![a-z])/i.test(ohneAkz(vor.t)) || W.rabatt.test(ohneAkz(vor.t)) || vor.b <= 0 || p.zeile - vor.zeile > 2) continue;
-      vor.pfand = (vor.pfand || 0) + p.b; vor.b += p.b; vor.zeile2 = p.zeile; vor.sicherheit = Math.min(vor.sicherheit ?? 100, p.sicherheit ?? 100);
-      if (vor.einzel) vor.einzel = null; // Stückpreis gilt nicht mehr für den Betrag inkl. Pfand
-      vor.rahmen = vor.rahmen && p.rahmen ? { x0: Math.min(vor.rahmen.x0, p.rahmen.x0), y0: Math.min(vor.rahmen.y0, p.rahmen.y0), x1: Math.max(vor.rahmen.x1, p.rahmen.x1), y1: Math.max(vor.rahmen.y1, p.rahmen.y1) } : vor.rahmen;
-      vor.vorschlag = []; info[p.zeile].typ = 'pfand'; info[p.zeile].zu = k - 1; posten.splice(k, 1);
-    }
+    stornoPaare(posten, info);
+    zusaetzeZuordnen(posten, info);
     // „3 x Espresso 7,50“ ohne gedruckten Einzelpreis: geht der Betrag glatt auf, je Stück teilbar machen
     for (const p of posten) if (!p.zuschlag && p.menge > 1 && !p.einzel && p.b > 0 && p.b % p.menge === 0) p.einzel = p.b / p.menge;
     const summe = posten.reduce((a, p) => a + p.b, 0);
-    return { zeilen: info.map((r) => ({ text: r.z.text, b: r.z.b, c: r.z.c, typ: r.typ || (r.art === 'sonst' ? 'sonst' : r.art), zu: r.zu, block: r.i > kopfZ && r.i < ende })), posten, total, totalZeile, summe, dez,
+    return { zeilen: info.map((r) => ({ text: r.z.text, b: r.z.b, c: r.z.c, typ: r.typ || (r.art === 'sonst' ? 'sonst' : r.art), zu: r.zu, block: r.i > kopfZ && r.i < ende })), posten, total, totalZeile, summe, dez, anzahlung: anzahlung || 0,
       pruefung: { gesamtOk: gesamtOk && summe === total, quelle: loesung ? loesung.ziel.quelle : null, korrigiert: posten.filter((p) => p.rep).length, ziele: ziele.length } };
   }
   // Kleinste Zahl an Änderungen, mit der die Posten (plus wahlweise Steuer/Service vor der Summe) eine der Summen ergeben.
@@ -709,7 +832,10 @@ window.Bon = (() => {
     const sicher = r.posten.filter((p) => p.sicher).length, gut = woerter.filter((x) => x.c > 70).length;
     // verrutschte Zuordnung (Betrag der Nachbarzeile) erzeugt Posten ohne Namen und Namenszeilen ohne Betrag – beides kostet
     const namenlos = r.posten.filter((p) => p.nameUnsicher && !p.fehlt).length, waisen = (r.zeilen || []).filter((z) => z.typ === 'unklar').length;
-    return (r.pruefung && r.pruefung.gesamtOk ? 10000 : 0) + (r.total != null && r.summe === r.total ? 5000 : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1 - 150 * (namenlos + waisen);
+    // „Summe stimmt“ zählt nur voll, wenn die Zuordnung in sich stimmig ist (kein namenloser Posten, kein Name ohne Betrag) –
+    // sonst kann eine zufällig passende Summe eine verrutschte Zuordnung gewinnen lassen
+    const stimmig = Math.max(0, 1 - 0.3 * (namenlos + waisen));
+    return (r.pruefung && r.pruefung.gesamtOk ? 10000 * stimmig : 0) + (r.total != null && r.summe === r.total ? 5000 * stimmig : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1 - 150 * (namenlos + waisen);
   }
   // Name aus einer neu gelesenen Zeile ziehen („… Uni NAME 13% …“)
   function nameAusZeile(t) {
@@ -904,12 +1030,17 @@ window.Bon = (() => {
         let k = null, verschmolzen = false;
         // Zeilenhöhe aus den Wörtern links der Betragsspalte (Name): die Namen sind verlässlich, Betragskästen nicht immer
         const namen = (zl.w || []).filter((y) => spX0 == null || y.b.x1 < spX0 - 2), med2 = (a) => [...a].sort((p, q) => p - q)[a.length >> 1];
-        if (namen.length && spX0 != null && spX1 != null && spX1 > spX0) {
-          const y0 = med2(namen.map((y) => y.b.y0)), y1 = med2(namen.map((y) => y.b.y1)), hz = y1 - y0;
-          k = { x0: Math.max(0, spX0 - hz * 0.3), x1: Math.min(v.canvas.width, spX1 + hz * 0.3), y0, y1 };
-          // hängt an der Zeile ein Betrag aus der Nachbarzeile (Mitte deutlich verschoben), zählt seine Erstlesung nicht
-          if (bw) { const versatz = Math.abs((bw.b.y0 + bw.b.y1) / 2 - (y0 + y1) / 2); zl.erstUnsicher = versatz > 0.35 * hz; }
-          verschmolzen = !!(bw && zl.erstUnsicher);
+        // Nachlesen dort, wo der Betrag dieser Zeile steht (sein eigener Kasten): Auf gewelltem Papier liegt der Betrag nicht auf
+        // der Höhe des Namens (Test 30.10., Handy-Foto: Nachlesen auf Namenshöhe las den Betrag der Nachbarzeile → 2,50 statt 1,11).
+        const bruch = !bw && spX0 != null ? (zl.w || []).filter((y) => /\d/.test(y.t) && y.b.x0 >= spX0 - 2 && !/[a-z]{3,}/i.test(y.t)) : [];
+        if (!bw && bruch.length) {
+          // Betrag in Stücken („2,“ | „59“): Bereich der Stücke in ihrer eigenen Höhe
+          k = { x0: Math.min(...bruch.map((y) => y.b.x0)) - 4, x1: Math.max(...bruch.map((y) => y.b.x1)) + 4, y0: med2(bruch.map((y) => y.b.y0)), y1: med2(bruch.map((y) => y.b.y1)) };
+        } else if (bw && namen.length) {
+          const y0 = med2(namen.map((y) => y.b.y0)), y1 = med2(namen.map((y) => y.b.y1)), hz = y1 - y0, hb = bw.b.y1 - bw.b.y0;
+          k = bw.b;
+          // nur ein deutlich zu hoher Betragskasten (mit der Nachbarzeile verschmolzen) wird auf Zeilenhöhe beschnitten
+          if (hb > 1.35 * hz) { const m = (bw.b.y0 + bw.b.y1) / 2, mn = (y0 + y1) / 2, c = Math.max(bw.b.y0 + hz / 2, Math.min(bw.b.y1 - hz / 2, mn)); k = { x0: bw.b.x0, x1: bw.b.x1, y0: c - hz / 2, y1: c + hz / 2 }; verschmolzen = Math.abs(m - c) > 0.2 * hz; }
         } else if (bw) {
           // Ist der Betragskasten deutlich höher als die übrigen Wörter der Zeile, hat die Erkennung ihn mit der Nachbarzeile
           // verschmolzen: dann auf Höhe der Zeile (Name, Steuersatz) nachlesen, nicht im eigenen Kasten
@@ -940,5 +1071,5 @@ window.Bon = (() => {
     for (const p of r.posten) p.schnipsel = schnipsel(anzeige, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
     return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), winkel: v.winkel, roh, ecken };
   }
-  return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, cent, qrLesen, qrSuchen, paddleDa };
+  return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, zeilenSpalten, cent, qrLesen, qrSuchen, paddleDa };
 })();

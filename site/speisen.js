@@ -22,7 +22,9 @@ window.Speisen = (() => {
 💧|Stilles Wasser|agua sem gas,agua sin gas,still water,stilles wasser,eau plate,acqua naturale,naturale,spa blauw
 🥤|Cola|cola,coca-cola,coca cola,coke,pepsi,cola zero,coca zero,coke zero,pepsi max
 🥤|Limonade oder Schorle|limonada,lemonade,limonade,fanta,sprite,7up,seven up,sumol,laranjada,gasosa,schweppes,ginger ale,tonica,tonic,fruchtschorle,schorle,apfelschorle,spezi,mezzo mix,bitter lemon,ice tea,iced tea,ice-tea,lipton,nestea,cha gelado
-🧃|Saft|sumo,sumo natural,juice,saft,jus,succo,zumo,zumo natural,orangensaft,sumo de laranja,orange juice,apfelsaft,jus d orange,spremuta
+🥤|Energydrink|energy,energydrink,energy drink,red bull,redbull,monster,rockstar,koffein,booster,mate,club-mate,clubmate
+🥤|Sportgetränk|iso,isotonic,isoton,isostar,powerade,gatorade,iso drink,elektrolyt
+🧃|Saft|lassi,smoothie,nektar,nectar,sumo,sumo natural,juice,saft,jus,succo,zumo,zumo natural,orangensaft,sumo de laranja,orange juice,apfelsaft,jus d orange,spremuta
 🍺|Bier|cerveja,beer,bier,biere,birra,cerveza,imperial,fino,tulipa,caneca,pint,pils,pilsner,weizen,weizenbier,hefeweizen,helles,radler,super bock,sagres,heineken,estrella,peroni,kronenbourg,stella,guinness,lager,ipa,cana,cervesa,bock,draft,tap
 🍷|Wein|vinho,wine,wein,vin,vino,vinho tinto,vinho branco,red wine,white wine,rotwein,weisswein,vin rouge,vin blanc,vino rosso,vino blanco,rose,vinho verde,alvarinho,douro,rioja,chianti,prosecco,cava,sekt,champagne,espumante,sangria,tinto de verano,jarra,copo de vinho,glas wein,taca
 🍷|Portwein|porto,port wine,portwein,vinho do porto,tawny,ruby,moscatel,madeira
@@ -50,7 +52,7 @@ window.Speisen = (() => {
 🥦|Gemüse|legumes,vegetables,gemuse,legumes grelhados,verduras,verdure,espinafres,brocolos,cogumelos,mushrooms,pilze,champignons,setas,funghi,batata,potatoes,kartoffeln,pommes de terre,pure,mash,vegetariano,vegetarian,vegan,tofu,falafel,hummus,grao,lentilhas
 🍰|Nachtisch|apple pie,pie,sobremesa,dessert,nachtisch,nachspeise,postre,dolce,doce,tiramisu,mousse,mousse de chocolate,pudim,pudding,flan,creme brulee,leite creme,arroz doce,panna cotta,cheesecake,brownie,salame de chocolate,baba de camelo,serradura,crema catalana,apfelstrudel,kaiserschmarrn,profiteroles,fondant
 🍨|Eis|gelado,ice cream,eis,glace,gelato,helado,sorvete,sorbet,sundae,eisbecher,milkshake,batido,frappe
-🍎|Obst|fruta,fruit,obst,frucht,fruits,frutta,fruta da epoca,macedonia,salada de fruta,ananas,banana,banane,laranja,orange,maca,apple,apfel,melao,melon,morangos,strawberries,erdbeeren
+🍎|Obst|fruta,fruit,obst,frucht,fruits,frutta,fruta da epoca,macedonia,salada de fruta,ananas,banana,banane,laranja,orange,maca,apple,apfel,melao,melon,morangos,strawberries,erdbeeren,mango,manga,maracuja,passionsfrucht,kiwi,birne,pear,pera,trauben,uvas,grapes,kirschen,cerejas,cherries,pfirsich,pessego,peach,grapefruit,toranja,heidelbeeren,blueberries,himbeeren,framboesas,pflaume,ameixa,aprikose,damasco,wassermelone,melancia,papaya,papaia
 🍬|Süßes|chocolate,schokolade,chocolat,cioccolato,bolacha,cookie,cookies,keks,biscuit,biscotti,gomas,candy,bonbon,snack,croquete,croquetes,rissol,rissois,pastel de bacalhau,bolinho de bacalhau,empada,coxinha,samosa,empanada
 ⛽|Tanken|diesel,gasoleo,gasolina,benzin,super e10,e10,super 95,super 98,sp95,sp98,adblue,gpl,lpg,autogas
 🎟️|Eintritt|bilhete,entrada,eintritt,admission,ingresso,eintrittskarte,museu,museum
@@ -102,6 +104,11 @@ window.Speisen = (() => {
   // Ergebnis: { s: Symbol, n: Klarname (mit Zusätzen), grund: gefundener Begriff } oder null
   // art: Bon-Art aus bon.js (z. B. 'supermarkt'): im Einkauf sind „Kaffee 500 g“ oder „Milch 1 l“ Packungen, keine Getränke am Tisch
   function erkenne(text, art) {
+    const r = erkenne1(text, art); if (r || !/ae|oe|ue/i.test(String(text || ''))) return r;
+    // Kassen ohne Umlaute schreiben KAESE, GRUENE, SOSSE: zweiter Versuch mit ä/ö/ü (nur wenn der erste nichts fand – „queijo“ bleibt)
+    return erkenne1(String(text).replace(/ae/gi, 'ä').replace(/oe/gi, 'ö').replace(/ue/gi, 'ü'), art);
+  }
+  function erkenne1(text, art) {
     const woerter = norm(text).split(' ').filter(Boolean); if (!woerter.length) return null;
     let treffer = null;
     // erst genaue Treffer, dann unscharfe (Lesefehler)

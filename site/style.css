@@ -1143,3 +1143,23 @@ button:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--a
 .rwb-k.p.neben[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset 0 -2px 0 var(--rand), inset -2px 0 0 var(--rand); }
 .rwb-k.p:active { background-color: rgba(132,63,23,.16); }
 .rwb-mehr { position: sticky; left: 0; }
+
+/* 3.13: großer Speichern-Knopf, Zusatzzeilen (Pfand/Rabatt/Extra) wählbar, Zeilengruppen im Bon */
+.rw-sichern { min-height: 48px; padding: 0 16px; font-weight: 800; gap: 6px; flex: none; }
+.rw-sichern svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+.rwb-kopf { gap: 6px; }
+.rwb-kopf .rw-sichern { margin-left: auto; }
+.rwb-stand { margin: 0; padding: 6px 12px 0; font-weight: 800; }
+.rwb-stand.ok { color: var(--ok); } .rwb-stand.warn { color: var(--danger); }
+.rwb-zus { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 0; }
+.rwb-zus .chip { min-height: 44px; }
+.rwb-k.p.g-anfang { border-radius: 4px 4px 0 0; box-shadow: inset 0 1.5px 0 var(--rand), inset 1.5px 0 0 var(--rand), inset -1.5px 0 0 var(--rand); }
+.rwb-k.p.g-mitte { border-radius: 0; margin-top: 0; box-shadow: inset 1.5px 0 0 var(--rand), inset -1.5px 0 0 var(--rand); }
+.rwb-k.p.g-ende { border-radius: 0 0 4px 4px; margin-top: 0; box-shadow: inset 0 -1.5px 0 var(--rand), inset 1.5px 0 0 var(--rand), inset -1.5px 0 0 var(--rand); }
+.rwb-k.p.g-anfang[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset 0 2px 0 var(--rand), inset -2px 0 0 var(--rand); }
+.rwb-k.p.g-mitte[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset -2px 0 0 var(--rand); }
+.rwb-k.p.g-ende[style*="background-image"] { box-shadow: inset 6px 0 0 var(--rand), inset 0 -2px 0 var(--rand), inset -2px 0 0 var(--rand); }
+/* Kopf: Zurück links, Speichern rechts, Titel mit Schrittpunkten darunter (sonst bricht der Titel dreizeilig um) */
+.rw-kopf { flex-wrap: wrap; row-gap: 2px; }
+.rw-kopf .rw-sichern { margin-left: auto; }
+.rw-kopf .rw-mitte { order: 3; flex: 1 0 100%; padding-right: 0; }

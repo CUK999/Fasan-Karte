@@ -46,3 +46,30 @@ die Beträge rechts verschwanden (Test Green Soul).
 - DocRes: arxiv.org/pdf/2405.04408
 - Page dewarping: mzucker.github.io/2016/08/15/page-dewarping.html
 - Hintergrund-Entfernung: schmijoe.github.io/2022/09/17/bg-removal
+
+## 4. Wie Scanner-Dienste es lösen, woran OCR scheitert (Nachtrag 31.10.2026)
+
+**Scanner-Dienste**
+- Google ML Kit Document Scanner (Android): Zuschneiden/Kantenerkennung, Filter, Schatten-, Flecken- und
+  Finger-Entfernung per ML, alles im Gerät, aber Modelle über Google Play-Dienste (developers.google.com/ml-kit/vision/doc-scanner)
+  → passt nicht zu „keine Google-Dienste“, nur als Vergleich.
+- Veryfi (Bon-Erkennung, Cloud): „Graph-Based Dewarping“ richtet Artikel, Preis und Summen auf eine gemeinsame Zeile aus
+  und baut die Anordnung neu auf; Verfahren nicht offengelegt (faq.veryfi.com). Genau das Ziel: Zeilen, auf denen Name
+  und Preis stehen, werden waagrecht gezogen.
+- Offene Umsetzung des Zeilen-Ansatzes: page-dewarp (MIT, Python): Textflächen finden, zu Zeilen verbinden, Seite als
+  kubische Fläche mit Kamera modellieren, Parameter optimieren, danach optional binarisieren (pypi.org/project/page-dewarp).
+
+**Woran OCR bei Fotos häufig scheitert, und die Abhilfe** (imagetotable.ai, Übersicht):
+zu geringe Auflösung (mind. ~300 dpi; sonst hochskalieren), Schräglage (vor dem Binarisieren begradigen), Rauschen
+und JPEG-Blöcke (Median-/Bilateralfilter), blasse Schrift/Thermopapier (CLAHE, Sauvola-Schwellwert), Knicke/Schatten
+(Inpainting, Dilatation). Reihenfolge: begradigen → entrauschen → Kontrast → reparieren → binarisieren.
+
+**In der App (3.15):** Zeilen-Glättung jetzt in zwei Durchgängen – der zweite misst die Restwelle an den schon
+gepaarten Zeilen (Name und Preis auf einer Zeile) und gleicht sie aus. Danach: Bon als Tabelle (CSV für Excel/LibreOffice:
+Artikel, Klarname, Menge, Einzelpreis, Pfand/Rabatt, Betrag, Steuerbuchstabe, Personen) und als Volltext exportierbar.
+
+**Offen:** starke Knicke zwischen den Zeilen; kubisches Flächenmodell mit Optimierer (page-dewarp) als Alternative zum
+Gauß-Feld; UVDoc als ONNX nach Lizenzklärung.
+
+Quellen: developers.google.com/ml-kit/vision/doc-scanner; faq.veryfi.com (Receipt Layout Correction); pypi.org/project/page-dewarp;
+imagetotable.ai/blog/ocr-low-accuracy-scanned-documents

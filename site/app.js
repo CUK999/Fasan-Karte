@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.14';
+  const VERSION = '3.15';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2891,6 +2891,7 @@
     return { inhalt: el('div', { class: 'rw-inhalt posten' }, leer ? null : leiste,
       leer ? null : el('p', { class: 'leise klein', style: 'margin:0' }, `Du tippst für ${RW.aktiv === 'alle' ? 'alle gemeinsam' : personName(RW.aktiv)}. Tippe die Posten an, die ${RW.aktiv === 'alle' ? 'ihr teilt' : 'dazugehören'}.`),
       bonKopf, rwHinweis(), rwUebersicht(), hilfe, zeilen.length ? el('ul', { class: 'rw-liste' }, zeilen) : null,
+      zeilen.length && RW.bon ? el('div', { class: 'reihe rw-export' }, el('button', { type: 'button', class: 'knopf', onclick: () => rwExport('csv') }, 'Als Tabelle (Excel)'), el('button', { type: 'button', class: 'knopf flach', onclick: () => rwExport('text') }, 'Text vom Bon')) : null,
       el('div', { class: 'rw-neu' }, nb, nn, el('button', { type: 'button', class: 'knopf haupt', onclick: neu }, ic('plus'), 'Posten')),
       pruefung, leer ? null : tipp, bonFab),
       fuss: el('div', { class: 'rw-fuss' + (offen ? ' zwei' : '') }, offen ? el('button', { type: 'button', class: 'knopf', onclick: () => { RW.posten.forEach((q) => { if (q.b && !q.aus && !q.w.length) q.w = wer.slice(); }); haptik(); rwZeichnen(false); } }, 'Rest teilen') : null, weiter) };
@@ -3059,6 +3060,25 @@
     const frei = ps.find((q) => !q.w.length);
     if (frei) frei.w = [id];
     else { const mein = [...ps].reverse().find((q) => q.w.includes(id)); if (mein) mein.w = mein.w.filter((x) => x !== id); else { const l = ps[ps.length - 1]; l.w = l.w.concat(id); } }
+  }
+  // Bon digital: Tabelle (CSV, öffnet in Excel/LibreOffice, Semikolon + UTF-8-BOM für deutsche Einstellungen) und Volltext
+  function rwExport(art) {
+    if (!RW) return;
+    const b = RW.bon, z = (v) => { const t = String(v ?? ''); return /[;"\n]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t; }, g = (c) => (c == null ? '' : (c / 100).toFixed(2).replace('.', ','));
+    let text, name, typ;
+    if (art === 'text') {
+      text = (b ? b.zeilen.filter((x) => x.text).map((x) => x.text) : []).join('\n'); name = 'bon.txt'; typ = 'text/plain';
+    } else {
+      const zeilen = [['Nr', 'Artikel (Bon)', 'Klarname', 'Menge', 'Einzelpreis', 'Zusatz (Pfand/Rabatt)', 'Betrag', 'Steuer', 'Person(en)', 'ausgeblendet']];
+      RW.posten.forEach((q, i) => { const zs = (q.zus || []).reduce((a, x) => a + x.b, 0), bp = b && q.zl != null ? b.posten.find((p) => p.zeile === q.zl) : null;
+        zeilen.push([i + 1, q.t, q.k ? q.k.n : '', q.teil ? 1 : bp && bp.menge > 1 ? bp.menge : 1, g(q.teil ? q.b : bp && bp.einzel ? Math.round(bp.einzel) : q.b - zs), zs ? g(zs) : '', g(q.b), bp && bp.stb ? bp.stb : '', q.w.map(personName).join(', '), q.aus ? 'ja' : '']); });
+      zeilen.push([], ['', 'Summe laut Bon', '', '', '', '', g(RW.summe)], ['', 'Summe der Posten', '', '', '', '', g(rwPostenSumme())]);
+      if (RW.z) zeilen.unshift([RW.z], []);
+      text = '\ufeff' + zeilen.map((r) => r.map(z).join(';')).join('\r\n'); name = `${(RW.z || 'bon').replace(/[^\wäöüÄÖÜß -]+/g, '').trim().slice(0, 40) || 'bon'}.csv`; typ = 'text/csv';
+    }
+    const u = URL.createObjectURL(new Blob([text], { type: typ + ';charset=utf-8' })), a = el('a', { href: u, download: name });
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); haptik();
+    toast(art === 'text' ? 'Text vom Bon gespeichert.' : 'Tabelle gespeichert (öffnet in Excel, LibreOffice, Numbers).');
   }
   const rwZusText = (q) => (q.zus || []).map((z) => `inkl. ${z.b < 0 ? '−' : ''}${euro(Math.abs(z.b))} ${z.art === 'pfand' ? 'Pfand' : z.art === 'rabatt' ? 'Rabatt' : z.t}`).join(' · ');
   const rwGehoert = (q, i) => q.zl === i || (q.zus || []).some((z) => z.zl === i);

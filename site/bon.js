@@ -1036,7 +1036,7 @@ window.Bon = (() => {
     } catch (e) { ausschnitt = null; }
     let qr = await qrSuchen(daten);
     if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
-    const versuche = [], alle = []; let beste = null, glatt = null;
+    const versuche = [], alle = []; let beste = null, glatt = null; const glaettungen = [];
     // lauf: leinwand wird gelesen, anzeige ist das Bild für die App (bei verbesserten Durchläufen das Original)
     const lauf = async (leinwand, psm, name, ecken, fort, anzeige, gerade = name !== 'foto') => {
       let v, woerter, roh = '';
@@ -1046,7 +1046,7 @@ window.Bon = (() => {
       const z2 = zeilenSpalten(woerter);
       if (z2) { const r2 = lies(z2, qr), g2 = guete(r2, woerter); if (g2 > g) { z = z2; r = r2; g = g2; name += `+spalten(${z2.spalten.versatz})`; } }
       // Gleichstand: der entzerrte (und noch mehr der geglättete) Bon wird angezeigt – sieht aus wie gescannt
-      g += /^geglaettet/.test(name) ? 60 : gerade && name !== 'foto' ? 30 : 0;
+      g += /^geglaettet2/.test(name) ? 80 : /^geglaettet/.test(name) ? 60 : gerade && name !== 'foto' ? 30 : 0;
       versuche.push(`${name}:${Math.round(g)}`);
       const e = { g, r, v, roh, name, ecken, z, gerade }; alle.push(e);
       if (!beste || g > beste.g) beste = e;
@@ -1078,7 +1078,14 @@ window.Bon = (() => {
     if (paddle && beste && beste.gerade && beste.z) {
       try {
         const gl = glaetten(beste.v.lese, beste.z);
-        if (gl) { glatt = { ...gl, quelle: beste.v.lese }; await lauf(gl.canvas, 6, 'geglaettet', beste.ecken, stufe('Knicke und Wellen werden geglättet', 0.36, 0.42), null, true); }
+        if (gl) {
+          glaettungen.push({ ...gl, quelle: beste.v.lese });
+          await lauf(gl.canvas, 6, 'geglaettet', beste.ecken, stufe('Knicke und Wellen werden geglättet', 0.36, 0.42), null, true);
+          // zweiter Durchgang: auf dem geglätteten Bild sind die Zeilen (Name + Preis gepaart) besser bekannt – Restwelle messen und
+          // nochmals ausgleichen, bis die Zeilen waagrecht liegen
+          const e1 = alle[alle.length - 1], gl2 = e1 && e1.z && glaetten(e1.v.lese, e1.z);
+          if (gl2 && gl2.max > 0.15) { glaettungen.push({ ...gl2, quelle: e1.v.lese }); await lauf(gl2.canvas, 6, 'geglaettet2', beste.ecken, stufe('Restliche Wellen werden ausgeglichen', 0.42, 0.46), null, true); }
+        }
       } catch (e) { /* ohne Glätten weiter */ }
     }
     // 3. PaddleOCR, Summe noch nicht bestätigt: weitere Durchläufe mit verbessertem Bild (Kontrast/Schärfe, dunkler)
@@ -1146,17 +1153,21 @@ window.Bon = (() => {
       }
       const r2 = lies(z, qr);
       if (guete(r2, []) >= guete(r, [])) r = r2;
-      const g2 = guete(r, []) + (/^geglaettet/.test(pass.name) ? 60 : pass.gerade && pass.name !== 'foto' ? 30 : 0);
+      const g2 = guete(r, []) + (/^geglaettet2/.test(pass.name) ? 80 : /^geglaettet/.test(pass.name) ? 60 : pass.gerade && pass.name !== 'foto' ? 30 : 0);
       if (ki === 0 || g2 > ende.gEnde) { ende = { ...pass, r, gEnde: g2 }; window.__bonZeilen = z; } // __bonZeilen: zur Fehlersuche (Testskripte)
     }
     if (paddle) { stufe('Fertig', 0.98, 1)({ progress: 1 }); if (window.FasanOCR.frei) window.FasanOCR.frei(); }
     let { r, v, roh, name, ecken } = ende;
     // Gewinner ist der Durchlauf, aus dem geglättet wurde (oder ein verbesserter davon): trotzdem das geglättete Bild zeigen,
     // die Kästen werden umgerechnet – der Bon sieht aus wie gescannt, die Lesung bleibt die bessere
-    if (glatt && !/^geglaettet/.test(name) && (v.canvas === glatt.quelle || v.lese === glatt.quelle)) {
+    glatt = glaettungen.filter((x) => v.canvas === x.quelle || v.lese === x.quelle).pop() || null;
+    if (glatt) {
       const ab = glatt.abbilden;
       r = { ...r, zeilen: r.zeilen.map((z) => (z.b ? { ...z, b: ab(z.b) } : z)), posten: r.posten.map((p) => ({ ...p, rahmen: p.rahmen ? ab(p.rahmen) : p.rahmen, zusaetze: p.zusaetze ? p.zusaetze.map((x) => ({ ...x, rahmen: x.rahmen ? ab(x.rahmen) : x.rahmen })) : p.zusaetze })) };
       v = { ...v, canvas: glatt.canvas }; name += '→geglättet';
+      // wurde das Ergebnis noch einmal geglättet, auch diese Stufe anwenden
+      const g2 = glaettungen.find((x) => x.quelle === glatt.canvas);
+      if (g2) { const ab2 = g2.abbilden; r = { ...r, zeilen: r.zeilen.map((z) => (z.b ? { ...z, b: ab2(z.b) } : z)), posten: r.posten.map((p) => ({ ...p, rahmen: p.rahmen ? ab2(p.rahmen) : p.rahmen, zusaetze: p.zusaetze ? p.zusaetze.map((x) => ({ ...x, rahmen: x.rahmen ? ab2(x.rahmen) : x.rahmen })) : p.zusaetze })) }; v = { ...v, canvas: g2.canvas }; name += '²'; }
     }
     // Anzeige: begradigter Bon als „Scan“ (weißes Papier, ohne Schatten) – besser lesbar als das Foto; Original bleibt als foto
     let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas, true); } catch (e) { anzeige = v.canvas; } }

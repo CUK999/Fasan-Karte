@@ -31,3 +31,8 @@ Anlass: Handy-Test REWE 3 (3 von 5 Posten, Hand sichtbar, nicht begradigt, „AE
 - Gefundene Summe + Steuer/Service/Rundung danach = spätere Summe (auch kleiner, „Total Rounded“).
 - **Ohne Summenwort** (weltweit): Beträge nach dem Postenblock, mindestens so groß wie jeder Posten, sind Kandidaten;
   zweimal vorkommend (Summe + Zahlung) günstiger. „Geprüft“ gibt es weiter nur, wenn die Posten genau aufgehen.
+
+## Ergebnis 3.17
+Einheiten 30/30, synthetische Bons 33/33 (195/195 Posten), echte Bons und Handy-Varianten richtig; offen: REWE 1
+auf 75 % verkleinert (Beträge eine halbe Zeile tiefer gedruckt, 4 von 5 Posten, ungeprüft gemeldet). SROIE 0–60: Summe
+richtig 55/60 (3.16: 43), falsch „geprüft“ 0 (3.16: 9; Bon 033 hat keinen Wahrheitswert).

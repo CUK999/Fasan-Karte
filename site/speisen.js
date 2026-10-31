@@ -31,6 +31,7 @@ window.Speisen = (() => {
 🍸|Cocktail|cocktail,mojito,caipirinha,caipiroska,margarita,daiquiri,pina colada,spritz,aperol,aperol spritz,hugo,negroni,cosmopolitan,mai tai,long island,sex on the beach,martini,porto tonico
 🍸|Gin Tonic|gin tonic,gin tonico,gin and tonic,gin-tonic,gin
 🥃|Spirituose|whisky,whiskey,vodka,wodka,rum,ron,tequila,brandy,cognac,aguardente,medronho,ginjinha,ginja,licor,liqueur,likor,grappa,limoncello,amaretto,ouzo,schnaps,sambuca,baileys,jagermeister,shot
+🥛|Milchprodukt|creme fraiche,schmand,sahne,schlagsahne,saure sahne,quark,magerquark,joghurt,jogurt,yoghurt,yogurt,frischkase,frischkaese,mascarpone,ricotta,skyr,kefir,buttermilch,iogurte,natas
 🥐|Gebäck|pastel de nata,pasteis de nata,nata,pastel,croissant,brioche,pain au chocolat,cornetto,bola de berlim,berliner,donut,muffin,queque,bolo,cake,kuchen,tarte,tarta,torta,tart,strudel,brezel,pretzel,laugenbrezel,bretzel,scone,waffel,waffle,gaufre,crepe,crepes,palmier,travesseiro,queijada,pao de deus,croissant misto
 🍞|Brot|pao,bread,brot,pain,pane,pan,broetchen,brotchen,baguette,tosta,toast,torrada,tostada,bruschetta,couvert,coperto,pao com manteiga,manteiga,butter,beurre,mantequilla
 🫒|Oliven|azeitonas,olives,oliven,aceitunas,olive

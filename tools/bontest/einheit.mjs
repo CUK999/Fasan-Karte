@@ -43,6 +43,10 @@ const r = await p.evaluate(() => {
   out.push(fall('menü', L('Menü des Tages 15,90', '- Suppe', '- Schnitzel', 'Wasser 2,50', 'Summe 18,40'), 'Menü des Tages=1590 | Wasser=250 · total 1840'));
   out.push(fall('usa tip', L('Burger 13.95', 'Subtotal 13.95', 'Tax 1.15', 'Total 15.10', 'Tip 3.00', 'Total 18.10'), 'Burger=1395 | Tax=115 | Tip=300 · total 1810'));
   out.push(fall('rundung nl', L('Kaas 2,99', 'Brood 1,99', 'Subtotaal 4,98', 'Afronding 0,02', 'Totaal 5,00'), 'Kaas=299 | Brood=199 | Rundung=2 · total 500'));
+  // dreizeilig: Artikelnummer / Name / Einzelpreis Menge Steuer Betrag (Kassen mit Spalten)
+  out.push(fall('dreizeilig', L('661', 'Clipper FFX', '3,00 €   7   A 21,00 €', '1086', 'Spezial Glitzer Clipper', '3,50 €   1   A 3,50 €', '662', 'Clipper', '2,00 €   2   A 4,00 €', 'Gesamt Brutto: 28,50 €'), 'Clipper FFX=2100[7x300] | Spezial Glitzer Clipper=350 | Clipper=400[2x200] · total 2850'));
+  // Rabatt ohne Stichwort, nur Prozent (REWE „RBW -10%“)
+  out.push(fall('rabatt prozent', L('EIERSPAETZLE 1,59 B', 'VEGANE SCHNITZEL 3,39 B', ' RBW -10% -0,34 B', 'SUMME EUR 4,64'), 'EIERSPAETZLE=159 | VEGANE SCHNITZEL=305{rabatt-34} · total 464'));
   return out;
 });
 let fehler = 0; for (const x of r) { if (x[0].startsWith('FEHLER')) fehler++; console.log(x.join(' ')); }

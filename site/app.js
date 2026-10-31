@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.13';
+  const VERSION = '3.14';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2612,14 +2612,14 @@
       bon: b ? { zeilen: b.zeilen, breite: b.breite, hoehe: b.hoehe, total: b.total, summe: b.summe, qr: b.qr ? { total: b.qr.total } : null, pruefung: b.pruefung, art: b.art || null, anzahlung: b.anzahlung || 0,
         posten: b.posten.map((p) => ({ zuschlag: p.zuschlag ? 1 : 0, sicher: !!p.sicher })) } : null };
     const alle = rwEntwuerfe(); alle[RW.id] = e; speicher.set('rwEntwuerfe', alle);
-    if (RW.foto && RW.fotoGemerkt !== RW.foto) { RW.fotoGemerkt = RW.foto; fotoSpeichern('rw-' + RW.id, RW.foto); }
+    if (RW.foto && RW.fotoGemerkt !== RW.foto) { RW.fotoGemerkt = RW.foto; fotoSpeichern('rw-' + RW.id, RW.foto); if (RW.fotoOrig) fotoSpeichern('rw-' + RW.id + '-o', RW.fotoOrig); }
   }
   function rwEntwurfWeg(id) { const alle = rwEntwuerfe(); delete alle[id]; speicher.set('rwEntwuerfe', alle); }
   async function rwFortsetzen(id) {
     const e = rwEntwuerfe()[id]; if (!e) return;
-    const foto = await fotoLaden('rw-' + id);
+    const foto = await fotoLaden('rw-' + id), fotoOrig = await fotoLaden('rw-' + id + '-o').catch(() => null);
     rwOeffnen(foto, e.z, { ohneLesen: true, id });
-    Object.assign(RW, e, { foto, fotoGemerkt: foto, lesen: null, edit: -1, bon: e.bon ? { ...e.bon, bild: foto } : null });
+    Object.assign(RW, e, { foto, fotoOrig: fotoOrig || null, fotoGemerkt: foto, lesen: null, edit: -1, bon: e.bon ? { ...e.bon, bild: foto } : null });
     if (e.modus === 'posten' && e.posten.length) RW.schritt = 'posten'; // dort weitermachen, wo die Arbeit steckt
     if (!window.Speisen) { const sc = document.createElement('script'); sc.src = 'speisen.js'; document.head.append(sc); }
     rwZeichnen(true);
@@ -2702,7 +2702,7 @@
         else if (/nachlesen/.test(m.status || '')) status(`Beträge werden zur Sicherheit mehrfach gelesen … ${pz} %`);
         else if (/recogniz/i.test(m.status || '')) status(`Bon wird gelesen … ${pz} %`);
       });
-      r.bon = b; window.__bonLetzte = b; r.foto = b.bild; r.lesen = null;
+      r.bon = b; window.__bonLetzte = b; r.foto = b.bild; r.fotoOrig = b.bildOriginal || null; r.lesen = null;
       // „Wofür?“ vorbelegen: Art + Geschäftsname vom Bon (nur wenn noch leer)
       if (!r.z && b.art && (b.art.name || b.art.geschaeft)) r.z = [b.art.name, b.art.geschaeft].filter(Boolean).join(' · ').slice(0, 60);
       const total = b.qr ? b.qr.total : b.total;
@@ -3164,6 +3164,9 @@
       xA = Math.min(...wichtig.map((o) => o.z.b.x0)) - 1.8 * lh; xB = Math.max(...wichtig.map((o) => o.z.b.x1)) + 3.2 * lh;
     }
     const hoch = yB - yA, breit = xB - xA;
+    // Ansicht: bereinigt (wie gescannt), Original (gleicher Ausschnitt, ohne Filter) oder beide nebeneinander
+    const ansicht = RW.fotoOrig ? (RW.bonAnsicht || 'scan') : 'scan';
+    const flaechenStil = `top:${(-yA / hoch) * 100}%;height:${(H / hoch) * 100}%;left:${(-xA / breit) * 100}%;width:${(W / breit) * 100}%`;
     // Zoom beim Öffnen: Zeilenabstand mindestens ~30 px auf dem Bildschirm, damit jede Zeile sicher antippbar ist
     const pz = wichtig.map((o) => (o.z.b.y0 + o.z.b.y1) / 2).sort((a, c) => a - c), abst = pz.slice(1).map((y, k) => y - pz[k]).filter((d) => d > lh * 0.4).sort((a, c) => a - c);
     const pitch = abst.length ? abst[abst.length >> 1] : lh;
@@ -3284,12 +3287,14 @@
           el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(RW.bonMarken), 'aria-label': RW.bonMarken ? 'Kästen ausblenden' : 'Kästen einblenden', onclick: () => { RW.bonMarken = !RW.bonMarken; neu(); } }, '▭')),
         el('button', { type: 'button', class: 'knopf haupt rw-sichern', onclick: rwZwischenspeichern, 'aria-label': 'Speichern und schließen – später weitermachen' }, ic('sichern'), 'Speichern')),
       leiste,
+      RW.fotoOrig ? el('div', { class: 'rwb-ansicht', role: 'radiogroup', 'aria-label': 'Bild' }, [['scan', 'Bereinigt'], ['orig', 'Original'], ['beide', 'Nebeneinander']].map(([k, t]) => el('button', { type: 'button', class: 'chip', role: 'radio', 'aria-checked': String(ansicht === k), 'aria-pressed': String(ansicht === k), onclick: () => { RW.bonAnsicht = k; haptik(); neu(); } }, t))) : null,
       el('div', { class: 'rwb-bereich' }, el('div', { class: 'rwb-roll' },
         !RW.bonGanz && yA > 0 ? el('button', { type: 'button', class: 'rwb-mehr', onclick: () => { RW.bonGanz = true; neu(); } }, '↑ Kopf des Bons zeigen') : null,
-        el('div', { class: 'rwb-fenster', style: `width:${RW.bonZoom * 100}%;aspect-ratio:${breit} / ${hoch}` },
-          el('div', { class: 'rwb-flaeche', style: `top:${(-yA / hoch) * 100}%;height:${(H / hoch) * 100}%;left:${(-xA / breit) * 100}%;width:${(W / breit) * 100}%` },
+        el('div', { class: 'rwb-fenster' + (ansicht === 'beide' ? ' beide' : ''), style: `width:${RW.bonZoom * 100}%;aspect-ratio:${breit * (ansicht === 'beide' ? 2 : 1)} / ${hoch}` },
+          ansicht === 'beide' ? el('div', { class: 'rwb-halb orig', 'aria-label': 'Original' }, el('div', { class: 'rwb-flaeche', style: flaechenStil }, el('img', { src: RW.fotoOrig, alt: 'Original-Bon ohne Bereinigung', draggable: 'false' }))) : null,
+          el('div', { class: 'rwb-halb' }, el('div', { class: 'rwb-flaeche', style: flaechenStil },
             // leere Stelle: erst nach kurzer Wartezeit lesen (ein zweiter Tipp ist Doppeltippen = Zoom)
-            el('img', { src: RW.foto, alt: 'Original-Bon', draggable: 'false', onclick: (e) => { const y = (e.offsetY / e.currentTarget.clientHeight) * H; clearTimeout(RW.bonStelleT); RW.bonStelleT = setTimeout(() => rwBonStelle(y), 330); } }), ...kaesten.filter(Boolean))),
+            el('img', { src: ansicht === 'orig' ? RW.fotoOrig : RW.foto, alt: ansicht === 'orig' ? 'Original-Bon' : 'Bon bereinigt', draggable: 'false', onclick: (e) => { const y = (e.offsetY / e.currentTarget.clientHeight) * H; clearTimeout(RW.bonStelleT); RW.bonStelleT = setTimeout(() => rwBonStelle(y), 330); } }), ...kaesten.filter(Boolean)))),
         !RW.bonGanz && yB < H ? el('button', { type: 'button', class: 'rwb-mehr', onclick: () => { RW.bonGanz = true; neu(); } }, '↓ Fuß des Bons zeigen') : null),
         RW.bonZoom > 1.05 ? el('button', { type: 'button', class: 'rwb-zoom-zurueck', 'aria-label': 'Zoom zurücksetzen, ganze Breite zeigen', onclick: () => { RW.bonZoom = 1; haptik(); neu(); } }, '⤢ Ganze Breite') : null),
       el('div', { class: 'rwb-unten' }, rwHinweis(),

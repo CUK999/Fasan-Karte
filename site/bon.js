@@ -191,6 +191,64 @@ window.Bon = (() => {
     const breite = Math.hypot(ecken[1][0] - ecken[0][0], ecken[1][1] - ecken[0][1]);
     return breite > 10 * h ? ecken : null;
   }
+  // ---------- Glätten wie ein Dokumentscanner: gewelltes, geknicktes Papier aus den Textzeilen entzerren ----------
+  // Jede gelesene Zeile müsste waagrecht sein. Aus den Wortkästen (Mitte, Neigung langer Kästen) ergibt sich je Stelle, wie weit
+  // die Schrift nach oben/unten verschoben ist; linksbündige Zeilenanfänge und rechtsbündige Beträge müssten senkrecht
+  // untereinander stehen. Daraus ein glattes Verschiebungsfeld (Gauß-gewichtet auf einem Gitter) und das Bild neu abtasten.
+  // Prinzip wie „page dewarping“ aus Textzeilen (Zucker 2016, mzucker.github.io/2016/08/15/page-dewarping.html), hier ohne
+  // Optimierer: Verschiebungen werden direkt gemessen und geglättet.
+  function glaetten(c, zeilen) {
+    const W = c.width, H = c.height, med = (a) => { const v = [...a].sort((p, q) => p - q); return v.length ? v[v.length >> 1] : 0; };
+    const rows = zeilen.filter((q) => q.w && q.w.length && q.b && q.b.x1 - q.b.x0 > 3 * (q.b.y1 - q.b.y0));
+    if (rows.length < 5) return null;
+    const h = med(rows.flatMap((q) => q.w.map((w) => w.b.y1 - w.b.y0))) || 20;
+    const sy = [], sx = [];
+    for (const q of rows) {
+      const pts = [];
+      for (const w of q.w) {
+        const ww = w.b.x1 - w.b.x0, hh = w.b.y1 - w.b.y0, cx = (w.b.x0 + w.b.x1) / 2, cy = (w.b.y0 + w.b.y1) / 2;
+        if (hh > 1.6 * h || hh < 0.5 * h) continue; // verschmolzene oder Krümel-Kästen messen falsch
+        if (w.neig != null && ww > 3 * hh) for (const f of [0.12, 0.5, 0.88]) { const x = w.b.x0 + f * ww; pts.push([x, cy + w.neig * (x - cx)]); }
+        else pts.push([cx, cy]);
+      }
+      if (pts.length < 2) continue;
+      const yt = med(pts.map((p) => p[1]));
+      for (const [x, y] of pts) if (Math.abs(y - yt) < 0.7 * h) sy.push([x, y, y - yt]);
+    }
+    // senkrechte Kanten: Zeilenanfänge links und Zeilenenden rechts (nur die, die an der jeweiligen Kante stehen)
+    const x0m = med(rows.map((q) => q.b.x0)), x1m = med(rows.map((q) => q.b.x1));
+    for (const q of rows) { const cy = (q.b.y0 + q.b.y1) / 2; if (Math.abs(q.b.x0 - x0m) < 2.5 * h) sx.push([q.b.x0, cy, q.b.x0 - x0m]); if (Math.abs(q.b.x1 - x1m) < 2.5 * h) sx.push([q.b.x1, cy, q.b.x1 - x1m]); }
+    if (sy.length < 10) return null;
+    const gw = 24, sxg = W / gw, gh = Math.max(8, Math.ceil(H / h)), syg = H / gh;
+    const feld = (S, sigX, sigY, eps) => {
+      const D = new Float32Array((gw + 1) * (gh + 1));
+      for (let j = 0; j <= gh; j++) for (let i = 0; i <= gw; i++) {
+        const x = i * sxg, y = j * syg; let sw = 0, sd = 0;
+        for (const [px, py, d] of S) { const dy = (py - y) / sigY; if (dy > 3 || dy < -3) continue; const dx = (px - x) / sigX; const w = Math.exp(-0.5 * (dx * dx + dy * dy)); sw += w; sd += w * d; }
+        D[j * (gw + 1) + i] = sd / (sw + eps);
+      }
+      return D;
+    };
+    // nur senkrecht: ein waagrechtes Feld (aus Zeilenanfängen) scherte zentrierte Zeilen kursiv (Test 31.10., REWE 2)
+    const DY = feld(sy, W / 7, 1.0 * h, 0.15), DX = null;
+    let maxd = 0; for (const v of DY) maxd = Math.max(maxd, Math.abs(v)); if (DX) for (const v of DX) maxd = Math.max(maxd, Math.abs(v));
+    if (maxd < 0.12 * h) return null; // schon glatt
+    const bil = (D, x, y) => { const fx = Math.min(gw - 1e-3, Math.max(0, x / sxg)), fy = Math.min(gh - 1e-3, Math.max(0, y / syg)), i = fx | 0, j = fy | 0, u = fx - i, v = fy - j, o = j * (gw + 1) + i;
+      return (D[o] * (1 - u) + D[o + 1] * u) * (1 - v) + (D[o + gw + 1] * (1 - u) + D[o + gw + 2] * u) * v; };
+    const src = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
+    const out = document.createElement('canvas'); out.width = W; out.height = H;
+    const og = out.getContext('2d'), od = og.createImageData(W, H), o = od.data;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const dy = bil(DY, x, y), dx = DX ? bil(DX, x, y) : 0, X = Math.max(0, Math.min(W - 1.001, x + dx)), Y = Math.max(0, Math.min(H - 1.001, y + dy));
+      const xi = X | 0, yi = Y | 0, u = X - xi, v = Y - yi, a = (yi * W + xi) * 4, b = a + W * 4, k = (y * W + x) * 4;
+      for (let ch = 0; ch < 3; ch++) o[k + ch] = (src[a + ch] * (1 - u) + src[a + 4 + ch] * u) * (1 - v) + (src[b + ch] * (1 - u) + src[b + 4 + ch] * u) * v;
+      o[k + 3] = 255;
+    }
+    og.putImageData(od, 0, 0);
+    // Kästen aus dem Ausgangsbild ins geglättete Bild umrechnen (y' ≈ y − D)
+    const abbilden = (b) => { const xm = (b.x0 + b.x1) / 2; return { x0: b.x0, x1: b.x1, y0: b.y0 - bil(DY, xm, b.y0), y1: b.y1 - bil(DY, xm, b.y1) }; };
+    return { canvas: out, max: maxd / h, abbilden };
+  }
   // ---------- Spaltenabgleich: Namen links und Beträge rechts getrennt zu Reihen bündeln und der Reihe nach paaren.
   // Hilft, wenn der Bon schräg/gewölbt fotografiert ist und die Betragsspalte gegenüber den Namen um bis zu eine Zeile
   // verrutscht (Test 30.10., REWE-Bon: Beträge eine halbe Zeile höher). Der beste gleichbleibende Versatz wird gesucht,
@@ -317,7 +375,7 @@ window.Bon = (() => {
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
     return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
-      .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+\d{3,5}\s?[A-D]\s*\*?\s*$/, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
+      .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+\d{3,5}\s?[A-D]\s*\*?\s*$/, '').replace(/\s+\d{1,3}\s\d{2}\s*[A-D]?\s*\*?\s*$/, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
   // Stimmen aus mehreren Lesungen desselben Betrags (z.mehr, aus erkenne): Anteil der Stimmen → Kosten im Abgleich
@@ -357,7 +415,7 @@ window.Bon = (() => {
   // Unter einer Schwelle bleibt die Zeile ein eigener Posten; die App bietet die Kandidaten zum Zuordnen an.
   function zusaetzeZuordnen(posten, info) {
     const istPfand = (p) => p.b > 0 && p.b <= 1500 && PFAND.test(ohneAkz(p.t || '')) && !p.art2;
-    const istRabatt = (p) => p.b < 0 && (p.art2 === 'rabatt' || (!p.art2 && p.nameUnsicher)) && !BON_RABATT.test(ohneAkz(info[p.zeile].z.text));
+    const istRabatt = (p) => p.b < 0 && (!p.art2 || p.art2 === 'rabatt') && !BON_RABATT.test(ohneAkz(info[p.zeile].z.text));
     const artikel = (p) => p && !p.zuschlag && !p.art2 && !istPfand(p) && p.b > 0;
     const istExtra = (p) => p.b > 0 && !p.art2 && /^\s*(\+|extra\b|zusatz\b|mit\b|add\b|com\b|con\b|avec\b|plus\b|suppl\w*)/i.test(info[p.zeile].z.text);
     const zus = posten.filter((p) => istPfand(p) || istRabatt(p) || istExtra(p));
@@ -382,6 +440,9 @@ window.Bon = (() => {
         } else {
           s += woerterGleich(c.p.t, info[z.zeile].z.text) ? 2 : 0;
           s += Math.abs(z.b) < c.p.b ? 0.5 : -3;
+          // „RBW -10%  -0,34“ unter „VEGANE SCHNITZEL 3,39“: 10 % von 3,39 = 0,34 → gehört sicher dazu
+          const pc = /(\d{1,2}(?:[.,]\d)?)\s*%/.exec(info[z.zeile].z.text);
+          if (pc) { const soll = Math.round((c.p.b * parseFloat(pc[1].replace(',', '.'))) / 100); s += Math.abs(soll - Math.abs(z.b)) <= 1 ? 2.5 : -0.5; }
         }
         c.s = +s.toFixed(2);
       }
@@ -412,7 +473,7 @@ window.Bon = (() => {
       let art = 'sonst';
       if (!bt.length && ((n.match(W.kopf) || []).length >= 2 || /^\W*(eur|euro|€|usd|chf|gbp)\W*$/.test(n))) art = 'kopf';
       else if (W.zwischen.test(n)) art = 'zwischen';
-      else if (W.summe.test(n) && !W.steuer.test(n.replace(W.summe, ''))) art = 'summe';
+      else if (W.summe.test(n) && !W.steuer.test(n.replace(W.summe, '').replace(/\bbrutto\b/, ''))) art = 'summe'; // „Gesamt Brutto“ ist die Summe
       else if (W.rueck.test(n)) art = 'rueck';
       else if (W.vorab.test(n)) art = 'vorab';
       else if (W.anzahlung.test(n)) art = 'anzahlung';
@@ -433,6 +494,11 @@ window.Bon = (() => {
       if (mx) { menge = parseFloat(mx[1].replace(',', '.')); einzel = parseFloat(mx[2].replace(dez, '.')) * 100; if (Math.abs(einzel - Math.round(einzel)) < 1e-6) einzel = Math.round(einzel); }
       else if (mx2) { menge = +mx2[2]; einzel = Math.round(parseFloat(mx2[1].replace(dez, '.')) * 100); }
       else if (mengeVorn) { menge = mengeVorn; if (bt.length >= 2) einzel = bt[bt.length - 2].v; }
+      else if (bt.length >= 2 && letzter.v > 0) {
+        // Einzelpreis … Menge … Betrag in einer Zeile (Kassen mit Spalten „Preis Anz. MwSt Betrag“)
+        const e0 = bt[bt.length - 2], zw = z.text.slice(e0.ende, letzter.start), mm = zw.match(/(?:^|\s)(\d{1,3})(?=\s|$)/g) || [];
+        for (const t of mm) { const n = +t.trim(); if (n >= 1 && Math.abs(e0.v * n - letzter.v) <= 1) { menge = n; einzel = e0.v; break; } }
+      }
       else { const mv = /^\s*(\d{1,2})\s*(?:x|×|stk\.?|st\.?|pcs\.?|un\.?|uni|und\.?|pz\.?)?\s+[A-Za-zÀ-ÿ]/i.exec(z.text); if (mv && +mv[1] > 0) menge = +mv[1]; }
       const mxi = mx ? mx.index : mx2 ? mx2.index : Infinity;
       const name = letzter ? nameAus(z.text.slice(0, Math.min(mxi, bt[0].start))) : nameAus(z.text);
@@ -494,7 +560,7 @@ window.Bon = (() => {
       }
       let name = r.name, nameZeile = -1;
       // Name eine Zeile höher (Posten über zwei Zeilen: Name, darunter „2 x 4,90   9,80“)
-      if (r.bu < 2) for (let k = i - 1; k >= Math.max(0, i - 2); k--) { const o = info[k]; if (o.letzter || o.art !== 'sonst' || o.typ) break; if (o.bu >= 2) { name = o.name; nameZeile = k; break; } }
+      if (r.bu < 2) for (let k = i - 1; k >= Math.max(0, i - 2); k--) { const o = info[k]; if (o.letzter || o.art !== 'sonst' || (o.typ && o.typ !== 'unklar')) break; if (o.bu >= 2) { name = o.name; nameZeile = k; break; } }
       let v = r.letzter.v;
       // mehrere Lesungen desselben Betrags: Mehrheit gewinnt, Abweichler bleiben als günstige Alternative
       const st = stimmen(r.letzter.nach ? null : v, r.z.mehr, dez);
@@ -563,9 +629,10 @@ window.Bon = (() => {
     // Kein echtes Wahrscheinlichkeitsmaß, aber ehrlich: 100 % nur, wenn alle Lesungen übereinstimmen.
     for (const p of posten) {
       if (p.zuschlag) continue;
-      const l = (p.lesungen || []).find((x) => x.v === Math.abs(p.b));
-      p.sicherheit = p.lesbarAmount > 1 ? Math.round((l ? l.anteil : 0.1) * 100) : Math.round(Math.min(95, (p.c || 80) * 0.95));
-      p.vorschlag = [...new Set([...(p.lesungen || []).filter((x) => x.v !== Math.abs(p.b)).map((x) => x.v), ...p.kand.filter((c) => c.warum !== 'weg' && c.v > 0 && c.v !== Math.abs(p.b)).map((c) => c.v)])].slice(0, 4);
+      // Vorzeichen zählt nicht: Nachlesungen von „-0,34“ verlieren oft das Minus
+      const anteil = (p.lesungen || []).filter((x) => Math.abs(x.v) === Math.abs(p.b)).reduce((a, x) => a + x.anteil, 0);
+      p.sicherheit = p.lesbarAmount > 1 ? Math.round(Math.min(1, anteil || 0.1) * 100) : Math.round(Math.min(95, (p.c || 80) * 0.95));
+      p.vorschlag = [...new Set([...(p.lesungen || []).filter((x) => Math.abs(x.v) !== Math.abs(p.b)).map((x) => Math.abs(x.v)), ...p.kand.filter((c) => c.warum !== 'weg' && c.v > 0 && c.v !== Math.abs(p.b)).map((c) => c.v)])].slice(0, 4);
     }
     stornoPaare(posten, info);
     zusaetzeZuordnen(posten, info);
@@ -864,13 +931,16 @@ window.Bon = (() => {
   // Scan-Bild wie ein Dokumentscanner („Dokument“-Filter): Papierhelligkeit samt Schatten und Knicken schätzen und
   // herausrechnen → weißes Papier, gleichmäßig dunkle Schrift. Hintergrund = örtliches Maximum (die Schrift verschwindet,
   // Radius ≈ Zeilenhöhe) und Mittelung auf 1/6 Größe, wieder hochskaliert; dann Pixel ÷ Hintergrund, Kontrast gestreckt.
-  function scanBild(c) {
+  // stark (Anzeige): leichte Grautöne (Knicke, Knitterschatten, Fingerabdrücke) werden weiß, Schrift bleibt schwarz –
+  // wie der „Dokument“-Filter von Scanner-Apps. Für die Erkennung die milde Fassung (blasser Thermodruck soll bleiben).
+  function scanBild(c, stark) {
     const w = c.width, h = c.height, { y, d } = grau(c), p = d.data, n = w * h;
     const sw = Math.max(8, Math.round(w / 6)), sh = Math.max(8, Math.round(h / 6));
     const k = document.createElement('canvas'); k.width = sw; k.height = sh;
     const kg = k.getContext('2d', { willReadFrequently: true }); kg.imageSmoothingQuality = 'high'; kg.drawImage(c, 0, 0, sw, sh);
     const kd = kg.getImageData(0, 0, sw, sh), kp = kd.data, m = sw * sh;
-    let b = new Float32Array(m); for (let i = 0; i < m; i++) b[i] = 0.299 * kp[i * 4] + 0.587 * kp[i * 4 + 1] + 0.114 * kp[i * 4 + 2];
+    let b = new Float32Array(m); const satt = new Float32Array(m);
+    for (let i = 0; i < m; i++) { const R = kp[i * 4], G = kp[i * 4 + 1], B = kp[i * 4 + 2], mx = Math.max(R, G, B); b[i] = 0.299 * R + 0.587 * G + 0.114 * B; satt[i] = mx > 20 ? (mx - Math.min(R, G, B)) / mx : 0; }
     const r = Math.max(2, Math.round(Math.min(sw, sh) / 40));
     const lauf = (src, max, waag) => { // trennbarer Max- bzw. Mittelwertfilter
       const o = new Float32Array(m), L = waag ? sw : sh, Q = waag ? sh : sw;
@@ -888,7 +958,12 @@ window.Bon = (() => {
     const gg = gross.getContext('2d', { willReadFrequently: true }); gg.imageSmoothingQuality = 'high'; gg.drawImage(k, 0, 0, w, h);
     const bg = gg.getImageData(0, 0, w, h).data;
     for (let i = 0; i < n; i++) {
-      const v = (255 * y[i]) / Math.max(24, bg[i * 4]), x = Math.max(0, Math.min(255, ((v - 40) * 255) / 200));
+      const v = (255 * y[i]) / Math.max(24, bg[i * 4]);
+      let x;
+      if (stark) {
+        const t = Math.max(0, Math.min(1, (v - 85) / (205 - 85))); x = 255 * Math.pow(t, 0.85);
+      }
+      else x = Math.max(0, Math.min(255, ((v - 40) * 255) / 200));
       p[i * 4] = p[i * 4 + 1] = p[i * 4 + 2] = x; p[i * 4 + 3] = 255;
     }
     gg.putImageData(d, 0, 0);
@@ -896,6 +971,7 @@ window.Bon = (() => {
   }
   function verbessern(c, art) {
     if (art === 'scan') return scanBild(c);
+    if (art === 'scanstark') return scanBild(c, true);
     const w = c.width, h = c.height, { y, d, g } = grau(c), p = d.data, n = w * h;
     let v = new Float32Array(n);
     if (art === 'dunkel') for (let i = 0; i < n; i++) v[i] = 255 * Math.pow(y[i] / 255, 1.8);
@@ -960,7 +1036,7 @@ window.Bon = (() => {
     } catch (e) { ausschnitt = null; }
     let qr = await qrSuchen(daten);
     if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
-    const versuche = [], alle = []; let beste = null;
+    const versuche = [], alle = []; let beste = null, glatt = null;
     // lauf: leinwand wird gelesen, anzeige ist das Bild für die App (bei verbesserten Durchläufen das Original)
     const lauf = async (leinwand, psm, name, ecken, fort, anzeige, gerade = name !== 'foto') => {
       let v, woerter, roh = '';
@@ -969,6 +1045,8 @@ window.Bon = (() => {
       let z = zeilenAus(woerter, { gerade }), r = lies(z, qr), g = guete(r, woerter);
       const z2 = zeilenSpalten(woerter);
       if (z2) { const r2 = lies(z2, qr), g2 = guete(r2, woerter); if (g2 > g) { z = z2; r = r2; g = g2; name += `+spalten(${z2.spalten.versatz})`; } }
+      // Gleichstand: der entzerrte (und noch mehr der geglättete) Bon wird angezeigt – sieht aus wie gescannt
+      g += /^geglaettet/.test(name) ? 60 : gerade && name !== 'foto' ? 30 : 0;
       versuche.push(`${name}:${Math.round(g)}`);
       const e = { g, r, v, roh, name, ecken, z, gerade }; alle.push(e);
       if (!beste || g > beste.g) beste = e;
@@ -995,6 +1073,13 @@ window.Bon = (() => {
         }
       }
       else await lauf(daten, 11, 'foto', null);
+    }
+    // 2b. Glätten (Wellen, Knicke) auf dem besten entzerrten Durchlauf und neu lesen: gerade Zeilen lesen sich besser
+    if (paddle && beste && beste.gerade && beste.z) {
+      try {
+        const gl = glaetten(beste.v.lese, beste.z);
+        if (gl) { glatt = { ...gl, quelle: beste.v.lese }; await lauf(gl.canvas, 6, 'geglaettet', beste.ecken, stufe('Knicke und Wellen werden geglättet', 0.36, 0.42), null, true); }
+      } catch (e) { /* ohne Glätten weiter */ }
     }
     // 3. PaddleOCR, Summe noch nicht bestätigt: weitere Durchläufe mit verbessertem Bild (Kontrast/Schärfe, dunkler)
     if (paddle && !(beste.r.pruefung && beste.r.pruefung.gesamtOk)) {
@@ -1061,15 +1146,22 @@ window.Bon = (() => {
       }
       const r2 = lies(z, qr);
       if (guete(r2, []) >= guete(r, [])) r = r2;
-      const g2 = guete(r, []);
+      const g2 = guete(r, []) + (/^geglaettet/.test(pass.name) ? 60 : pass.gerade && pass.name !== 'foto' ? 30 : 0);
       if (ki === 0 || g2 > ende.gEnde) { ende = { ...pass, r, gEnde: g2 }; window.__bonZeilen = z; } // __bonZeilen: zur Fehlersuche (Testskripte)
     }
     if (paddle) { stufe('Fertig', 0.98, 1)({ progress: 1 }); if (window.FasanOCR.frei) window.FasanOCR.frei(); }
-    const { r, v, roh, name, ecken } = ende;
+    let { r, v, roh, name, ecken } = ende;
+    // Gewinner ist der Durchlauf, aus dem geglättet wurde (oder ein verbesserter davon): trotzdem das geglättete Bild zeigen,
+    // die Kästen werden umgerechnet – der Bon sieht aus wie gescannt, die Lesung bleibt die bessere
+    if (glatt && !/^geglaettet/.test(name) && (v.canvas === glatt.quelle || v.lese === glatt.quelle)) {
+      const ab = glatt.abbilden;
+      r = { ...r, zeilen: r.zeilen.map((z) => (z.b ? { ...z, b: ab(z.b) } : z)), posten: r.posten.map((p) => ({ ...p, rahmen: p.rahmen ? ab(p.rahmen) : p.rahmen, zusaetze: p.zusaetze ? p.zusaetze.map((x) => ({ ...x, rahmen: x.rahmen ? ab(x.rahmen) : x.rahmen })) : p.zusaetze })) };
+      v = { ...v, canvas: glatt.canvas }; name += '→geglättet';
+    }
     // Anzeige: begradigter Bon als „Scan“ (weißes Papier, ohne Schatten) – besser lesbar als das Foto; Original bleibt als foto
-    let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas); } catch (e) { anzeige = v.canvas; } }
+    let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas, true); } catch (e) { anzeige = v.canvas; } }
     for (const p of r.posten) p.schnipsel = schnipsel(anzeige, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
-    return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), winkel: v.winkel, roh, ecken };
+    return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), bildOriginal: anzeige !== v.canvas ? v.canvas.toDataURL('image/jpeg', 0.82) : null, winkel: v.winkel, roh, ecken };
   }
   return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, zeilenSpalten, cent, qrLesen, qrSuchen, paddleDa };
 })();

@@ -1,0 +1,61 @@
+name: Modelle bauen (UVDoc als ONNX)
+
+# Baut das Entzerrungsmodell UVDoc (Verhoeven, Magne, Sorkine-Hornung, SIGGRAPH Asia 2023; MIT-Lizenz,
+# github.com/tanguymagne/UVDoc) aus den veröffentlichten PyTorch-Gewichten in ONNX um, damit es im Handy
+# mit onnxruntime-web läuft. Ergebnis landet im Zweig „modelle“ (nicht in main, wegen der Größe).
+# Gewichte und Code werden über Commit und SHA-256 festgenagelt: nichts Ungeprüftes kommt in die App.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/modelle.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  uvdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: UVDoc holen (fester Commit) und Gewichte prüfen
+        run: |
+          git clone https://github.com/tanguymagne/UVDoc uvdoc
+          cd uvdoc && git checkout 4c9b82b537057aff2526e6dd118a847cdd072e82
+          echo "7e90861b8a516eb4bc51f84bd889cb77275743d2d1d3ca8091951ec9f2b7da23  model/best_model.pkl" | sha256sum -c -
+
+      - name: PyTorch (CPU) und ONNX installieren
+        run: pip install --index-url https://download.pytorch.org/whl/cpu torch==2.4.1 && pip install onnx==1.16.2 onnxruntime==1.19.2 numpy==1.26.4
+
+      - name: Nach ONNX umwandeln und gegen PyTorch prüfen
+        working-directory: uvdoc
+        run: |
+          cat > export.py <<'PY'
+          import torch, numpy as np, onnx, onnxruntime as ort
+          from model import UVDocnet
+          m = UVDocnet(num_filter=32, kernel_size=5)
+          ck = torch.load('model/best_model.pkl', map_location='cpu', weights_only=False)
+          m.load_state_dict(ck['model_state']); m.eval()
+          class Nur2D(torch.nn.Module):
+              def __init__(s, m): super().__init__(); s.m = m
+              def forward(s, x): return s.m(x)[0]   # 2D-Gitter (1×2×45×31), Werte in [-1, 1] (grid_sample-Koordinaten)
+          x = torch.rand(1, 3, 712, 488)
+          torch.onnx.export(Nur2D(m), x, 'uvdoc.onnx', input_names=['bild'], output_names=['gitter'], opset_version=17, do_constant_folding=True)
+          onnx.checker.check_model(onnx.load('uvdoc.onnx'))
+          with torch.no_grad(): ref = Nur2D(m)(x).numpy()
+          out = ort.InferenceSession('uvdoc.onnx').run(None, {'bild': x.numpy()})[0]
+          print('Form', out.shape, 'größte Abweichung', float(np.abs(out - ref).max()))
+          assert out.shape == (1, 2, 45, 31) and np.abs(out - ref).max() < 1e-3
+          PY
+          python3 export.py
+          sha256sum uvdoc.onnx | tee uvdoc.onnx.sha256
+          ls -la uvdoc.onnx
+
+      - name: In Zweig „modelle“ ablegen
+        run: |
+          mkdir -p out && cp uvdoc/uvdoc.onnx uvdoc/uvdoc.onnx.sha256 uvdoc/LICENSE out/
+          mv out/LICENSE out/UVDoc-LICENSE.txt
+          cd out && git init -q && git checkout -q -b modelle
+          git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          git add . && git commit -q -m "UVDoc als ONNX (Commit 4c9b82b, Gewichte 7e90861b)"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" modelle

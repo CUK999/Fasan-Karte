@@ -47,6 +47,11 @@ const r = await p.evaluate(() => {
   out.push(fall('dreizeilig', L('661', 'Clipper FFX', '3,00 €   7   A 21,00 €', '1086', 'Spezial Glitzer Clipper', '3,50 €   1   A 3,50 €', '662', 'Clipper', '2,00 €   2   A 4,00 €', 'Gesamt Brutto: 28,50 €'), 'Clipper FFX=2100[7x300] | Spezial Glitzer Clipper=350 | Clipper=400[2x200] · total 2850'));
   // Rabatt ohne Stichwort, nur Prozent (REWE „RBW -10%“)
   out.push(fall('rabatt prozent', L('EIERSPAETZLE 1,59 B', 'VEGANE SCHNITZEL 3,39 B', ' RBW -10% -0,34 B', 'SUMME EUR 4,64'), 'EIERSPAETZLE=159 | VEGANE SCHNITZEL=305{rabatt-34} · total 464'));
+  // 3.17: Summe ohne Summenwort (unbekannte Sprache, zweimal: Summe + Zahlung), Stückzahl-Summe, Rundung ohne Betrag, Währung im Wort
+  out.push(fall('ohne summenwort', L('RAMEN 9,80', 'GYOZA 4,50', 'BIRU 5,20', 'GOKEI 19,50', 'KAADO 19,50'), 'RAMEN=980 | GYOZA=450 | BIRU=520 · total 1950'));
+  out.push(fall('stueckzahl', L('PEN 1.50', 'BOOK 12.00', 'Total Qty 2 13.50', 'TOTAL 13.50'), 'PEN=150 | BOOK=1200 · total 1350'));
+  out.push(fall('rundung 5 sen', L('TEA 3.11', 'BUN 4.62', 'TOTAL RM 7.73', 'ROUNDING ADJ', 'TOTAL ROUNDED 7.75'), 'TEA=311 | BUN=462 | Rundung=2 · total 775'));
+  out.push(fall('waehrung im wort', L('KRAEUTERQUARK 1,30 B', 'FEUERZEUG 0,99 A', 'SUMME EUR 2,29'), 'KRAEUTERQUARK=130 | FEUERZEUG=99 · total 229'));
   return out;
 });
 let fehler = 0; for (const x of r) { if (x[0].startsWith('FEHLER')) fehler++; console.log(x.join(' ')); }

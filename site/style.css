@@ -1173,3 +1173,12 @@ button:focus-visible, [role="button"]:focus-visible { outline: 3px solid var(--a
 #rw-bon { display: flex; flex-direction: column; }
 #rw-bon > .rwb-bereich { flex: 1 1 auto; min-height: 0; }
 #rw-bon > .rwb-kopf, #rw-bon > .rwb-leiste, #rw-bon > .rwb-ansicht, #rw-bon > .rwb-unten { flex: none; }
+
+/* Versionsmarke auf jeder Seite (3.17) */
+#version-marke { position: fixed; left: max(4px, env(safe-area-inset-left)); bottom: max(2px, env(safe-area-inset-bottom)); z-index: 99999; font: 600 10px/1.2 system-ui, sans-serif; color: var(--text, #222); opacity: .55; background: var(--flaeche, #fff); padding: 1px 5px; border-radius: 6px; pointer-events: none; }
+#version-marke.alt { color: #fff; background: #c0392b; opacity: 1; }
+/* 3.17: Kopf der Bon-Ansicht mit Rückgängig/Wiederholen passt auf 360 px */
+.rwb-kopf { padding: 6px 8px; gap: 4px; }
+.rwb-kopf .rwb-ik { min-width: 40px; padding: 0 6px; }
+.rwb-kopf .rw-verlauf .knopf[disabled] { opacity: .35; }
+@media (max-width: 420px) { .rwb-kopf > .knopf.flach:first-child { padding: 0 6px; } .rwb-kopf .rw-sichern { padding: 0 10px; } }

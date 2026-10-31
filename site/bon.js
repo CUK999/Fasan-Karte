@@ -247,30 +247,46 @@ window.Bon = (() => {
     og.putImageData(od, 0, 0);
     // Kästen aus dem Ausgangsbild ins geglättete Bild umrechnen (y' ≈ y − D)
     const abbilden = (b) => { const xm = (b.x0 + b.x1) / 2; return { x0: b.x0, x1: b.x1, y0: b.y0 - bil(DY, xm, b.y0), y1: b.y1 - bil(DY, xm, b.y1) }; };
+    pl('glaetten', { max: +(maxd / h).toFixed(3), zeilen: zeilen.length });
     return { canvas: out, max: maxd / h, abbilden };
   }
   // ---------- Entfalten mit UVDoc (neuronal): Knicke und Wölbung des ganzen Blatts, auch zwischen den Zeilen ----------
   // Das Netz sagt auf einem 31×45-Gitter, wo jeder Punkt des glatten Blatts im Foto liegt; das Bild wird danach neu
   // abgetastet (bilinear, wie grid_sample mit align_corners in UVDoc/utils.py).
-  async function entfalten(c) {
-    if (!window.FasanOCR || !window.FasanOCR.uvdoc || !(await window.FasanOCR.uvdocDa())) return null;
+  async function entfalten(c, quelle = c, zielBreite = 1300) {
+    const da = window.FasanOCR && window.FasanOCR.uvdoc && (await window.FasanOCR.uvdocDa());
+    if (!da) { pl('uvdoc', { da: false }); return null; }
+    const ts = performance.now();
     const { gitter, dims } = await window.FasanOCR.uvdoc(c), gh = dims[2], gw = dims[3], W = c.width, H = c.height, n = gh * gw;
-    const src = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, W, H).data;
-    const out = document.createElement('canvas'); out.width = W; out.height = H;
-    const og = out.getContext('2d'), od = og.createImageData(W, H), o = od.data;
-    for (let y = 0; y < H; y++) {
-      const fy = (y / (H - 1)) * (gh - 1), j = Math.min(gh - 2, fy | 0), v = fy - j;
-      for (let x = 0; x < W; x++) {
-        const fx = (x / (W - 1)) * (gw - 1), i = Math.min(gw - 2, fx | 0), u = fx - i, k0 = j * gw + i, k1 = k0 + gw;
+    // Gitter aus dem (verkleinerten) Bild c, abgetastet wird in der vollen Auflösung der Quelle
+    const QW = quelle.width, QH = quelle.height;
+    let src;
+    { const q = quelle instanceof HTMLCanvasElement ? quelle : (() => { const t = document.createElement('canvas'); t.width = QW; t.height = QH; t.getContext('2d').drawImage(quelle, 0, 0); return t; })(); src = q.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, QW, QH).data; }
+    // Ausgabegröße aus dem Gitter (Länge der Gitterlinien im Foto), nicht die Fotogröße: ein schmaler Bon in einem 3:4-Foto
+    // würde sonst in die Breite gezogen (Schrift verzerrt)
+    const px = (k) => [((gitter[k] + 1) / 2) * (QW - 1), ((gitter[n + k] + 1) / 2) * (QH - 1)];
+    let lw = 0, lh = 0;
+    for (let j = 0; j < gh; j++) for (let i = 0; i + 1 < gw; i++) { const a = px(j * gw + i), b = px(j * gw + i + 1); lw += Math.hypot(b[0] - a[0], b[1] - a[1]); }
+    for (let i = 0; i < gw; i++) for (let j = 0; j + 1 < gh; j++) { const a = px(j * gw + i), b = px((j + 1) * gw + i); lh += Math.hypot(b[0] - a[0], b[1] - a[1]); }
+    lw /= gh; lh /= gw;
+    // auf die Lesebreite der übrigen Durchläufe bringen (kleine Schrift liest die Erkennung schlechter), höchstens 4500 px
+    const f = Math.min(Math.max(1, zielBreite / lw), 4500 / Math.max(lw, lh)), OW = Math.max(32, Math.round(lw * f)), OH = Math.max(32, Math.round(lh * f));
+    const out = document.createElement('canvas'); out.width = OW; out.height = OH;
+    const og = out.getContext('2d'), od = og.createImageData(OW, OH), o = od.data;
+    for (let y = 0; y < OH; y++) {
+      const fy = (y / (OH - 1)) * (gh - 1), j = Math.min(gh - 2, fy | 0), v = fy - j;
+      for (let x = 0; x < OW; x++) {
+        const fx = (x / (OW - 1)) * (gw - 1), i = Math.min(gw - 2, fx | 0), u = fx - i, k0 = j * gw + i, k1 = k0 + gw;
         const gx = (gitter[k0] * (1 - u) + gitter[k0 + 1] * u) * (1 - v) + (gitter[k1] * (1 - u) + gitter[k1 + 1] * u) * v;
         const gy = (gitter[n + k0] * (1 - u) + gitter[n + k0 + 1] * u) * (1 - v) + (gitter[n + k1] * (1 - u) + gitter[n + k1 + 1] * u) * v;
-        const X = Math.max(0, Math.min(W - 1.001, ((gx + 1) / 2) * (W - 1))), Y = Math.max(0, Math.min(H - 1.001, ((gy + 1) / 2) * (H - 1)));
-        const xi = X | 0, yi = Y | 0, a = X - xi, b = Y - yi, p0 = (yi * W + xi) * 4, p1 = p0 + W * 4, q = (y * W + x) * 4;
+        const X = Math.max(0, Math.min(QW - 1.001, ((gx + 1) / 2) * (QW - 1))), Y = Math.max(0, Math.min(QH - 1.001, ((gy + 1) / 2) * (QH - 1)));
+        const xi = X | 0, yi = Y | 0, a = X - xi, b = Y - yi, p0 = (yi * QW + xi) * 4, p1 = p0 + QW * 4, q = (y * OW + x) * 4;
         for (let ch = 0; ch < 3; ch++) o[q + ch] = (src[p0 + ch] * (1 - a) + src[p0 + 4 + ch] * a) * (1 - b) + (src[p1 + ch] * (1 - a) + src[p1 + 4 + ch] * a) * b;
         o[q + 3] = 255;
       }
     }
     og.putImageData(od, 0, 0);
+    pl('uvdoc', { da: true, ms: Math.round(performance.now() - ts), ein: `${W}×${H}`, quelle: `${QW}×${QH}`, aus: `${OW}×${OH}` });
     return out;
   }
   // ---------- Spaltenabgleich: Namen links und Beträge rechts getrennt zu Reihen bündeln und der Reihe nach paaren.
@@ -348,7 +364,13 @@ window.Bon = (() => {
     summe: /\b(total|totaal|totale|totalt|gesamt|gesamtbetrag|gesamtsumme|summe|endsumme|endbetrag|zu zahlen|zahlbetrag|importe|a pagar|montant|net a payer|te betalen|suma|razem|celkem|osszesen|yhteensa|att betala|i alt|ukupno|toplam|kokku|amount due|balance due)\b/,
     zwischen: /\b(sub-?total|subtotale|subtotaal|sous-?total|zwischensumme|zw\.? ?summe)\b/,
     steuer: /\b(mwst|mw\.?st|ust|vat|gst|sst|hst|pst|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incid|incidencia|incidencias|imponible|imponibile|imposta|taxa iva|base|tributavel|ht|sem iva|net)\b/,
-    service: /\b(service|bedienung|trinkgeld|tip|tips|gratuity|servizio|pourboire|fooi|propina)\b/,
+    service: /\b(service|serv|svc|bedienung|trinkgeld|tip|tips|gratuity|servizio|pourboire|fooi|propina)\b/,
+    // Stückzahl-Summen („Total Qty 2“, „Item(s): 5“, „Total Points“): nie die Gesamtsumme (SROIE 003, 052, 054)
+    anzahl: /\b(total\s*(qty|quantity|items?|pcs|points|pts)|items?\s*\(?s?\)?\s*:|qty\s*\(?s?\)?\s*:|item count|iten count|no\.? of items|anzahl artikel|artikelanzahl|anz\.? artikel)/,
+    // „Total incl. GST“ ist die Gesamtsumme, keine Steuerzeile; „Net Total“ (Malaysia, Singapur) ebenso
+    inklSteuer: /\b(incl|inkl|inclusive?|inclusiv\s+e|including|inc)\b\.?\s*(of\s*)?(gst|vat|tax|mwst|iva|tva|sst|ust)\b|\b(net|nett)\s+total\b/,
+    // Kopf einer Steuer-Übersicht: Zeilen danach sind Steuertabelle, keine Summe (SROIE 031: „GST Summary … Total 70.75“)
+    steuerTabelle: /\b(gst|tax|vat|mwst|iva|tva|sst|ust)\s*(summary|susmary|summ?ary|analysis|breakdown|code)\b|steuer\s*(ubersicht|aufstellung)|resumo (do )?iva|riepilogo iva|desglose iva/,
     zahlung: /\b(bar|gegeben|kartenzahlung|karte|ec|ec-cash|girocard|kreditkarte|visa|mastercard|maestro|amex|vpay|paypal|apple pay|google pay|cash|card|tendered|entregue|valor entregue|pago|pagamento|efectivo|tarjeta|especes|carte|cb|contanti|carta|bancomat|pin|contant|kaart|pinnen|multibanco|mb way|dinheiro|numerario|cartao|kontaktlos|contactless|bezahlt|paid)\b/,
     rueck: /\b(ruckgeld|wechselgeld|change|cambio|vuelto|rendu|resto|troco|wisselgeld)\b/,
     rabatt: /\b(rabatt|nachlass|coupon|gutschein|discount|desconto|descuento|sconto|remise|reduction|korting|preisvorteil|sofortrabatt|ersparnis|sie sparen|you save|reduziert|mhd|aktion|promo|promocao|oferta)\b/,
@@ -366,7 +388,7 @@ window.Bon = (() => {
     rundung: /\b(rundung|gerundet|rounding|arredondamento|redondeo|arrotondamento|arrondi|afronding|pyoristys|avrundning|oresavrundning)\b/,
     nein: /\b(uid|ust-?idnr|ust-?id|vat no|capital|social|registo|registro|contrib|contribuinte|conservatoria|matricula|e-?mail|iban|bic|swift|handelsregister|hrb|amtsgericht|geschaftsfuhrer|sede|datum|date|data|fecha|uhrzeit|hora|heure|ora|tisch|table|mesa|tavolo|kasse|kassierer|beleg|bon-?nr|receipt|recibo|ricevuta|tel|telefon|phone|fax|www|http|ust-?id|st\.?-?nr|steuer-?nr|steuernummer|nif|nipc|siret|cif|atcud|fatura|factura|rechnung|invoice|original|kopie|copy|operador|bediener|kellner|cashier|danke|thank|thanks|merci|grazie|gracias|obrigad[oa]|vielen|willkommen|welcome|gmbh|lda|srl|ltd|inc|ohg|tse|signatur|seriennummer|transaktion|terminal|trace|beleg-?nr|autorisierung|kartennummer)\b/,
     // Spaltenüberschrift über den Posten („Qt Descrição P.Unit. Tx Valor“, „Menge Artikel Preis Betrag“)
-    kopf: /\b(qt|qtd|qty|qte|quant|quantidade|menge|anz|anzahl|descri[cç]?[aã]?o|descricao|descripcion|description|bezeichnung|artikel|artigo|article|articulo|produkt|produto|p\.?\s?unit|p\.?\s?u|preco|preis|price|prix|precio|prezzo|valor|betrag|amount|montant|importe|importo|tx|vat|mwst|einzel)\b/g,
+    kopf: /\b(qt|qtd|qty|qte|quant|amt|disc|quantidade|menge|anz|anzahl|descri[cç]?[aã]?o|descricao|descripcion|description|bezeichnung|artikel|artigo|article|articulo|produkt|produto|p\.?\s?unit|p\.?\s?u|preco|preis|price|prix|precio|prezzo|valor|betrag|amount|montant|importe|importo|tx|vat|mwst|einzel)\b/g,
     // Einzelpreis-Zeilen unter dem Posten („Preco: 12,90/Uni“, „à 2,50“, „je 1,99“, „@ 3.50“)
     einzel: /\b(pre[cç]o|preis|price|prix|precio|prezzo|prijs|je|a|à|@|ea|each|stuckpreis|einzelpreis|ep)\b\s*[:;.]?\s*$/,
   };
@@ -411,7 +433,7 @@ window.Bon = (() => {
   }
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
-    return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/(€|eur|euro|usd|chf|gbp|\$|£|fr\.|kr|zł|kč)/gi, '')
+    return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/[€$£¥₩₹]|(?<![\p{L}])(euro|eur|usd|chf|gbp|jpy|fr\.|kr|zł|kč)(?![\p{L}])/giu, '') // Währung nur als eigenes Wort (sonst wurde KRAEUTERQUARK zu AEUTERQUARK, FEUERZEUG zu FEZEUG)
       .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+\d{3,5}\s?[A-D]\s*\*?\s*$/, '').replace(/\s+\d{1,3}\s\d{2}\s*[A-D]?\s*\*?\s*$/, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
@@ -514,9 +536,10 @@ window.Bon = (() => {
       if (bt.length >= 2 && /^\W*$/.test(z.text.slice(0, bt[0].start)) && /^\s*[A-Za-zÀ-ÿ]/.test(z.text.slice(bt[0].ende)) && bt[0].v > 0 && bt[0].v <= 9900) { mengeVorn = bt[0].v / 100; bt.shift(); }
       const letzter = bt.length ? bt[bt.length - 1] : null;
       let art = 'sonst';
-      if (!bt.length && ((n.match(W.kopf) || []).length >= 2 || /^\W*(eur|euro|€|usd|chf|gbp)\W*$/.test(n))) art = 'kopf';
+      if ((!bt.length && ((n.match(W.kopf) || []).length >= 2 || /^\W*(eur|euro|€|usd|chf|gbp)\W*$/.test(n))) || (n.match(W.kopf) || []).length >= 3) art = 'kopf';
+      else if (W.anzahl.test(n)) art = 'nein';
       else if (W.zwischen.test(n)) art = 'zwischen';
-      else if ((W.summe.test(n) && !W.steuer.test(n.replace(W.summe, '').replace(/\bbrutto\b/, ''))) || (bt.length && summeUnscharf(n))) art = 'summe'; // „Gesamt Brutto“ ist die Summe; „SLMMe“ = SUMME
+      else if ((W.summe.test(n) && !W.steuer.test(n.replace(new RegExp(W.inklSteuer.source, 'g'), ' ').replace(W.summe, '').replace(/\bbrutto\b/, ''))) || (W.inklSteuer.test(n) && /\b(total|sales|amount|betrag|summe)\b/.test(n)) || (bt.length && summeUnscharf(n))) art = 'summe'; // „Gesamt Brutto“ ist die Summe; „SLMMe“ = SUMME
       else if (W.rueck.test(n)) art = 'rueck';
       else if (W.vorab.test(n)) art = 'vorab';
       else if (W.anzahlung.test(n)) art = 'anzahlung';
@@ -530,6 +553,9 @@ window.Bon = (() => {
       else if (W.steuer.test(n) || /^\W*\d{1,2}([.,]\d+)?\s*%/.test(n)) art = 'steuer';
       else if (W.rabatt.test(n)) art = 'rabatt';
       else if (W.nein.test(n)) art = 'nein';
+      // Artikelname mit Steuerwort aus der Spaltenüberschrift („REPAIR ENGINE POWER SPRAYER (1UNIT) Tax“, SROIE 006): ohne Betrag
+      // und mit mindestens zwei weiteren Wörtern ist es keine Steuerzeile (beendete sonst den Postenblock)
+      if (art === 'steuer' && !bt.length && (n.replace(new RegExp(W.steuer.source, 'g'), ' ').replace(W.kopf, ' ').match(/[a-z]{3,}/g) || []).length >= 2 && !W.steuerTabelle.test(n)) art = 'sonst';
       // Menge × Einzelpreis in der Zeile: „2 x 4,90“, „3 X 0,79 2,37“, „0,512 kg x 2,99 €/kg“
       let menge = null, einzel = null;
       const mx = new RegExp(`(\\d{1,3}(?:[.,]\\d{1,3})?)\\s*(?:stk\\.?|st\\.?|kg|pcs|un\\.?|uni|l|ltr|lt|liter|litros|lts|gal|n[aä]chte?|noites|nights|n\\.|tage|dias|days|pers\\.?|personen|pax)?\\s*[x×*]\\s*(\\d+\\${dez}\\d{2,3})(?!\\d)`, 'i').exec(z.text);
@@ -553,10 +579,22 @@ window.Bon = (() => {
       if (letzter && letzter.nach && z.mehr) { const zz = new Map(); for (const m of z.mehr) { const x = /\d[.,]\s?\d{2}\s*([A-D])(?![A-Za-z0-9])/.exec(m.t); if (x) zz.set(x[1], (zz.get(x[1]) || 0) + 1); } const top = [...zz].sort((p2, q2) => q2[1] - p2[1])[0]; if (top && top[1] >= 2) stb = top[0]; }
       return { i, z, n, bt, letzter, art, menge, einzel, name, stb, bu: buchst(name), satz: satz != null ? +satz : null, nurEinzel: W.einzel.test(ohneAkz(z.text.slice(0, bt.length ? bt[0].start : z.text.length))) };
     });
+    // Steuertabelle nach einer Summe: deren „Total“-Zeilen sind Steuersummen, nicht die Gesamtsumme
+    { const s0 = info.findIndex((r) => r.art === 'summe' || /\b(total|summe|gesamt)/.test(r.n)); if (s0 >= 0) { const t0 = info.findIndex((r, i) => i > s0 && W.steuerTabelle.test(r.n)); if (t0 > 0) for (let i = t0; i < info.length; i++) if (info[i].art === 'summe') info[i].art = 'steuer'; } }
     // Ende des Postenteils: erste Summenzeile mit Betrag (danach kommen Zahlung, Steuer, Fußtext)
     // (steht der Betrag der Summenzeile durch Schräglage eine Zeile tiefer, gilt die Zeile ohne Betrag als Ende)
     let ende = info.findIndex((r, i) => r.art === 'summe' && (r.letzter || (info[i + 1] && info[i + 1].letzter && info[i + 1].bu < 3)));
     if (ende < 0) ende = info.length;
+    // Kein Summenwort gefunden (fremde Sprache/Schrift, Wort unlesbar): die erste Zeile, deren Betrag genau die Summe aller
+    // Beträge darüber ist, ist die Summe (mindestens zwei Posten davor). Rein rechnerisch, unabhängig von der Sprache.
+    if (ende === info.length && !(qr && qr.total)) {
+      let summe = 0, n = 0;
+      for (let i = 0; i < info.length; i++) {
+        const r = info[i]; if (!r.letzter || ['kopf', 'nein', 'steuer', 'zahlung', 'rueck'].includes(r.art)) continue;
+        if (n >= 2 && r.letzter.v === summe && summe > 0) { r.art = 'summe'; r.summeOhneWort = true; ende = i; break; }
+        summe += r.letzter.v; n++;
+      }
+    }
     const kopfZ = info.findIndex((r, i) => i < ende && r.art === 'kopf');
     // Postenblock endet auch an der Steuertabelle („TAXA IVA INCID.“, „MwSt Netto Brutto“) – deren Beträge sind nie Posten.
     // Steuer/Service vor der Summe zählen nur, wenn es eine Zwischensumme gibt (USA); in Europa ist die Steuer enthalten.
@@ -637,7 +675,7 @@ window.Bon = (() => {
     }
     // Summen-Kandidaten: Summenzeile(n), Kartenzahlung, gegeben − Rückgeld, QR-Code
     const ziele = [];
-    const ziel = (v, k, quelle) => { if (qr && qr.total && quelle !== 'qr') return; if (v > 0 && !ziele.some((z) => z.v === v && z.k <= k)) ziele.push({ v, k, quelle }); };
+    const ziel = (v, k, quelle, zeile = -1) => { if (qr && qr.total && quelle !== 'qr') return; if (v > 0 && !ziele.some((z) => z.v === v && z.k <= k)) ziele.push({ v, k, quelle, zeile }); };
     // Rechnungs-QR (Prüfsumme der Steuerbehörde) ist maßgeblich: dann zählt nur seine Summe, nichts anderes
     if (qr && qr.total) ziel(qr.total, 0, 'qr');
     let totalZeile = -1, totalGelesen = null, anzahlung = 0;
@@ -647,15 +685,25 @@ window.Bon = (() => {
       if (r.letzter && (r.art === 'service' || r.art === 'rundung')) { zuschlaege.push({ t: r.art === 'rundung' ? 'Rundung' : (r.name || 'Trinkgeld'), art: r.art === 'rundung' ? 'rundung' : 'trinkgeld', zeile: i, kand: [{ v: r.letzter.v, k: 0 }] }); r.typ = 'zuschlag'; continue; }
       if (r.letzter && r.art === 'anzahlung') { anzahlung += Math.abs(r.letzter.v); r.typ = 'anzahlung'; continue; }
       // Summenzeile ohne Betrag: Betrag der nächsten Zeile ist ein Kandidat (etwas teurer)
-      if (r.art === 'summe' && !r.letzter && info[i + 1] && info[i + 1].letzter) { const q = info[i + 1]; ziel(q.letzter.v, 0.3, 'summe'); if (totalZeile < 0) { totalZeile = i; totalGelesen = q.letzter.v; } r.typ = 'summe'; continue; }
+      if (r.art === 'summe' && !r.letzter && info[i + 1] && info[i + 1].letzter) { const q = info[i + 1]; ziel(q.letzter.v, 0.3, 'summe', i + 1); if (totalZeile < 0) { totalZeile = i; totalGelesen = q.letzter.v; } r.typ = 'summe'; continue; }
       if (!r.letzter) continue;
-      if (r.art === 'summe') { if (totalZeile < 0) { totalZeile = i; totalGelesen = r.letzter.v; } ziel(r.letzter.v, 0, 'summe'); for (const a of [...stimmen(r.letzter.v, r.z.mehr, dez).slice(1), ...alternativen(r.z, r.letzter, dez)]) ziel(a.v, Math.max(0.2, a.k), 'summe'); r.typ = 'summe'; }
+      if (r.art === 'summe') { if (totalZeile < 0) { totalZeile = i; totalGelesen = r.letzter.v; } ziel(r.letzter.v, 0, 'summe', i); for (const a of [...stimmen(r.letzter.v, r.z.mehr, dez).slice(1), ...alternativen(r.z, r.letzter, dez)]) ziel(a.v, Math.max(0.2, a.k), 'summe', i); r.typ = 'summe'; }
+    }
+    // Ohne Summenwort (weltweit: 合計, Σ, unbekannte Sprache, Summenwort unlesbar): Beträge nach dem Postenblock, die mindestens
+    // so groß sind wie jeder Posten, sind Kandidaten – ein Betrag, der zweimal vorkommt (Summe + Zahlung), günstiger.
+    // Der Abgleich verlangt trotzdem, dass die Posten genau aufgehen; ohne das gibt es kein „geprüft“.
+    if (!ziele.some((z) => z.quelle === 'summe' || z.quelle === 'qr')) {
+      const tab = info.findIndex((r, i) => i >= ende && W.steuerTabelle.test(r.n)), bis = tab >= 0 ? tab : info.length;
+      const maxP = posten.reduce((a, p) => Math.max(a, Math.abs(p.b)), 0), nach = info.map((r, i) => ({ r, i })).filter(({ r, i }) => i >= ende && i < bis && r.letzter && r.letzter.v > 0 && r.letzter.v >= maxP && !['steuer', 'rueck', 'nein', 'rabatt'].includes(r.art));
+      const anz = new Map(); for (const { r } of nach) anz.set(r.letzter.v, (anz.get(r.letzter.v) || 0) + 1);
+      // ein einzelner Posten gleich einem einzelnen Betrag beweist nichts: dann nur wiederholte Beträge
+      for (const { r, i } of nach) { const w = anz.get(r.letzter.v) >= 2; if (w || posten.length >= 2) ziel(r.letzter.v, w ? 0.5 : 1.0, w ? 'wiederholt' : 'betrag', i); }
     }
     // mehrere Summenzeilen: die größte ist die Gesamtsumme, kleinere (Teil-/Nettosummen) kosten mehr
     { const sz = ziele.filter((z) => z.quelle === 'summe'), max = sz.length ? Math.max(...sz.map((z) => z.v)) : 0; for (const z of sz) if (z.v < max) z.k += 0.8; }
     const gegeben = info.filter((r, i) => i >= ende && r.art === 'zahlung' && r.letzter).map((r) => r.letzter.v);
     const rueck = info.filter((r, i) => i >= ende && r.art === 'rueck' && r.letzter).map((r) => Math.abs(r.letzter.v));
-    for (const g of gegeben) { ziel(g, 0.4, 'zahlung'); for (const q of rueck) if (g - q > 0) ziel(g - q, 0.4, 'zahlung'); }
+    for (const g of gegeben) { ziel(g, 0.4, 'zahlung', ende); for (const q of rueck) if (g - q > 0) ziel(g - q, 0.4, 'zahlung'); }
     // Beträge größer als jede gelesene Summe können keine Posten sein (z. B. Stammkapital im Kopf): Streichen fast kostenlos
     const maxZiel = ziele.length ? Math.max(...ziele.map((z) => z.v)) : Infinity;
     for (const p of posten) if (Math.abs(p.b) > maxZiel) { const w = p.kand.find((c) => c.warum === 'weg'); if (w) w.k = 0.1; }
@@ -671,14 +719,23 @@ window.Bon = (() => {
       // ebenso USA ohne das Wort „Subtotal“. Ergibt die gefundene Summe plus solche Zeilen eine größere gelesene Summe, ist
       // die größere die Gesamtsumme und die Zeilen kommen anteilig dazu (Test 31.10., echte SROIE-Bons: 10 von 14 Fehlern).
       const extra = info.map((r2, i) => ({ r2, i })).filter(({ r2, i }) => i >= ende && r2.letzter && r2.r2 !== null && (r2.art === 'steuer' || r2.art === 'rundung' || r2.art === 'service') && Math.abs(r2.letzter.v) < total && (!r2.typ || (r2.typ === 'zuschlag' && !posten.some((p) => p.zuschlag && p.zeile === i)))).slice(0, 6);
-      const groesser = [...new Set(ziele.filter((z) => z.v > total).map((z) => z.v))];
+      // Kandidaten: andere gelesene Summen/Beträge nach der gefundenen Summe (auch kleiner: Rundung −0,02 → „Total Rounded“)
+      const zl0 = loesung.ziel.zeile, spaeter = info.map((r2, i) => ({ r2, i })).filter(({ r2, i }) => i > Math.max(zl0, ende - 1) && r2.letzter && r2.letzter.v > 0).map(({ r2 }) => r2.letzter.v);
+      const andere = new Set([...ziele.filter((z) => z.v !== total && z.zeile > zl0 && z.quelle !== 'betrag').map((z) => z.v)]);
+      // Rundung auf 5/10 Cent (Malaysia, Schweiz, Niederlande, Skandinavien …): nur, wenn eine Rundungszeile da ist
+      const rundZeile = info.findIndex((r2, i) => i >= ende && (r2.art === 'rundung' || /\b(round|rundung|arrondi|afronding)/.test(r2.n)));
       let wahlE = null;
-      for (let m = 1; m < 1 << extra.length; m++) {
-        let sum = total; const teil = []; for (let k = 0; k < extra.length; k++) if (m & (1 << k)) { sum += extra[k].r2.letzter.v; teil.push(extra[k]); }
-        if (groesser.includes(sum) && (!wahlE || sum > wahlE.sum || (sum === wahlE.sum && teil.length < wahlE.teil.length))) wahlE = { sum, teil };
+      for (let m = 0; m < 1 << extra.length; m++) {
+        let sum = total; const teil = []; for (let k = 0; k < extra.length; k++) if (m & (1 << k)) { if (extra[k].r2.art === 'rundung' && extra[k].r2.letzter.v === 0) continue; sum += extra[k].r2.letzter.v; teil.push(extra[k]); }
+        let ziel2 = andere.has(sum) && m ? sum : null, rund = 0;
+        if (ziel2 == null && rundZeile >= 0) { const c = [...andere, ...spaeter].filter((x) => x % 5 === 0 && x !== sum && Math.abs(x - sum) <= 4).sort((a, b) => Math.abs(a - sum) - Math.abs(b - sum))[0]; if (c != null) { ziel2 = c; rund = c - sum; } }
+        if (ziel2 == null) continue;
+        const w = { sum: ziel2, teil, rund }, n = (x) => x.teil.length + (x.rund ? 1 : 0);
+        if (!wahlE || w.sum > wahlE.sum || (w.sum === wahlE.sum && n(w) < n(wahlE))) wahlE = w;
       }
       if (wahlE) {
         for (const { r2, i } of wahlE.teil) { posten.push({ t: r2.art === 'rundung' ? 'Rundung' : r2.name || (r2.art === 'service' ? 'Service' : 'Steuer'), b: r2.letzter.v, menge: 1, zeile: i, c: 100, zuschlag: r2.art === 'rundung' ? 'rundung' : r2.art, sicher: true, kand: [] }); r2.typ = 'zuschlag'; }
+        if (wahlE.rund) posten.push({ t: 'Rundung', b: wahlE.rund, menge: 1, zeile: rundZeile, c: 100, zuschlag: 'rundung', sicher: true, kand: [] });
         total = wahlE.sum;
       }
     } else {
@@ -1072,8 +1129,16 @@ window.Bon = (() => {
     k.getContext('2d').drawImage(c, x0, y0, bw, bh, 0, 0, k.width, k.height);
     return k.toDataURL('image/jpeg', 0.8);
   }
+  // ---------- Protokoll: was die Erkennung auf dem Gerät tut (zum Teilen bei Fehlern; Fehler werden nicht mehr verschluckt) ----------
+  let P = null;
+  const t0 = () => (P ? Math.round(performance.now() - P.start) : 0);
+  function pl(typ, d = {}) { if (P) P.schritte.push({ t: t0(), typ, ...d }); }
+  function pf(wo, e) { if (P) P.fehler.push({ t: t0(), wo, text: String((e && e.message) || e), stack: e && e.stack ? String(e.stack).split('\n').slice(0, 4).join(' | ') : '' }); }
+  function daumen(c, b = 360) { try { const f = Math.min(1, b / c.width), d = document.createElement('canvas'); d.width = Math.round(c.width * f); d.height = Math.round(c.height * f); d.getContext('2d').drawImage(c, 0, 0, d.width, d.height); return d.toDataURL('image/jpeg', 0.6); } catch (e) { return null; } }
   async function erkenne(daten, melde, opt = {}) {
+    P = { start: performance.now(), schritte: [], fehler: [], bilder: [], zeit: new Date().toISOString(), geraet: { ua: navigator.userAgent, speicher: navigator.deviceMemory || null, kerne: navigator.hardwareConcurrency || null, bildschirm: `${screen.width}×${screen.height}@${devicePixelRatio}` }, optionen: { ...opt } };
     const paddle = opt.motor !== 'tesseract' && await paddleDa();
+    pl('motor', { paddle, modus: window.FasanOCR ? window.FasanOCR.modus : null });
     // Fortschritt in Stufen (für Ladebalken in der App): jede Stufe meldet 0–1, hier auf den Gesamtweg umgerechnet
     const stufe = (text, a, b) => (m) => { if (melde) melde({ status: 'stufe', text, progress: a + (b - a) * Math.max(0, Math.min(1, (m && m.progress) || 0)), roh: m }); };
     const laden = stufe('Erkennung wird geladen', 0, 0.1);
@@ -1097,13 +1162,14 @@ window.Bon = (() => {
         if (paddle && await window.FasanOCR.hochkant(e.canvas)) { ec = [ec[3], ec[0], ec[1], ec[2]]; e = BB.entzerre(img, ec); sc = BB.gerade(e.canvas); }
         ausschnitt = { canvas: sc.canvas, roh: e.canvas, ecken: ec };
       }
-    } catch (e) { ausschnitt = null; }
+    } catch (e) { ausschnitt = null; pf('ausschnitt', e); }
+    pl('foto', { breite: foto && foto.width, hoehe: foto && foto.height, ausschnitt: ausschnitt ? { breite: ausschnitt.canvas.width, hoehe: ausschnitt.canvas.height, ecken: ausschnitt.ecken.map((p) => p.map(Math.round)) } : null });
     let qr = await qrSuchen(daten);
     if (!qr && ausschnitt) qr = await qrKacheln(ausschnitt.roh) || await qrSuchen(ausschnitt.roh.toDataURL('image/jpeg', 0.9)) || await qrKacheln(ausschnitt.canvas);
     const versuche = [], alle = []; let beste = null, glatt = null; const glaettungen = [];
     // lauf: leinwand wird gelesen, anzeige ist das Bild für die App (bei verbesserten Durchläufen das Original)
     const lauf = async (leinwand, psm, name, ecken, fort, anzeige, gerade = name !== 'foto') => {
-      let v, woerter, roh = '';
+      let v, woerter, roh = ''; const ts = performance.now();
       if (paddle) { v = { canvas: anzeige || leinwand, lese: leinwand, winkel: 0 }; woerter = await window.FasanOCR.woerter(leinwand, { melde: fort }); }
       else { v = await vorbereiten(leinwand, !!ecken); v.lese = v.canvas; const l = await worterLesen(w, v.canvas, psm); woerter = l.woerter; roh = l.roh; }
       let z = zeilenAus(woerter, { gerade }), r = lies(z, qr), g = guete(r, woerter);
@@ -1116,6 +1182,13 @@ window.Bon = (() => {
       // Gleichstand: der entzerrte (und noch mehr der geglättete) Bon wird angezeigt – sieht aus wie gescannt
       g += /^geglaettet2/.test(name) ? 80 : /^geglaettet/.test(name) ? 60 : /^entfaltet/.test(name) ? 45 : gerade && name !== 'foto' ? 30 : 0;
       versuche.push(`${name}:${Math.round(g)}`);
+      if (P) {
+        const pr = r.pruefung || {};
+        pl('lauf', { name, guete: Math.round(g), ms: Math.round(performance.now() - ts), breite: leinwand.width, hoehe: leinwand.height, woerter: woerter.length, sicher80: woerter.length ? +(woerter.filter((x) => x.c > 80).length / woerter.length).toFixed(2) : 0,
+          posten: r.posten.length, ohneName: r.posten.filter((p) => !p.t).length, summe: r.summe, total: r.total, gesamtOk: !!pr.gesamtOk,
+          zeilen: z.map((x) => x.text) });
+        if (leinwand.width) P.bilder.push({ name, bild: daumen(leinwand) });
+      }
       const e = { g, r, v, roh, name, ecken, z, gerade }; alle.push(e);
       if (!beste || g > beste.g) beste = e;
       lauf.lesbar = woerter.length ? woerter.filter((x) => x.c > 80).length / woerter.length : 0;
@@ -1147,12 +1220,12 @@ window.Bon = (() => {
     if (paddle) {
       try {
         if (!foto) foto = await new Promise((ok, fehler) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fehler; i.src = daten; });
-        const ef = await entfalten(fotoLeinwand(foto));
+        const ef = await entfalten(fotoLeinwand(foto), foto);
         if (ef) await lauf(ef, 6, 'entfaltet-foto', null, stufe('Blatt wird erkannt und entfaltet', 0.3, 0.33), null, true);
-      } catch (e) { /* ohne UVDoc weiter */ }
+      } catch (e) { pf('uvdoc-foto', e); }
     }
     if (paddle && beste && beste.gerade && !/^entfaltet/.test(beste.name)) {
-      try { const ef = await entfalten(beste.v.lese); if (ef) await lauf(ef, 6, 'entfaltet', beste.ecken, stufe('Knicke und Wölbung werden entfaltet', 0.33, 0.37), null, true); } catch (e) { /* ohne UVDoc weiter */ }
+      try { const ef = await entfalten(beste.v.lese); if (ef) await lauf(ef, 6, 'entfaltet', beste.ecken, stufe('Knicke und Wölbung werden entfaltet', 0.33, 0.37), null, true); } catch (e) { pf('uvdoc', e); }
     }
     // 2b. Glätten (Wellen, Knicke) auf dem besten entzerrten Durchlauf und neu lesen: gerade Zeilen lesen sich besser
     if (paddle && beste && beste.gerade && beste.z) {
@@ -1166,7 +1239,7 @@ window.Bon = (() => {
           const e1 = alle[alle.length - 1], gl2 = e1 && e1.z && glaetten(e1.v.lese, e1.z);
           if (gl2 && gl2.max > 0.15) { glaettungen.push({ ...gl2, quelle: e1.v.lese }); await lauf(gl2.canvas, 6, 'geglaettet2', beste.ecken, stufe('Restliche Wellen werden ausgeglichen', 0.42, 0.46), null, true); }
         }
-      } catch (e) { /* ohne Glätten weiter */ }
+      } catch (e) { pf('glaetten', e); }
     }
     // 3. PaddleOCR, Summe noch nicht bestätigt: weitere Durchläufe mit verbessertem Bild (Kontrast/Schärfe, dunkler)
     if (paddle && !(beste.r.pruefung && beste.r.pruefung.gesamtOk)) {
@@ -1244,7 +1317,7 @@ window.Bon = (() => {
     // die Kästen werden umgerechnet – der Bon sieht aus wie gescannt, die Lesung bleibt die bessere
     glatt = glaettungen.filter((x) => v.canvas === x.quelle || v.lese === x.quelle).pop() || null;
     // Gewinner wurde nie geglättet (z. B. erster Durchlauf nach dem Nachlesen besser): für die Anzeige jetzt glätten
-    if (!glatt && paddle && ende.gerade !== false && !/^geglaettet2/.test(name) && ende.z) { try { const g3 = glaetten(v.canvas, ende.z); if (g3) { glatt = { ...g3, quelle: v.canvas }; glaettungen.push(glatt); } } catch (e) { /* ohne */ } }
+    if (!glatt && paddle && ende.gerade !== false && !/^geglaettet2/.test(name) && ende.z) { try { const g3 = glaetten(v.canvas, ende.z); if (g3) { glatt = { ...g3, quelle: v.canvas }; glaettungen.push(glatt); } } catch (e) { pf('glaetten-anzeige', e); } }
     if (glatt) {
       const ab = glatt.abbilden;
       r = { ...r, zeilen: r.zeilen.map((z) => (z.b ? { ...z, b: ab(z.b) } : z)), posten: r.posten.map((p) => ({ ...p, rahmen: p.rahmen ? ab(p.rahmen) : p.rahmen, zusaetze: p.zusaetze ? p.zusaetze.map((x) => ({ ...x, rahmen: x.rahmen ? ab(x.rahmen) : x.rahmen })) : p.zusaetze })) };
@@ -1254,9 +1327,17 @@ window.Bon = (() => {
       if (g2) { const ab2 = g2.abbilden; r = { ...r, zeilen: r.zeilen.map((z) => (z.b ? { ...z, b: ab2(z.b) } : z)), posten: r.posten.map((p) => ({ ...p, rahmen: p.rahmen ? ab2(p.rahmen) : p.rahmen, zusaetze: p.zusaetze ? p.zusaetze.map((x) => ({ ...x, rahmen: x.rahmen ? ab2(x.rahmen) : x.rahmen })) : p.zusaetze })) }; v = { ...v, canvas: g2.canvas }; name += '²'; }
     }
     // Anzeige: begradigter Bon als „Scan“ (weißes Papier, ohne Schatten) – besser lesbar als das Foto; Original bleibt als foto
-    let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas, true); } catch (e) { anzeige = v.canvas; } }
+    let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas, true); } catch (e) { anzeige = v.canvas; pf('scanbild', e); } }
     for (const p of r.posten) p.schnipsel = schnipsel(anzeige, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
-    return { ...r, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), bildOriginal: anzeige !== v.canvas ? v.canvas.toDataURL('image/jpeg', 0.82) : null, winkel: v.winkel, roh, ecken };
+    let protokoll = null;
+    if (P) {
+      pl('ergebnis', { gewinner: name, nachlesenAuf: kandidaten.map((k) => k.name), posten: r.posten.map((p) => ({ t: p.t, b: p.b, menge: p.menge, sicher: p.sicher, zeile: p.zeile, zus: (p.zusaetze || []).map((x) => `${x.art}:${x.betrag}`) })), summe: r.summe, total: r.total, gesamtOk: !!(r.pruefung && r.pruefung.gesamtOk),
+        zeilen: r.zeilen.map((x) => `${x.typ}|${x.text}`) });
+      P.bilder.push({ name: 'anzeige', bild: daumen(anzeige, 600) });
+      P.dauer = t0(); protokoll = P; P = null;
+    }
+    return { ...r, protokoll, qr, quelle: name, motor: paddle ? 'paddle' : 'tesseract', versuche, breite: v.canvas.width, hoehe: v.canvas.height, bild: anzeige.toDataURL('image/jpeg', 0.85), bildOriginal: anzeige !== v.canvas ? v.canvas.toDataURL('image/jpeg', 0.82) : null, winkel: v.winkel, roh, ecken };
   }
-  return { erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, zeilenSpalten, cent, qrLesen, qrSuchen, paddleDa };
+  const VERSION = '3.17';
+  return { VERSION, abbruchProtokoll: () => { const x = P; if (x) { x.dauer = t0(); P = null; } return x; }, erkenne, verbessern, bonArt, bereit, qrKacheln, vorbereiten, worterLesen, lies, liesAllgemein, abgleich, zeilenAus, zeilenSpalten, cent, qrLesen, qrSuchen, paddleDa };
 })();

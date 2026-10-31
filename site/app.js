@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.16';
+  const VERSION = '3.17';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -1685,6 +1685,7 @@
         el('span', { class: 'marker g-sehen' }, ic('buch')), el('span', {}, el('strong', {}, 'Reiseinfos Portugal'), el('small', {}, 'Strom, Geld, Gesundheit, Regeln, Strände, Sprache')), ic('zurueck', 'pfeil-rechts')),
       notfallTeil(),
       el('button', { type: 'button', class: 'knopf breit', style: 'margin-top:14px', onclick: () => zeigeEinfuehrung(0) }, ic('plan'), 'Einführung ansehen'),
+      el('section', { class: 'abschnitt' }, protokollListe()),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Über dich'), profilTeil('alles', () => zeichne({ scroll: true }))),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Profil'), wahl(PROFILE, E.profil, (id) => { E.profil = id; speichereE(); wendeAn(); hoehe(S.hoehe); zeichne({ scroll: true }); })),
       el('section', { class: 'abschnitt' }, el('h3', {}, 'Aussehen'), wahl(THEMES, E.theme, (id) => { E.theme = id; speichereE(); wendeAn(); zeichne({ scroll: true }); })),
@@ -2604,8 +2605,30 @@
   // ---- Angefangene Rechnungen (Entwürfe): nach jeder Änderung auf diesem Handy gespeichert (Daten in localStorage, Foto in
   // IndexedDB). Schließen heißt nicht mehr Verwerfen; fortsetzen unter „Kosten“. Gespeichert = gebucht → Entwurf weg.
   const rwEntwuerfe = () => speicher.get('rwEntwuerfe', {});
+  // ---- Verlauf (Wunsch 31.10.): jede Änderung ist ein Schritt, Rückgängig/Wiederholen über beliebig viele Schritte.
+  // Zustand ohne Bilder (Zeilenbilder hängen an der Bon-Zeile und werden beim Zurückholen wieder angehängt).
+  const rwZustand = () => JSON.stringify({ posten: RW.posten.map((q) => ({ ...q, bild: undefined })), summe: RW.summe, dabei: RW.dabei, modus: RW.modus, zahler: RW.zahler, tip: RW.tip, tipArt: RW.tipArt, tipName: RW.tipName, z: RW.z });
+  function rwVerlaufMerken() {
+    if (!RW.hist) { RW.hist = []; RW.redo = []; }
+    const z = rwZustand();
+    if (RW.hist[RW.hist.length - 1] !== z) { RW.hist.push(z); if (RW.hist.length > 200) RW.hist.shift(); RW.redo = []; }
+  }
+  function rwZustandSetzen(z) {
+    const d = JSON.parse(z), bilder = new Map(RW.posten.filter((q) => q.bild).map((q) => [q.zl, q.bild]));
+    for (const q of d.posten) if (q.zl != null && bilder.has(q.zl)) q.bild = bilder.get(q.zl);
+    Object.assign(RW, d); RW.bonSel = null; RW.edit = -1; RW.bonLetzt = null;
+    if ($('#rw-bon')) rwBonZeichnen(false); else rwZeichnen(false);
+  }
+  function rwRueck() { if (!RW || !RW.hist || RW.hist.length < 2) return; RW.redo.push(RW.hist.pop()); haptik(10); rwZustandSetzen(RW.hist[RW.hist.length - 1]); }
+  function rwVor() { if (!RW || !RW.redo || !RW.redo.length) return; const z = RW.redo.pop(); RW.hist.push(z); haptik(10); rwZustandSetzen(z); }
+  const rwVerlaufKnoepfe = () => el('span', { class: 'reihe rw-verlauf', style: 'gap:2px' },
+    el('button', { type: 'button', class: 'knopf flach rwb-ik', disabled: !(RW.hist && RW.hist.length > 1), 'aria-label': 'Rückgängig', title: 'Rückgängig', onclick: rwRueck }, '↶'),
+    el('button', { type: 'button', class: 'knopf flach rwb-ik', disabled: !(RW.redo && RW.redo.length), 'aria-label': 'Wiederholen', title: 'Wiederholen', onclick: rwVor }, '↷'));
   function rwMerken() {
     if (!RW || (!RW.foto && !RW.posten.length && !RW.summe)) return;
+    const vor = RW.redo ? RW.redo.length : 0, n = RW.hist ? RW.hist.length : 0;
+    rwVerlaufMerken();
+    if ((RW.hist.length !== n || RW.redo.length !== vor)) for (const k of document.querySelectorAll('.rw-verlauf')) k.replaceWith(rwVerlaufKnoepfe());
     const b = RW.bon;
     const e = { id: RW.id, z: RW.z, summe: RW.summe, summeHand: RW.summeHand, quelle: RW.quelle, schritt: RW.schritt, modus: RW.modus, dabei: RW.dabei, posten: RW.posten,
       aktiv: RW.aktiv, tipArt: RW.tipArt, tip: RW.tip, tipName: RW.tipName || '', v: RW.v, mehr: RW.mehr, zahler: RW.zahler, geladen: RW.geladen, t: Date.now(),
@@ -2689,11 +2712,58 @@
       el('div', { class: 'rw-lade-balken', role: 'progressbar', 'aria-label': 'Fortschritt der Erkennung', 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': String(Math.round(f.p * 100)) }, el('i', { style: `width:${Math.round(f.p * 100)}%` })),
       el('small', { class: 'leise' }, 'Gründlich statt schnell: Jeder Betrag wird mehrfach gelesen. Das kann ein, zwei Minuten dauern. Das Foto bleibt auf dem Handy.'));
   }
+  // ---------- Erkennungs-Protokoll (Wunsch 31.10.): was die Erkennung auf diesem Handy getan hat, zum Teilen mit der
+  // Entwicklung. Bleibt im Gerät (IndexedDB), die letzten 5; geteilt wird nur, was du selbst teilst.
+  const FEHLER_LOG = [];
+  window.addEventListener('error', (e) => { FEHLER_LOG.push({ t: new Date().toISOString(), text: String(e.message), wo: `${e.filename || ''}:${e.lineno || ''}` }); if (FEHLER_LOG.length > 30) FEHLER_LOG.shift(); });
+  window.addEventListener('unhandledrejection', (e) => { FEHLER_LOG.push({ t: new Date().toISOString(), text: String((e.reason && e.reason.message) || e.reason) }); if (FEHLER_LOG.length > 30) FEHLER_LOG.shift(); });
+  // Versionsmarke auf jeder Seite (Wunsch 31.10.): zeigt, ob das Handy die aktuelle Fassung nutzt; „!“ wenn ein Teil
+  // (bon.js) aus einem alten Zwischenspeicher kommt
+  function versionMarke() {
+    let m = document.getElementById('version-marke');
+    if (!m) { m = el('div', { id: 'version-marke', 'aria-hidden': 'true' }); document.body.append(m); }
+    const bv = window.Bon && window.Bon.VERSION, alt = bv && bv !== VERSION;
+    m.textContent = `v${VERSION}${alt ? ` ! bon ${bv}` : ''}`; m.classList.toggle('alt', !!alt);
+  }
+  setTimeout(versionMarke, 0); setInterval(versionMarke, 5000);
+  async function protokollMerken(r, prot, original, fehler) {
+    try {
+      const swV = navigator.serviceWorker && navigator.serviceWorker.controller ? 'aktiv' : 'kein';
+      const p = { app: VERSION, bonJs: window.Bon && window.Bon.VERSION, sw: swV, rechnung: r.id, ...(prot || { schritte: [], fehler: [] }), abbruch: fehler ? String(fehler.stack || fehler) : null, seiteFehler: FEHLER_LOG.slice(), original };
+      const id = 'prot-' + Date.now();
+      await fotoSpeichern(id, p);
+      const l = speicher.get('protokolle', []).concat({ id, t: Date.now(), rw: r.id, posten: prot && prot.schritte ? (prot.schritte.find((x) => x.typ === 'ergebnis') || {}).posten?.length : null });
+      while (l.length > 5) { const alt = l.shift(); try { const db = await fotoDb(); db.transaction('fotos', 'readwrite').objectStore('fotos').delete(alt.id); } catch (e) { /* weiter */ } }
+      speicher.set('protokolle', l); r.protId = id;
+    } catch (e) { /* Protokoll darf die Erkennung nie stören */ }
+  }
+  async function protokollTeilen(id, mitFoto = true) {
+    const l = speicher.get('protokolle', []), e = id ? l.find((x) => x.id === id) : l[l.length - 1];
+    if (!e) { toast('Noch kein Protokoll – zuerst einen Bon scannen.'); return; }
+    const p = await fotoLaden(e.id); if (!p) { toast('Protokoll nicht mehr vorhanden.'); return; }
+    const daten = mitFoto ? p : { ...p, original: null };
+    const name = `fasan-protokoll-${VERSION}-${new Date(e.t).toISOString().slice(0, 16).replace(/[:T]/g, '-')}.json`;
+    const datei = new File([JSON.stringify(daten)], name, { type: 'application/json' });
+    try { if (navigator.canShare && navigator.canShare({ files: [datei] })) { await navigator.share({ files: [datei], title: 'Fasan Bon-Protokoll' }); return; } } catch (err) { if (err && err.name === 'AbortError') return; }
+    const a = el('a', { href: URL.createObjectURL(datei), download: name }); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+    toast('Protokoll gespeichert (Downloads).');
+  }
+  function protokollListe() {
+    const l = speicher.get('protokolle', []).slice().reverse();
+    return el('div', { style: 'display:grid;gap:6px' }, el('h3', {}, 'Bon-Protokolle'),
+      el('p', { class: 'leise klein' }, 'Was die Erkennung beim Lesen getan hat (Durchläufe, Zeiten, Fehler, Zwischenbilder, auf Wunsch das Foto). Bleibt auf diesem Handy, bis du es teilst.'),
+      l.length ? l.map((e) => el('div', { class: 'reihe', style: 'justify-content:space-between;align-items:center;gap:8px;margin:6px 0' },
+        el('span', { class: 'klein' }, `${new Date(e.t).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}${e.posten != null ? ` · ${e.posten} Posten` : ''}`),
+        el('span', { class: 'reihe', style: 'gap:6px' },
+          el('button', { type: 'button', class: 'knopf haupt', onclick: () => protokollTeilen(e.id, true) }, 'Teilen mit Foto'),
+          el('button', { type: 'button', class: 'knopf flach', onclick: () => protokollTeilen(e.id, false) }, 'ohne Foto')))) : el('p', { class: 'leise klein' }, 'Noch keins.'));
+  }
   async function rwLesen(r) {
     const status = (t) => { r.lesen = t; const e = $('.rw-status'); if (e && RW === r) e.textContent = t; };
     try {
       const lade = (src, da) => (da ? Promise.resolve() : new Promise((ok, fehler) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = fehler; document.head.append(sc); }));
       await Promise.all([lade('bon.js', window.Bon), lade('speisen.js', window.Speisen).catch(() => null)]);
+      const original = r.foto;
       const b = await window.Bon.erkenne(r.foto, (m) => {
         if (m.status === 'stufe') { rwFortschritt(r, m.text, m.progress); return; }
         const pz = Math.round((m.progress || 0) * 100);
@@ -2702,12 +2772,16 @@
         else if (/nachlesen/.test(m.status || '')) status(`Beträge werden zur Sicherheit mehrfach gelesen … ${pz} %`);
         else if (/recogniz/i.test(m.status || '')) status(`Bon wird gelesen … ${pz} %`);
       });
+      protokollMerken(r, b.protokoll, original, null);
       r.bon = b; window.__bonLetzte = b; r.foto = b.bild; r.fotoOrig = b.bildOriginal || null; r.lesen = null;
       // „Wofür?“ vorbelegen: Art + Geschäftsname vom Bon (nur wenn noch leer)
       if (!r.z && b.art && (b.art.name || b.art.geschaeft)) r.z = [b.art.name, b.art.geschaeft].filter(Boolean).join(' · ').slice(0, 60);
       const total = b.qr ? b.qr.total : b.total;
       if (total != null && !r.summeHand) { r.summe = total; r.quelle = b.qr ? 'Aus dem QR-Code auf dem Bon gelesen.' : b.pruefung && b.pruefung.gesamtOk ? 'Gelesen und geprüft: Die Posten ergeben genau diese Summe.' : 'Von der Summenzeile gelesen. Bitte mit dem Foto vergleichen.'; }
-    } catch (e) { r.lesen = 'Die Erkennung hat nicht geklappt. Du kannst alles von Hand eintragen.'; r.bonFehler = true; }
+    } catch (e) {
+      r.lesen = 'Die Erkennung hat nicht geklappt. Du kannst alles von Hand eintragen.'; r.bonFehler = true;
+      protokollMerken(r, window.Bon && window.Bon.abbruchProtokoll ? window.Bon.abbruchProtokoll() : null, r.foto, e);
+    }
     // während des Lesens gespeichert und geschlossen: Ergebnis in den Entwurf schreiben, damit beim Fortsetzen nichts fehlt
     if (RW !== r) { if (rwEntwuerfe()[r.id]) { const offen = RW; RW = r; try { rwMerken(); } finally { RW = offen; } } return; }
     if (r.schritt === 'summe') rwZeichnen(false);
@@ -2720,6 +2794,7 @@
       el('button', { type: 'button', class: 'knopf flach', onclick: rwZurueck, 'aria-label': i > 0 ? 'Einen Schritt zurück' : 'Abbrechen' }, ic('x'), i > 0 ? 'Zurück' : 'Abbrechen'),
       el('div', { class: 'rw-mitte' }, el('h2', { id: 'rw-titel', tabindex: '-1' }, rwNamen[RW.schritt]),
         el('div', { class: 'rw-punkte', role: 'img', 'aria-label': `Schritt ${i + 1} von ${folge.length}` }, folge.map((s, k) => el('i', { class: k <= i ? 'an' : '' })))),
+      rwVerlaufKnoepfe(),
       el('button', { type: 'button', class: 'knopf haupt rw-sichern', onclick: rwZwischenspeichern, 'aria-label': 'Speichern und schließen – später unter Kosten, Angefangen weitermachen' }, ic('sichern'), 'Speichern'));
   }
   // Jederzeit verlassen ohne Datenverlust: Entwurf (wird ohnehin nach jeder Änderung gemerkt) sichern, schließen, Weg zurück zeigen
@@ -3316,7 +3391,7 @@
     setze(box,
       el('div', { class: 'rwb-kopf' },
         el('button', { type: 'button', class: 'knopf flach', onclick: () => rwBonZu(), 'aria-label': 'Zurück zur Liste der Posten' }, ic('zurueck'), 'Liste'),
-        el('div', { class: 'reihe' },
+        el('div', { class: 'reihe' }, rwVerlaufKnoepfe(),
           el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(!!RW.bonGanz), 'aria-label': RW.bonGanz ? 'Nur Posten zeigen' : 'Ganzen Bon zeigen (Kopf und Fuß)', onclick: () => { RW.bonGanz = !RW.bonGanz; neu(); } }, '↕'),
           el('button', { type: 'button', class: 'knopf flach rwb-ik', 'aria-pressed': String(RW.bonMarken), 'aria-label': RW.bonMarken ? 'Kästen ausblenden' : 'Kästen einblenden', onclick: () => { RW.bonMarken = !RW.bonMarken; neu(); } }, '▭')),
         el('button', { type: 'button', class: 'knopf haupt rw-sichern', onclick: rwZwischenspeichern, 'aria-label': 'Speichern und schließen – später weitermachen' }, ic('sichern'), 'Speichern')),

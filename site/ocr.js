@@ -264,7 +264,22 @@ const motor = (() => {
     const w = await woerter(c);
     return w.map((x) => ({ ...x, b: { x0: x.b.x0, x1: x.b.x1, y0: x.b.y0 + Math.max(0, y0 - pad), y1: x.b.y1 + Math.max(0, y0 - pad) } }));
   }
-  return { lade, verfuegbar, finde, hochkant, woerter, mehrfach, streifen, liesKasten: async (c, k) => liesKasten(c, k, await lade()) };
+  // ---------- Entzerren mit UVDoc (Verhoeven, Magne, Sorkine-Hornung 2023, MIT; vendor/uvdoc/uvdoc.onnx) ----------
+  // Eingang: RGB 488×712, Werte 0–1 (wie demo.py im UVDoc-Repository). Ausgang: Gitter 2×45×31 mit Quellkoordinaten
+  // in [-1, 1] (grid_sample, align_corners) – für jeden Punkt des glatten Bildes, wo er im Foto liegt.
+  let uv = null;
+  async function uvdoc(leinwand) {
+    const m = await lade();
+    if (!uv) uv = (async () => { const b = await holen(new URL('vendor/uvdoc/uvdoc.onnx', G.location.href).href); return m.ort.InferenceSession.create(b, { executionProviders: ['wasm'], graphOptimizationLevel: 'all' }); })().catch((e) => { uv = null; throw e; });
+    const s = await uv, W = 488, H = 712, c = neueLeinwand(); c.width = W; c.height = H;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(leinwand, 0, 0, W, H);
+    const p = g.getImageData(0, 0, W, H).data, n = W * H, t = new Float32Array(3 * n);
+    for (let i = 0, j = 0; i < n; i++, j += 4) { t[i] = p[j] / 255; t[n + i] = p[j + 1] / 255; t[2 * n + i] = p[j + 2] / 255; }
+    const aus = await s.run({ [s.inputNames[0]]: new m.ort.Tensor('float32', t, [1, 3, H, W]) }), o = aus[s.outputNames[0]];
+    return { gitter: Array.from(o.data), dims: o.dims };
+  }
+  async function uvdocDa() { try { const r = await fetch(new URL('vendor/uvdoc/uvdoc.onnx', G.location.href).href, { method: 'HEAD' }); return r.ok; } catch (e) { return false; } }
+  return { lade, verfuegbar, finde, hochkant, woerter, mehrfach, streifen, uvdoc, uvdocDa, liesKasten: async (c, k) => liesKasten(c, k, await lade()) };
 })();
 
 // ---------- Im Web Worker: Rechnen, ohne die Oberfläche zu blockieren (Animation und Bedienung bleiben flüssig) ----------
@@ -286,6 +301,7 @@ if (imArbeiter) {
         else if (fn === 'hochkant') r = await motor.hochkant(q);
         else if (fn === 'mehrfach') r = await motor.mehrfach(q, a.k, a.opt || {});
         else if (fn === 'streifen') r = await motor.streifen(q, a.y0, a.y1);
+        else if (fn === 'uvdoc') r = await motor.uvdoc(q);
         else throw new Error('unbekannt: ' + fn);
       }
       G.postMessage({ n, r });
@@ -326,6 +342,8 @@ G.FasanOCR = {
   async finde(c, opt = {}) { await bereit(); return modus === 'arbeiter' ? ruf('finde', { id: await bildNr(c), opt: ohneFn(opt) }) : motor.finde(c, opt); },
   async hochkant(c) { await bereit(); return modus === 'arbeiter' ? ruf('hochkant', { id: await bildNr(c) }) : motor.hochkant(c); },
   async mehrfach(c, k, opt = {}) { await bereit(); return modus === 'arbeiter' ? ruf('mehrfach', { id: await bildNr(c), k, opt: ohneFn(opt) }) : motor.mehrfach(c, k, opt); },
+  uvdocDa: motor.uvdocDa,
+  async uvdoc(c) { await bereit(); return modus === 'arbeiter' ? ruf('uvdoc', { id: await bildNr(c) }) : motor.uvdoc(c); },
   async streifen(c, y0, y1) { await bereit(); return modus === 'arbeiter' ? ruf('streifen', { id: await bildNr(c), y0, y1 }) : motor.streifen(c, y0, y1); },
   // Speicher im Worker freigeben (Bilder eines Bons sind zusammen schnell 100 MB)
   frei() { ids = new WeakMap(); if (arbeiter && !kaputt) ruf('frei', {}).catch(() => null); },

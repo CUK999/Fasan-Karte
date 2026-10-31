@@ -73,3 +73,17 @@ Gauß-Feld; UVDoc als ONNX nach Lizenzklärung.
 
 Quellen: developers.google.com/ml-kit/vision/doc-scanner; faq.veryfi.com (Receipt Layout Correction); pypi.org/project/page-dewarp;
 imagetotable.ai/blog/ocr-low-accuracy-scanned-documents
+
+## 5. UVDoc eingebaut (3.16)
+
+Vorgabe des Nutzers (31.10.): erst das beste Ergebnis, Downloadgröße und Lizenz später.
+- Gewichte und Code aus github.com/tanguymagne/UVDoc (Repository MIT), Commit und SHA-256 festgenagelt.
+- Umwandlung nach ONNX im GitHub-Workflow `modelle.yml` (Zweig `modelle`). Erster Versuch wich um 0,19 ab: In-place-ReLU
+  wird beim Export falsch verkettet. Ohne In-place: Abweichung 3,3·10⁻⁶ zu PyTorch.
+- In der App: Durchlauf „entfaltet“ (Gitter 31×45 → Bild neu abgetastet), danach Glätten aus den Zeilen. Bester
+  Durchlauf gewinnt. Test: REWE 2 (stark zerknittert) jetzt glatt und waagrecht; REWE 1 liest UVDoc schlechter, dort
+  gewinnt die Zeilen-Glättung.
+- Größe 31,6 MB, lädt erst beim ersten Bon nach der Erkennung.
+
+Noch nicht ausprobiert, Kandidaten für „bestes Ergebnis“: PaddleOCR-Server-Erkennungsmodell (größer, genauer als das
+Mobil-Modell), DocRes (Entschatten/Aussehen; Lizenz im Repository nicht angegeben).

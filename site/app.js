@@ -1,7 +1,7 @@
 'use strict';
 /* Fasan Karte – Logik. Keine Konten, keine Statistik; Markierungen bleiben auf dem Gerät (localStorage). */
 (() => {
-  const VERSION = '3.15';
+  const VERSION = '3.16';
   const STAND_NOTIZEN = '23.10.2026'; // Recherche der Notizen ohne eigene Quelle. Preise und Gratis-Angaben tragen seit 24.10.2026 eigene Quellen.
   const datumDe = (iso) => (iso ? iso.split('-').reverse().join('.') : '');
   const TAGE = [
@@ -2931,16 +2931,29 @@
   async function rwBilderNach() { if (!RW) return; for (const q of RW.posten) if (!q.bild && q.zl != null) q.bild = await rwSchnipsel(q.zl); if (RW) { if ($('#rw-bon')) rwBonZeichnen(false); else rwZeichnen(false); } }
   const rwBetragAus = (t) => { const m = [...String(t).matchAll(/(-?\d{1,3}(?:[.,' ]\d{3})*[.,]\d{2})(?!\d)/g)].pop(); if (!m) return 0; const r = m[1], neg = r.startsWith('-'), x = r.replace(/^-/, ''); const v = Math.round(parseFloat(`${x.slice(0, -3).replace(/[.,' ]/g, '')}.${x.slice(-2)}`) * 100); return neg ? -v : v; };
   // Stelle im Bild antippen, wo kein Kasten ist: dort eine Zeile anlegen und (wenn die Erkennung geladen ist) lesen
-  async function rwBonStelle(y) {
-    const b = RW.bon;
+  // Zeilenraster des Bons: Abstand der gedruckten Zeilen (Median der Mittenabstände im Postenblock)
+  function rwRaster() {
+    const b = RW.bon, cy = (z) => (z.b.y0 + z.b.y1) / 2;
+    const zs = b.zeilen.filter((z) => z.b && z.text && z.typ !== 'neu').map(cy).sort((p, q) => p - q);
+    const d = zs.slice(1).map((y, k) => y - zs[k]).filter((x) => x > 4).sort((p, q) => p - q);
     const hs = b.zeilen.filter((z) => z.b).map((z) => z.b.y1 - z.b.y0).sort((p, q) => p - q), h = hs.length ? hs[hs.length >> 1] : b.hoehe / 60;
-    const z = { text: '', b: { x0: b.breite * 0.02, x1: b.breite * 0.98, y0: Math.max(0, y - h * 0.55), y1: Math.min(b.hoehe, y + h * 0.55) }, typ: 'neu', block: true };
+    return { pitch: d.length ? Math.min(d[Math.floor(d.length * 0.35)], 1.4 * h) : h, zs };
+  }
+  // Leere Stelle angetippt: auf das Zeilenraster einrasten (nicht irgendwo ein Band über drei Zeilen), nur diese Zeile lesen
+  async function rwBonStelle(y0) {
+    const b = RW.bon, { pitch, zs } = rwRaster();
+    let y = y0; const oben = zs.filter((v) => v <= y0).pop(), unten = zs.find((v) => v > y0);
+    if (oben != null && unten != null && unten - oben > 1.4 * pitch) { const k = Math.max(1, Math.round((unten - oben) / pitch)), st = (unten - oben) / k; y = oben + Math.round((y0 - oben) / st) * st; }
+    else if (oben != null && y0 - oben < 1.6 * pitch) y = oben + pitch * Math.max(1, Math.round((y0 - oben) / pitch));
+    else if (unten != null && unten - y0 < 1.6 * pitch) y = unten - pitch * Math.max(1, Math.round((unten - y0) / pitch));
+    const h = pitch;
+    const z = { text: '', b: { x0: b.breite * 0.02, x1: b.breite * 0.98, y0: Math.max(0, y - h * 0.5), y1: Math.min(b.hoehe, y + h * 0.5) }, typ: 'neu', block: true };
     b.zeilen.push(z); RW.bonSel = b.zeilen.length - 1; haptik(); rwBonZeichnen(false);
     try {
       if (window.FasanOCR && await window.FasanOCR.verfuegbar()) {
         if (!rwFotoBild || rwFotoBild.src !== RW.foto) rwFotoBild = await new Promise((ok) => { const i = new Image(); i.onload = () => ok(i); i.src = RW.foto; });
         const c = document.createElement('canvas'); c.width = b.breite; c.height = b.hoehe; c.getContext('2d').drawImage(rwFotoBild, 0, 0, b.breite, b.hoehe);
-        const w = (await window.FasanOCR.streifen(c, z.b.y0, z.b.y1)).filter((x) => (x.b.y0 + x.b.y1) / 2 > z.b.y0 - h * 0.2 && (x.b.y0 + x.b.y1) / 2 < z.b.y1 + h * 0.2).sort((p, q) => p.b.x0 - q.b.x0);
+        const w = (await window.FasanOCR.streifen(c, z.b.y0, z.b.y1)).filter((x) => Math.abs((x.b.y0 + x.b.y1) / 2 - y) < h * 0.38).sort((p, q) => p.b.x0 - q.b.x0);
         if (w.length) { z.text = w.map((x) => x.t).join(' '); z.b = { x0: Math.min(...w.map((x) => x.b.x0)), x1: Math.max(...w.map((x) => x.b.x1)), y0: Math.min(...w.map((x) => x.b.y0)), y1: Math.max(...w.map((x) => x.b.y1)) }; }
       }
     } catch (err) { /* ohne Lesen: Betrag von Hand */ }
@@ -3279,7 +3292,8 @@
             } }, ic('aus'), 'Löschen')),
           el('p', { class: 'leise klein' }, aus ? 'Ausgeblendet: zählt nicht zur Rechnung.' : 'Ausblenden, wenn die Zeile kein Posten ist (z. B. Zwischensumme). Änderst du einen Betrag, prüft die App die anderen Posten mit derselben Ziffer nach.'));
       } else {
-        const v = rwBetragAus(z.text);
+        let v = rwBetragAus(z.text);
+        if (!v && z.b) { const { pitch } = rwRaster(), cy = (z.b.y0 + z.b.y1) / 2; const nb = b.zeilen.filter((o) => o !== z && o.b && o.text && Math.abs((o.b.y0 + o.b.y1) / 2 - cy) < 0.4 * pitch && rwBetragAus(o.text)); if (nb.length) v = rwBetragAus(nb[0].text); }
         const bt = el('input', { type: 'text', inputmode: 'decimal', class: 'geld', value: v ? centText(Math.abs(v)) : '', placeholder: '0,00', 'aria-label': 'Betrag', autocomplete: 'off' });
         blatt = el('div', { class: 'rwb-blatt' + (RW.bonBlattNeu ? ' neu' : '') }, el('div', { class: 'rwb-titel' }, el('strong', {}, z.text ? 'Diese Zeile ist noch kein Posten' : 'Zeile wird gelesen …'),
             el('button', { type: 'button', class: 'knopf flach rwb-zu', 'aria-label': 'Schließen', onclick: () => { RW.bonSel = null; neu(); } }, '✕'), el('span', { class: 'leise klein rwb-text' }, z.text)),

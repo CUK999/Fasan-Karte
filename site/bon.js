@@ -366,7 +366,7 @@ window.Bon = (() => {
     steuer: /\b(mwst|mw\.?st|ust|vat|gst|sst|hst|pst|tax|taxes|sales tax|iva|tva|btw|moms|mva|alv|dph|pdv|kdv|steuer|netto|brutto|incid|incidencia|incidencias|imponible|imponibile|imposta|taxa iva|base|tributavel|ht|sem iva|net)\b/,
     service: /\b(service|serv|svc|bedienung|trinkgeld|tip|tips|gratuity|servizio|pourboire|fooi|propina)\b/,
     // Stückzahl-Summen („Total Qty 2“, „Item(s): 5“, „Total Points“): nie die Gesamtsumme (SROIE 003, 052, 054)
-    anzahl: /\b(total\s*(qty|quantity|items?|pcs|points|pts)|items?\s*\(?s?\)?\s*:|qty\s*\(?s?\)?\s*:|item count|iten count|no\.? of items|anzahl artikel|artikelanzahl|anz\.? artikel)/,
+    anzahl: /\b(total\s*(qty|quantity|items?|pcs|points|pts)|items?\s*\(?s?\)?\.?\s*:|qty\s*\(?s?\)?\.?\s*:|item count|iten count|no\.? of items|anzahl artikel|artikelanzahl|anz\.? artikel)/,
     // „Total incl. GST“ ist die Gesamtsumme, keine Steuerzeile; „Net Total“ (Malaysia, Singapur) ebenso
     inklSteuer: /\b(incl|inkl|inclusive?|inclusiv\s+e|including|inc)\b\.?\s*(of\s*)?(gst|vat|tax|mwst|iva|tva|sst|ust)\b|\b(net|nett)\s+total\b/,
     // Kopf einer Steuer-Übersicht: Zeilen danach sind Steuertabelle, keine Summe (SROIE 031: „GST Summary … Total 70.75“)
@@ -433,7 +433,7 @@ window.Bon = (() => {
   }
   const buchst = (t) => (ohneAkz(t).replace(/\b(x|kg|eur|euro|usd|chf|gbp|un|uni|stk|st|pcs|l|cl|ml|g)\b/g, '').match(/[a-z]/g) || []).length;
   function nameAus(t) {
-    return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/[€$£¥₩₹]|(?<![\p{L}])(euro|eur|usd|chf|gbp|jpy|fr\.|kr|zł|kč)(?![\p{L}])/giu, '') // Währung nur als eigenes Wort (sonst wurde KRAEUTERQUARK zu AEUTERQUARK, FEUERZEUG zu FEZEUG)
+    return t.replace(MENGE_VORN, '').replace(/^\s*(uni|un|jni|unl|und|unid|uds?|stk|pcs|pc)\b\.?\s*/i, '').replace(/\b\d{1,2}\s*%/g, '').replace(/[€$£¥₩₹]|(?<![\p{L}])(euro|eur|usd|chf|gbp|jpy|fr\.|kr|zł|kč|rm|myr|sgd|thb|idr|php|vnd|aud|nzd|cad|hkd|cny|rmb|krw|inr|try|pln|czk|huf|sek|nok|dkk|brl|mxn|zar|aed)(?![\p{L}])/giu, '') // Währung nur als eigenes Wort (sonst wurde KRAEUTERQUARK zu AEUTERQUARK, FEUERZEUG zu FEZEUG)
       .replace(/\s+\d+[.,]\d[a-z]?\s*$/i, '').replace(/\s+\d{3,5}\s?[A-D]\s*\*?\s*$/, '').replace(/\s+\d{1,3}\s\d{2}\s*[A-D]?\s*\*?\s*$/, '').replace(/\s+[A-Z0-9*]{1,2}\s*$/, '').replace(/^[^\wÀ-ÿ]+|[^\wÀ-ÿ.)]+$/g, '').replace(/\s+/g, ' ').trim().slice(0, 40);
   }
 
@@ -1013,14 +1013,19 @@ window.Bon = (() => {
   }
   const drehen180 = (c) => { const o = document.createElement('canvas'); o.width = c.width; o.height = c.height; const g = o.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, o.width, o.height); g.translate(o.width, o.height); g.rotate(Math.PI); g.drawImage(c, 0, 0); return o; };
   // Güte eines Ergebnisses: Summe stimmt mit QR/Tabelle > sichere Posten > viele Posten > sichere Wörter
+  const widersprueche = (r) => (r.zeilen || []).filter((z) => /pfand|deposit|statiegeld|vasilhame/i.test(z.text) && !/leergut|r[uü]ckgabe/i.test(z.text)).filter((z) => { const bt = betraege(z.text, r.dez || ','); return bt.length >= 2 && Math.abs(bt[0].v) !== Math.abs(bt[bt.length - 1].v); }).length;
   function guete(r, woerter) {
     const sicher = r.posten.filter((p) => p.sicher).length, gut = woerter.filter((x) => x.c > 70).length;
     // verrutschte Zuordnung (Betrag der Nachbarzeile) erzeugt Posten ohne Namen und Namenszeilen ohne Betrag – beides kostet
     const namenlos = r.posten.filter((p) => p.nameUnsicher && !p.fehlt).length, waisen = (r.zeilen || []).filter((z) => z.typ === 'unklar').length;
     // „Summe stimmt“ zählt nur voll, wenn die Zuordnung in sich stimmig ist (kein namenloser Posten, kein Name ohne Betrag) –
     // sonst kann eine zufällig passende Summe eine verrutschte Zuordnung gewinnen lassen
-    const stimmig = Math.max(0, 1 - 0.3 * (namenlos + waisen));
-    return (r.pruefung && r.pruefung.gesamtOk ? 10000 * stimmig : 0) + (r.total != null && r.summe === r.total ? 5000 * stimmig : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1 - 150 * (namenlos + waisen);
+    // Widerspruch in der Zeile selbst: „PFAND 0,25 EUR 0,39“ – der genannte Pfandbetrag muss der Betrag der Zeile sein.
+    // Verrutscht die Betragsspalte um eine Zeile, geht die Summe trotzdem auf (gleiche Beträge, falsch verteilt); das hier
+    // merkt es (Test: REWE gedreht, alle Beträge eine Zeile zu hoch und trotzdem „geprüft“)
+    const widerspruch = widersprueche(r);
+    const stimmig = Math.max(0, 1 - 0.3 * (namenlos + waisen) - 0.5 * widerspruch);
+    return (r.pruefung && r.pruefung.gesamtOk ? 10000 * stimmig : 0) + (r.total != null && r.summe === r.total ? 5000 * stimmig : 0) + sicher * 100 + r.posten.length * 20 + Math.min(gut, 400) * 0.1 - 150 * (namenlos + waisen) - 400 * widerspruch;
   }
   // Name aus einer neu gelesenen Zeile ziehen („… Uni NAME 13% …“)
   function nameAusZeile(t) {
@@ -1329,6 +1334,8 @@ window.Bon = (() => {
     // Anzeige: begradigter Bon als „Scan“ (weißes Papier, ohne Schatten) – besser lesbar als das Foto; Original bleibt als foto
     let anzeige = v.canvas; if (paddle) { try { anzeige = scanBild(v.canvas, true); } catch (e) { anzeige = v.canvas; pf('scanbild', e); } }
     for (const p of r.posten) p.schnipsel = schnipsel(anzeige, p.rahmen || (r.zeilen[p.zeile] && r.zeilen[p.zeile].b));
+    // Gewinner mit Widerspruch in einer Zeile: nie „geprüft“ melden, auch wenn die Summe aufgeht
+    if (r.pruefung && r.pruefung.gesamtOk && widersprueche(r)) r = { ...r, pruefung: { ...r.pruefung, gesamtOk: false, widerspruch: true } };
     let protokoll = null;
     if (P) {
       pl('ergebnis', { gewinner: name, nachlesenAuf: kandidaten.map((k) => k.name), posten: r.posten.map((p) => ({ t: p.t, b: p.b, menge: p.menge, sicher: p.sicher, zeile: p.zeile, zus: (p.zusaetze || []).map((x) => `${x.art}:${x.betrag}`) })), summe: r.summe, total: r.total, gesamtOk: !!(r.pruefung && r.pruefung.gesamtOk),

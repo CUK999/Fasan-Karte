@@ -47,7 +47,8 @@ jobs:
           print('Form', out.shape, 'größte Abweichung', float(np.abs(out - ref).max()))
           assert out.shape == (1, 2, 45, 31) and np.abs(out - ref).max() < 1e-3
           PY
-          python3 export.py
+          set -o pipefail
+          python3 export.py 2>&1 | tee ../export-log.txt
           sha256sum uvdoc.onnx | tee uvdoc.onnx.sha256
           ls -la uvdoc.onnx
 
@@ -59,3 +60,11 @@ jobs:
           git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
           git add . && git commit -q -m "UVDoc als ONNX (Commit 4c9b82b, Gewichte 7e90861b)"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" modelle
+
+      - name: Protokoll ablegen (auch bei Fehler, Zweig „modelle-log“)
+        if: always()
+        run: |
+          mkdir -p log && cp export-log.txt log/ 2>/dev/null || echo "kein Protokoll" > log/export-log.txt
+          cd log && git init -q && git checkout -q -b modelle-log
+          git config user.name "github-actions" && git config user.email "github-actions@users.noreply.github.com"
+          git add . && git commit -q -m "Protokoll Modellbau" && git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" modelle-log
